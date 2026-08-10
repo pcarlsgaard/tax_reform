@@ -1,0 +1,35 @@
+{
+  "taxYear": 2024,
+  "standardDeduction": { "single": 14600, "married": 29200 },
+  "brackets": {
+    "single": [[11600, 0.10], [47150, 0.12], [100525, 0.22], [191950, 0.24], [243725, 0.32], [609350, 0.35], [null, 0.37]],
+    "married": [[23200, 0.10], [94300, 0.12], [201050, 0.22], [383900, 0.24], [487450, 0.32], [731200, 0.35], [null, 0.37]]
+  },
+  "payroll": {
+    "socialSecurityRateEach": 0.062,
+    "socialSecurityWageCap": 168600,
+    "medicareRateEach": 0.0145,
+    "additionalMedicareRate": 0.009,
+    "additionalMedicareThreshold": { "single": 200000, "married": 250000 }
+  },
+  "childTaxCredit": {
+    "perChild": 2000,
+    "refundablePerChild": 1700,
+    "refundEarnedIncomeFloor": 2500,
+    "refundRate": 0.15,
+    "phaseoutThreshold": { "single": 200000, "married": 400000 },
+    "phaseoutPerThousand": 50
+  },
+  "eitc": {
+    "0": { "phaseInRate": 0.0765, "maximum": 632, "phaseOutRate": 0.0765, "phaseOutStart": { "single": 10330, "married": 17250 } },
+    "1": { "phaseInRate": 0.34, "maximum": 4213, "phaseOutRate": 0.1598, "phaseOutStart": { "single": 22720, "married": 29640 } },
+    "2": { "phaseInRate": 0.40, "maximum": 6960, "phaseOutRate": 0.2106, "phaseOutStart": { "single": 22720, "married": 29640 } },
+    "3": { "phaseInRate": 0.45, "maximum": 7830, "phaseOutRate": 0.2106, "phaseOutStart": { "single": 22720, "married": 29640 } }
+  },
+  "sources": [
+    "https://www.irs.gov/irb/2023-48_IRB",
+    "https://www.irs.gov/pub/irs-prior/p15--2024.pdf",
+    "https://www.irs.gov/credits-deductions/individuals/earned-income-and-earned-income-tax-credit-eitc-tables",
+    "https://www.irs.gov/pub/irs-prior/f1040s8--2024.pdf"
+  ]
+}

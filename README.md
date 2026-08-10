@@ -1,47 +1,74 @@
-# Tax Reform Modeling Project
+# Consumption Tax Reform Simulator
 
-This repository contains a comprehensive suite of Python scripts and Jupyter notebooks designed to model the macroeconomic and household-level impacts of a proposed tax and healthcare reform. The reform centers on replacing the current U.S. income and payroll tax system with a broad-based consumption tax (VAT), complemented by universal adult and child tax credits, and a reformed healthcare subsidy system.
+A transparent, static simulator for a broad-based U.S. destination-based consumption tax with universal adult and child credits.
 
-## Project Overview
+The app explains the NIPA cash-flow base, rate and credit arithmetic, representative wage-only households under 2024 law, and stylized business treatment of expensing and border adjustment.
 
-The core objective of this project is to simulate and analyze:
-1.  **Macroeconomic Tax Base:** Estimating the size of a broad-based consumption tax (VAT) using National Income and Product Accounts (NIPA) data from the Federal Reserve Economic Data (FRED).
-2.  **Household Tax Burden (Tax Wedge):** Comparing the "tax wedge" (the difference between total employer cost and employee take-home pay) under the current tax system (including 2024 income tax brackets, payroll taxes, EITC, and CTC) versus the proposed flat-rate consumption tax with universal credits.
-3.  **Healthcare Reform Simulation:** Modeling portable health insurance subsidies across various plan tiers (Catastrophic, Bronze, Silver, Gold, Platinum) and capping individual premium contributions as a percentage of disposable income relative to the Federal Poverty Level (FPL).
-4.  **Revenue Parity:** Calculating the necessary tax rates and credit amounts to achieve revenue targets (e.g., $4.3 Trillion) based on the estimated tax base.
+## Default result
 
-## Key Files & Modules
+The preserved 2024 repository snapshot has GDP of $29.298T and a theoretical broad cash-flow base of $22.7649T. After the default 7.5% noncompliance assumption and no policy exemptions, the final base is **$21.0575T (71.9% of GDP)**.
 
-### Data Fetching & Macroeconomic Modeling
-*   **`app_table.py`**: Fetches annual average data for key economic indicators (Compensation of Employees, Corporate Profits, Net Imports, etc.) from the FRED API. It reconstructs the Broad VAT Base (Before Exemptions) for a specified year, generating an Appendix Table. It incorporates adjustments such as the "Housing Adjustment" (calculated as Household Investment Less Household Gross Capital Income) to accurately reflect consumption.
-*   **`VAT_Base_Updater.ipynb`**: A notebook designed for interactive updates and analysis of the VAT base, working in tandem with the logic in `app_table.py`.
+The default reform uses a 30% tax-exclusive rate and fully refundable $4,800 adult / $4,800 child credits. Replacing FY2024 individual income, payroll, corporate income, and customs receipts sets a $4.742T target. Net static revenue is $4.6848T and the algebraic revenue-neutral rate is **30.27%**.
 
-### Microeconomic & Household Impact Modeling
-*   **`tax_reform_utils.py`**: The core logic engine. Contains functions to:
-    *   `calculate_healthcare_subsidy`: Calculates individual contributions and government subsidies for healthcare based on income, family size, and FPL.
-    *   `calculate_tax_wedge`: Computes the detailed tax breakdown for both the current U.S. tax code (accounting for standard deductions, tax brackets, EITC, and CTC) and the proposed reform (flat rate + universal credit).
-    *   `plot_reform_impact`: Generates comprehensive visualizations comparing Take-Home Pay and the Tax Wedge between the two systems across a wide range of income levels (up to $1,000,000+) for both single individuals and married families with children.
-*   **`sensitivity_matrix.py`**: Generates a Revenue Parity Sensitivity Table. It runs vectorized calculations across a grid of possible tax rates (20% to 35%) and credit amounts ($1,200 to $8,400) against a $19.8T base to show the estimated surplus or deficit relative to a $4.3T revenue target.
-*   **`Tax_Reform_Modeling.ipynb`**: The primary Jupyter notebook that ties together the utility functions, running the simulations and displaying the output plots and tables.
+## Architecture
 
-### References & Literature
-The project references several key documents regarding consumption taxes:
-*   `How-Taxing-Consumption-Would-Improve-Long-Term-Opportunity-and-Well-Being-for-Families-and-Children-FV.pdf`
-*   `GSTandRealEstatepoddar.pdf`
+```text
+src/model/                 Pure TypeScript calculation engine
+src/data/                  Versioned browser-ready assumptions
+src/views/                 Four simulator views
+src/components/            Audits, controls, cards, and SVG charts
+data/fred_series.json      Central FRED/BEA series catalog
+scripts/build_baseline.py  Offline data-build/reference step
+tests/                     Unit and end-to-end regression tests
+MODEL_SPEC.md              Authoritative economic specification
+MODEL_AUDIT.md             Historical inconsistencies and validation
+archive/                   Historical one-off notebook patch scripts
+```
 
-## Recent Development History (Gemini Brain Context)
+The browser never calls FRED. Slider changes run deterministic pure functions against `src/data/baseline_2024.json`. The Python builder is used only to create a new versioned snapshot and fails if a series is unavailable.
 
-Recent updates to the model include:
-*   **Housing Adjustment Refinement:** Updated the macroeconomic calculation for the housing adjustment to correctly reflect "Household Investment Less Household Gross Capital Income," ensuring a more accurate measure of the consumption base.
-*   **ACA Plan Tier Expansion:** Expanded the portable subsidy simulation to encompass all ACA metal tiers (Catastrophic, Bronze, Silver, Gold, Platinum) plus a pure catastrophic option, allowing for modeling of diverse consumer choices and risk-rated vs. community-rated scenarios.
+## Run locally
 
-## Getting Started
+Requires Node.js 22+ and Python 3.11+ for the optional data check.
 
-### Prerequisites
-*   Python 3.x
-*   Requires standard data science libraries: `pandas`, `numpy`, `matplotlib`. `urllib` and `csv` are used for FRED data fetching.
+```bash
+npm install
+npm test
+npm run build
+npm run dev
+```
 
-### Usage
-1.  **Generate Macroeconomic Base:** Run `python app_table.py` to fetch the latest FRED data and print the Broad VAT Base calculation.
-2.  **Generate Tax Wedge Plots:** The `plot_reform_impact` function in `tax_reform_utils.py` can be called (typically via the `Tax_Reform_Modeling.ipynb` notebook) to visualize the impact. It will generate PNG files such as `Reform_Impact_25pct_$4800.png`.
-3.  **Revenue Sensitivity:** Run `python sensitivity_matrix.py` to view the matrix of potential rate/credit combinations and their impact on total revenue.
+Verify the checked-in baseline without network access:
+
+```bash
+python3 scripts/build_baseline.py --verify-only
+```
+
+Rebuild it from live FRED data during a deliberate data update:
+
+```bash
+python3 scripts/build_baseline.py --year 2024
+npm test
+```
+
+Review changes before committing because BEA revisions can change historical observations.
+
+## GitHub Pages
+
+Vite uses `/tax_reform/` as its production base. `.github/workflows/deploy-pages.yml` runs tests, builds the app, uploads `dist/`, and deploys on pushes to `main`. In repository settings, set **Pages → Source** to **GitHub Actions** if it is not already selected.
+
+## Methodology
+
+The canonical computation is a flat-rate X tax / DBCFT plus wage-side tax at the same rate. Business wages and new investment are deductible, imports are not deductible, and exports are excluded. Households pay the wage-side tax and receive fully refundable demographic credits.
+
+This is economically related to a broad VAT base, but the app distinguishes the economic base, statutory collection mechanism, assumed incidence, and household disposable resources. See [MODEL_SPEC.md](MODEL_SPEC.md) for definitions and [MODEL_AUDIT.md](MODEL_AUDIT.md) for the reconciliation.
+
+The current-law wage-only comparator uses tax year 2024 brackets, standard deductions, both sides of Social Security and Medicare, Additional Medicare Tax, EITC, CTC, and ACTC. Parameters are versioned in `src/data/current_law_2024.json`.
+
+## Historical notebooks
+
+`Tax_Reform_Modeling.ipynb` and `VAT_Base_Updater.ipynb` are preserved unchanged as research provenance. Their former patch scripts are archival and are not sources of truth.
+
+## Iteration 1 limitations
+
+The model intentionally excludes dynamic GDP and capital effects, behavioral scoring, intergenerational transition incidence, existing-asset windfalls, a household consumption microsimulation, income-decile distributions, Tax-Calculator, OG-USA, state/local taxes, and healthcare reform. It also uses a fiscal-year revenue target with a calendar-year economic base and treats negative business liabilities symmetrically.
