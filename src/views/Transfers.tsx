@@ -121,7 +121,7 @@ export function Transfers({
       <h2>Selected household decomposition</h2>
       <div className="responsive-table"><table><thead><tr><th>Measure</th><th>Current law</th><th>Reform + transfers</th><th>Reform + selected replacements</th></tr></thead><tbody>
         <tr><td>Employer/economic compensation</td><td>{dollars(analysis.tax.employerCompensation)}</td><td>{dollars(analysis.tax.employerCompensation)}</td><td>{dollars(analysis.tax.employerCompensation)}</td></tr>
-        <tr><td>Federal taxes after tax credits</td><td>−{dollars(analysis.tax.current.totalFederalTax)}</td><td>−{dollars(analysis.tax.reformTaxAfterCredits)}</td><td>−{dollars(analysis.tax.reformTaxAfterCredits)}</td></tr>
+        <tr><td>Net federal tax (negative = refund)</td><td>{dollars(analysis.tax.current.totalFederalTax)}</td><td>{dollars(analysis.tax.reformTaxAfterCredits)}</td><td>{dollars(analysis.tax.reformTaxAfterCredits)}</td></tr>
         <tr><td>Current EITC / CTC + ACTC (memorandum)</td><td>{dollars(analysis.tax.current.eitc)} / {dollars(analysis.tax.current.nonrefundableCtc + analysis.tax.current.refundableCtc)}</td><td>{settings.replacedTaxes.individualIncome ? 'replaced inside tax engine' : 'retained inside tax engine'}</td><td>{settings.replacedTaxes.individualIncome ? 'replaced inside tax engine' : 'retained inside tax engine'}</td></tr>
         <tr><td>Reform adult credit (memorandum)</td><td>—</td><td>{dollars(analysis.tax.adultCredit)}</td><td>{dollars(analysis.tax.adultCredit)}</td></tr>
         <tr><td>Reform child credit (memorandum)</td><td>—</td><td>{dollars(analysis.tax.childCredit)}</td><td>{dollars(analysis.tax.childCredit)}</td></tr>
