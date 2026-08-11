@@ -18,7 +18,7 @@ The original repository was a notebook research prototype. Calculations were spr
 | Tax year | 2024 deductions/payroll with 2025 brackets | Enacted tax year 2025 throughout |
 | Payroll | Flat approximations | Actual 2025 SS cap and Medicare rules, per earner |
 | CTC/ACTC | Refund formula misordered; no phaseout | Nonrefundable CTC, earnings-limited ACTC, statutory phaseout |
-| Marginal rate | $10 difference and inconsistent arguments | $1 forward difference on the pure engine |
+| Marginal rate | $10 difference and inconsistent arguments | Centered $1,000 local difference on the pure engine |
 | Compensation | Benefits mixed differently across systems | Benefits excluded from both; actual employer FICA added |
 | Healthcare | Optional subsidy changed reform results | Excluded from Iteration 1 |
 | Progressive reform | Flat tax only | Flat or progressive X tax with explicit macro calibration |
@@ -80,13 +80,13 @@ Current federal tax includes individual income tax net of EITC/CTC/ACTC plus bot
 
 ## Automated validation
 
-The 25-test suite covers NIPA summation; compliance and exemptions; GDP ratios; flat and progressive revenue identities; credit costs; target selection; algebraic rate solutions; 2025 deductions, brackets, payroll caps, Medicare, EITC, CTC and ACTC thresholds; two-earner payroll; earned and universal adult credits; zero through high income; marginal rates around kinks; the eight Taxing Wages patterns; expensing; border adjustment; domestic inputs; wages; and end-to-end fixtures.
+The 26-test suite covers NIPA summation; compliance and exemptions; GDP ratios; flat and progressive revenue identities; credit costs; target selection; algebraic rate solutions; 2025 deductions, brackets, payroll caps, Medicare, EITC, CTC and ACTC thresholds; two-earner payroll; earned and universal adult credits; zero through high income; bounded local marginal rates around kinks; the eight Taxing Wages patterns; expensing; border adjustment; domestic inputs; wages; and end-to-end fixtures.
 
 Validation commands:
 
 ```text
 npm run typecheck  → passed
-npm test           → 25 passed
+npm test           → 26 passed
 npm run build      → passed
 python3 scripts/build_baseline.py --verify-only
                    → $30.7621T GDP; $22.3119T default base (72.5% GDP)

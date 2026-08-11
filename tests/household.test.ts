@@ -92,6 +92,12 @@ describe('reform adult and child credits', () => {
       expect(Number.isFinite(result.reformMarginalRate)).toBe(true);
     }
   });
+
+  it('reports the stepped CTC phaseout as a bounded local economic wedge', () => {
+    const atPhaseout = calculateHousehold(household(200000, 'single', 1), defaultSettings);
+    expect(atPhaseout.currentMarginalRate).toBeGreaterThan(0.25);
+    expect(atPhaseout.currentMarginalRate).toBeLessThan(0.50);
+  });
 });
 
 describe('flat and progressive X-tax wage schedules', () => {

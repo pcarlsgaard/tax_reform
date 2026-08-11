@@ -154,7 +154,7 @@ reform tax after credits
 = wage tax − adult credit − child credit + retained current-law taxes
 ```
 
-Average rates use employer compensation as the denominator. Marginal rates use a one-dollar forward difference in total federal tax divided by the corresponding change in employer compensation.
+Average rates use employer compensation as the denominator. Local marginal rates use a centered $1,000 earnings difference in total federal tax divided by the corresponding change in employer compensation. The window makes the CTC's statutory $50-per-$1,000 steps appear as the intended 5% phaseout wedge instead of a one-dollar discontinuity spike.
 
 The Taxing Wages table evaluates the OECD's eight standard family patterns at 67%, 100%, and 167% of the editable average wage. It is federal-only and therefore not the official OECD wedge.
 

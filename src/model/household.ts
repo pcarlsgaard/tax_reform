@@ -152,9 +152,12 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
   const reformDisposableResources = employerCompensation - reformTaxAfterCredits;
   const dollarChange = reformDisposableResources - currentDisposableResources;
 
-  const step = 1;
-  const upInput = { ...normalized, cashWage: normalized.cashWage + step };
-  const baseTaxes = totalTaxAtWage(normalized, settings);
+  // A centered $1,000 local difference represents stepped provisions such as
+  // the CTC's $50-per-$1,000 phaseout without displaying a one-dollar spike.
+  const halfWindow = 500;
+  const downInput = { ...normalized, cashWage: Math.max(0, normalized.cashWage - halfWindow) };
+  const upInput = { ...normalized, cashWage: normalized.cashWage + halfWindow };
+  const baseTaxes = totalTaxAtWage(downInput, settings);
   const upTaxes = totalTaxAtWage(upInput, settings);
   const deltaComp = upTaxes.employerComp - baseTaxes.employerComp;
 
