@@ -26,14 +26,14 @@ describe('end-to-end regression fixtures', () => {
         return { name: row.name, base: row.businessTaxBase, tax: row.businessTax, combined: row.combinedTaxBeforeHouseholdCredits };
       }),
     };
-    expect(report.macro.taxableBase).toBeCloseTo(21057.5325, 6);
-    expect(report.macro.netRevenue).toBeCloseTo(4684.77975, 6);
-    expect(report.macro.revenueNeutralRate).toBeCloseTo(0.3027173293, 9);
+    expect(report.macro.taxableBase).toBeCloseTo(22311.868575, 6);
+    expect(report.macro.netRevenue).toBeCloseTo(5376.7094697, 6);
+    expect(report.macro.revenueNeutralRate).toBeCloseTo(0.2854150956, 9);
     expect(report.households).toEqual([
-      expect.objectContaining({ currentTax: 6206, reformTax: 4888.5, change: 1317.5 }),
-      expect.objectContaining({ currentTax: 19816, reformTax: 19421.25, change: 394.75 }),
-      expect.objectContaining({ currentTax: 7845.816000000001, reformTax: 177, change: 7668.815999999999 }),
-      expect.objectContaining({ currentTax: 35632, reformTax: 29242.5, change: 6389.5 }),
+      expect.objectContaining({ currentTax: 6061.5, reformTax: 4888.5, change: 1173 }),
+      expect.objectContaining({ currentTax: 19424, reformTax: 21726.5625, change: -2302.5625 }),
+      expect.objectContaining({ currentTax: 6790.018, reformTax: 177, change: 6613.017999999996 }),
+      expect.objectContaining({ currentTax: 34448, reformTax: 33853.125, change: 594.875 }),
     ]);
     expect(report.businesses).toEqual([
       { name: 'Domestic service company', base: 25, tax: 7.5, combined: 24 },

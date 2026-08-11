@@ -1,5 +1,13 @@
-import parameters from '../data/current_law_2024.json';
-import type { FilingStatus, HouseholdInput, HouseholdResult, ReformSettings, TaxBreakdown } from './types';
+import parameters from '../data/current_law_2025.json';
+import type {
+  FilingStatus,
+  HouseholdInput,
+  HouseholdResult,
+  ReformSettings,
+  TaxBreakdown,
+  TaxWedgeRow,
+  TaxWedgeScenario,
+} from './types';
 
 type Bracket = [number | null, number];
 
@@ -24,8 +32,15 @@ function earnedIncomeCredit(wage: number, status: FilingStatus, children: number
   return Math.max(0, phaseIn - phaseOut);
 }
 
+function normalizedWages(input: HouseholdInput): [number, number] {
+  const primary = Math.max(0, input.cashWage);
+  const secondary = input.filingStatus === 'married' ? Math.max(0, input.secondaryCashWage ?? 0) : 0;
+  return [primary, secondary];
+}
+
 export function calculateCurrentLaw(input: HouseholdInput): TaxBreakdown {
-  const wage = Math.max(0, input.cashWage);
+  const [primaryWage, secondaryWage] = normalizedWages(input);
+  const wage = primaryWage + secondaryWage;
   const children = Math.max(0, Math.min(4, Math.trunc(input.children)));
   const status = input.filingStatus;
   const payroll = parameters.payroll;
@@ -46,11 +61,12 @@ export function calculateCurrentLaw(input: HouseholdInput): TaxBreakdown {
   const eitc = earnedIncomeCredit(wage, status, children);
   const individualIncomeTax = incomeTaxBeforeCredits - nonrefundableCtc - refundableCtc - eitc;
 
-  const socialSecurityBase = Math.min(wage, payroll.socialSecurityWageCap);
-  const employeeSocialSecurity = socialSecurityBase * payroll.socialSecurityRateEach;
-  const employerSocialSecurity = socialSecurityBase * payroll.socialSecurityRateEach;
+  const socialSecurityBase = (earnerWage: number) => Math.min(earnerWage, payroll.socialSecurityWageCap);
+  const employeeSocialSecurity = (socialSecurityBase(primaryWage) + socialSecurityBase(secondaryWage))
+    * payroll.socialSecurityRateEach;
+  const employerSocialSecurity = employeeSocialSecurity;
   const employeeMedicare = wage * payroll.medicareRateEach;
-  const employerMedicare = wage * payroll.medicareRateEach;
+  const employerMedicare = employeeMedicare;
   const additionalMedicare = Math.max(0, wage - payroll.additionalMedicareThreshold[status])
     * payroll.additionalMedicareRate;
   const employeePayrollTax = employeeSocialSecurity + employeeMedicare + additionalMedicare;
@@ -73,16 +89,38 @@ export function calculateCurrentLaw(input: HouseholdInput): TaxBreakdown {
   };
 }
 
+export function calculateAdultCredit(wageBase: number, adults: number, settings: ReformSettings): number {
+  const maximum = adults * settings.adultCredit;
+  if (settings.adultCreditMode === 'universal') return maximum;
+  const phaseIn = Math.min(maximum, wageBase * settings.adultCreditPhaseInRate);
+  const phaseOutStart = adults * settings.adultCreditPhaseOutStartPerAdult;
+  const phaseOut = Math.max(0, wageBase - phaseOutStart) * settings.adultCreditPhaseOutRate;
+  return Math.max(0, phaseIn - phaseOut);
+}
+
+export function calculateReformWageTax(wageBase: number, filingStatus: FilingStatus, settings: ReformSettings): number {
+  if (settings.wageTaxMode === 'flat') return wageBase * settings.rate;
+  const adults = filingStatus === 'married' ? 2 : 1;
+  const zeroCeiling = adults * settings.progressiveZeroBracketPerAdult;
+  const topThreshold = Math.max(zeroCeiling, adults * settings.progressiveTopBracketPerAdult);
+  const middleBase = Math.max(0, Math.min(wageBase, topThreshold) - zeroCeiling);
+  const topBase = Math.max(0, wageBase - topThreshold);
+  return middleBase * settings.rate * settings.progressiveMiddleRateShare + topBase * settings.rate;
+}
+
 function totalTaxAtWage(input: HouseholdInput, settings: ReformSettings): { current: number; reform: number; employerComp: number } {
   const current = calculateCurrentLaw(input);
-  const employerComp = input.cashWage + current.employerPayrollTax;
+  const [primaryWage, secondaryWage] = normalizedWages(input);
+  const totalCashWage = primaryWage + secondaryWage;
+  const employerComp = totalCashWage + current.employerPayrollTax;
   const payrollIsReplaced = settings.replacedTaxes.payroll;
-  const reformWageBase = input.cashWage + (payrollIsReplaced ? current.employerPayrollTax : 0);
+  const reformWageBase = totalCashWage + (payrollIsReplaced ? current.employerPayrollTax : 0);
   const adults = input.filingStatus === 'married' ? 2 : 1;
-  const credits = adults * settings.adultCredit + input.children * settings.childCredit;
+  const credits = calculateAdultCredit(reformWageBase, adults, settings) + input.children * settings.childCredit;
   const retainedIncome = settings.replacedTaxes.individualIncome ? 0 : current.individualIncomeTax;
   const retainedPayroll = payrollIsReplaced ? 0 : current.employeePayrollTax + current.employerPayrollTax;
-  const reform = reformWageBase * settings.rate - credits + retainedIncome + retainedPayroll;
+  const reform = calculateReformWageTax(reformWageBase, input.filingStatus, settings)
+    - credits + retainedIncome + retainedPayroll;
   return { current: current.totalFederalTax, reform, employerComp };
 }
 
@@ -91,16 +129,20 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
     filingStatus: input.filingStatus,
     children: Math.max(0, Math.min(4, Math.trunc(input.children))),
     cashWage: Math.max(0, input.cashWage),
+    secondaryCashWage: input.filingStatus === 'married' ? Math.max(0, input.secondaryCashWage ?? 0) : 0,
   };
+  const [primaryWage, secondaryWage] = normalizedWages(normalized);
+  const totalCashWage = primaryWage + secondaryWage;
   const current = calculateCurrentLaw(normalized);
-  const employerCompensation = normalized.cashWage + current.employerPayrollTax;
+  const employerCompensation = totalCashWage + current.employerPayrollTax;
   const payrollIsReplaced = settings.replacedTaxes.payroll;
-  const reformWageBase = normalized.cashWage + (payrollIsReplaced ? current.employerPayrollTax : 0);
+  const reformWageBase = totalCashWage + (payrollIsReplaced ? current.employerPayrollTax : 0);
   const adults = normalized.filingStatus === 'married' ? 2 : 1;
-  const adultCredit = adults * settings.adultCredit;
+  const adultCreditMaximum = adults * settings.adultCredit;
+  const adultCredit = calculateAdultCredit(reformWageBase, adults, settings);
   const childCredit = normalized.children * settings.childCredit;
   const totalReformCredit = adultCredit + childCredit;
-  const reformTaxBeforeCredits = reformWageBase * settings.rate;
+  const reformTaxBeforeCredits = calculateReformWageTax(reformWageBase, normalized.filingStatus, settings);
   const retainedIncome = settings.replacedTaxes.individualIncome ? 0 : current.individualIncomeTax;
   const retainedPayroll = payrollIsReplaced ? 0 : current.employeePayrollTax + current.employerPayrollTax;
   const retainedCurrentTaxes = retainedIncome + retainedPayroll;
@@ -119,9 +161,11 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
   return {
     input: normalized,
     current,
+    totalCashWage,
     employerCompensation,
     reformWageBase,
     reformTaxBeforeCredits,
+    adultCreditMaximum,
     adultCredit,
     childCredit,
     totalReformCredit,
@@ -138,4 +182,48 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
   };
 }
 
-export { parameters as currentLaw2024 };
+export const OECD_US_AVERAGE_WAGE_2025 = 73520;
+
+export const taxWedgeScenarios: TaxWedgeScenario[] = [
+  { id: 'single-67', label: 'Single, no children · 67% AW', filingStatus: 'single', children: 0, primaryWageShare: 0.67, secondaryWageShare: 0 },
+  { id: 'single-100', label: 'Single, no children · 100% AW', filingStatus: 'single', children: 0, primaryWageShare: 1, secondaryWageShare: 0 },
+  { id: 'single-167', label: 'Single, no children · 167% AW', filingStatus: 'single', children: 0, primaryWageShare: 1.67, secondaryWageShare: 0 },
+  { id: 'single-kids-67', label: 'Single, 2 children · 67% AW', filingStatus: 'single', children: 2, primaryWageShare: 0.67, secondaryWageShare: 0 },
+  { id: 'married-kids-100-0', label: 'Married, 2 children · 100% + 0% AW', filingStatus: 'married', children: 2, primaryWageShare: 1, secondaryWageShare: 0 },
+  { id: 'married-kids-100-33', label: 'Married, 2 children · 100% + 33% AW', filingStatus: 'married', children: 2, primaryWageShare: 1, secondaryWageShare: 0.33 },
+  { id: 'married-100-33', label: 'Married, no children · 100% + 33% AW', filingStatus: 'married', children: 0, primaryWageShare: 1, secondaryWageShare: 0.33 },
+  { id: 'married-kids-100-67', label: 'Married, 2 children · 100% + 67% AW', filingStatus: 'married', children: 2, primaryWageShare: 1, secondaryWageShare: 0.67 },
+];
+
+export function calculateTaxWedgeTable(
+  settings: ReformSettings,
+  averageWage = OECD_US_AVERAGE_WAGE_2025,
+): TaxWedgeRow[] {
+  return taxWedgeScenarios.map((scenario) => {
+    const primaryWage = averageWage * scenario.primaryWageShare;
+    const secondaryWage = averageWage * scenario.secondaryWageShare;
+    const result = calculateHousehold({
+      filingStatus: scenario.filingStatus,
+      children: scenario.children,
+      cashWage: primaryWage,
+      secondaryCashWage: secondaryWage,
+    }, settings);
+    const currentWedge = result.employerCompensation > 0
+      ? result.current.totalFederalTax / result.employerCompensation : 0;
+    const reformWedge = result.employerCompensation > 0
+      ? result.reformTaxAfterCredits / result.employerCompensation : 0;
+    return {
+      ...scenario,
+      primaryWage,
+      secondaryWage,
+      employerCompensation: result.employerCompensation,
+      currentTax: result.current.totalFederalTax,
+      reformTax: result.reformTaxAfterCredits,
+      currentWedge,
+      reformWedge,
+      changePercentagePoints: (reformWedge - currentWedge) * 100,
+    };
+  });
+}
+
+export { parameters as currentLaw2025 };

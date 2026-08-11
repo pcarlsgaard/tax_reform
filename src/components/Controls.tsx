@@ -34,3 +34,19 @@ export function NumberField({ label, value, min = 0, step = 1000, suffix, onChan
     </label>
   );
 }
+
+export function SelectField({ label, value, options, onChange, hint }: {
+  label: string;
+  value: string;
+  options: Array<{ value: string; label: string }>;
+  onChange: (value: string) => void;
+  hint?: ReactNode;
+}) {
+  return <label className="select-field">
+    <span>{label}</span>
+    <select value={value} onChange={(event) => onChange(event.target.value)}>
+      {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+    </select>
+    {hint && <span className="control-hint">{hint}</span>}
+  </label>;
+}

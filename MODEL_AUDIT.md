@@ -2,68 +2,71 @@
 
 ## Repository findings
 
-The original repository was a notebook research prototype with one initial commit. Calculations were spread among two notebooks, `app_table.py`, `tax_reform_utils.py`, `sensitivity_matrix.py`, and many scripts that patched notebook cells through hard-coded Windows paths.
+The original repository was a notebook research prototype. Calculations were spread among two notebooks, `app_table.py`, `tax_reform_utils.py`, `sensitivity_matrix.py`, and scripts that patched notebook cells through hard-coded Windows paths.
 
 ### Material inconsistencies found
 
-| Topic | Historical versions | Iteration 1 resolution |
+| Topic | Historical versions | Active resolution |
 |---|---|---|
-| Noncompliance | 5%, 7.5%, and 15% | 7.5% default, explicit user control |
-| National base | $19.8T, $21.0T, $21.1T, $22.2T, and $23.4T descriptions | $22.7649T theoretical; $21.0575T after 7.5% noncompliance |
-| Base labeling | Post-compliance result called “before exemptions” | Compliance and policy exemptions are separate stages |
-| Revenue target | $4.3T, $4.4T, and $4.6T | Selected FY2024 CBO receipts; $4.742T default |
-| Population | 258M/74M and 267M/73M | 267.0M adults / 73.1M children |
-| Adult credits | Nonrefundable with 70% or 80% “absorption” | Fully refundable; population × credit |
+| Noncompliance | 5%, 7.5%, and 15% | 7.5% default, explicit control |
+| National base | $19.8T through $23.4T | Auditable NIPA build with separate compliance/exemption stages |
+| Base labeling | Post-compliance result called “before exemptions” | Compliance status shown at every stage |
+| Revenue target | $4.3T, $4.4T, and $4.6T | Selected FY2025 Treasury receipts; $5.051293T default |
+| Population | 258M/74M and 267M/73M | Census Vintage 2025: 269.764M adults / 72.021M children |
+| Adult credits | Nonrefundable with 70%/80% “absorption” | Refundable schedule plus explicit aggregate budget factor |
 | Reform household credit | Adult offset multiplied by `1 + rate` | Removed; direct refundable credit identity |
-| Tax year | 2024 deductions/payroll with 2025 brackets | Tax year 2024 throughout |
-| Payroll | Flat 7.0% employer and uncapped 7.65% employee approximations | Actual 2024 SS cap and Medicare rules |
+| Tax year | 2024 deductions/payroll with 2025 brackets | Enacted tax year 2025 throughout |
+| Payroll | Flat approximations | Actual 2025 SS cap and Medicare rules, per earner |
 | CTC/ACTC | Refund formula misordered; no phaseout | Nonrefundable CTC, earnings-limited ACTC, statutory phaseout |
-| Marginal rate | $10 difference and inconsistent scenario arguments | $1 forward difference on one pure engine |
-| Compensation | Health and pension values mixed differently across systems | Health/pension excluded from both; actual employer FICA added |
-| Healthcare | Optional subsidy changed tax-reform results | Excluded from default Iteration 1 |
+| Marginal rate | $10 difference and inconsistent arguments | $1 forward difference on the pure engine |
+| Compensation | Benefits mixed differently across systems | Benefits excluded from both; actual employer FICA added |
+| Healthcare | Optional subsidy changed reform results | Excluded from Iteration 1 |
+| Progressive reform | Flat tax only | Flat or progressive X tax with explicit macro calibration |
 
-The old FRED helper also swallowed errors and returned zero, allowing missing series to produce plausible-looking invalid bases. The replacement fails closed.
+The old FRED helper swallowed errors and returned zero. The replacement fails closed, accepts FRED's current `observation_date` CSV header, and permits the one 2025 housing estimate only with an explicit flag.
 
-## 2024 baseline reconciliation
+## Provisional 2025 baseline reconciliation
 
 ```text
-$15,027.1B compensation
-+ 7,516.2B net capital income after investment
-+   898.5B net imports
-−   676.9B housing adjustment
-=22,764.9B theoretical broad base
+$15,726.910B compensation
++ 8,208.031B net capital income after investment
++   926.487B net imports
+−   740.489B housing adjustment
+=24,120.939B theoretical broad base
 
-− 1,707.4B noncompliance (7.5%)
-=21,057.5B base after compliance
-−     0.0B default policy exemptions
-=21,057.5B final taxable base = 71.9% of $29,298.0B GDP
+− 1,809.070B noncompliance (7.5%)
+=22,311.869B base after compliance
+−     0.000B default policy exemptions
+=22,311.869B final taxable base = 72.5% of $30,762.099B GDP
 ```
+
+Housing-sector value added is the only estimated input: `$1,954.169B × ($30,762.099B / $29,298.013B)`. All other 2025 series are observed in the checked-in build.
 
 ## Default revenue reconciliation
 
 ```text
-$21,057.5325B × 30.0% = $6,317.2598B gross collections
-− $1,281.6000B adult credits
-−   $350.8800B child credits
-= $4,684.7798B net revenue
-− $4,742.0000B selected replacement target
-=   −$57.2203B static deficit
+$22,311.8686B × 30.0% = $6,693.5606B gross collections (21.76% GDP)
+−   $971.1486B adult credits
+−   $345.7025B child credits
+= $5,376.7095B net revenue (17.48% GDP)
+− $5,051.2930B selected target (16.42% GDP)
+=   $325.4165B static surplus (1.06% GDP)
 ```
 
-The solved rate is **30.27173293%**. Re-running the engine at that rate reproduces the target to less than `1e-8` billion dollars in the automated test.
+The flat revenue-neutral rate is **28.54150956%**. Re-running the engine at that rate reproduces the target within `1e-8` billion dollars. At the default progressive calibration, the rate-adjusted base is $17,220.2815B and the revenue-neutral business/top wage rate is **36.9804879%**.
 
 ## Regression examples at default settings
 
 ### Households
 
-| Household | Cash wage | Employer compensation | Current federal tax | Reform tax | Current disposable | Reform disposable | Change |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| Single, no children | $30,000 | $32,295 | $6,206 | $4,888.50 | $26,089 | $27,406.50 | +$1,317.50 |
-| Single, no children | $75,000 | $80,737.50 | $19,816 | $19,421.25 | $60,921.50 | $61,316.25 | +$394.75 |
-| Married, two children | $60,000 | $64,590 | $7,845.82 | $177 | $56,744.18 | $64,413 | +$7,668.82 |
-| Married, two children | $150,000 | $161,475 | $35,632 | $29,242.50 | $125,843 | $132,232.50 | +$6,389.50 |
+| Household | Cash wages | Employer compensation | Current federal tax | Reform tax | Change in disposable resources |
+|---|---:|---:|---:|---:|---:|
+| Single, no children | $30,000 | $32,295 | $6,061.50 | $4,888.50 | +$1,173.00 |
+| Single, no children | $75,000 | $80,737.50 | $19,424.00 | $21,726.56 | −$2,302.56 |
+| Married, two children | $60,000 | $64,590 | $6,790.02 | $177.00 | +$6,613.02 |
+| Married, two children | $150,000 | $161,475 | $34,448.00 | $33,853.13 | +$594.88 |
 
-Current federal tax includes individual income tax net of EITC/CTC/ACTC plus both sides of payroll tax. Reform tax is wage tax net of fully refundable demographic credits. These are representative wage-only cases, not distribution estimates.
+Current federal tax includes individual income tax net of EITC/CTC/ACTC plus both sides of payroll tax. Reform tax is wage tax net of the earned adult credit and flat refundable child credit. These are wage-only illustrations, not distribution estimates.
 
 ### Businesses (millions of dollars)
 
@@ -77,13 +80,24 @@ Current federal tax includes individual income tax net of EITC/CTC/ACTC plus bot
 
 ## Automated validation
 
-The test suite covers NIPA summation; compliance and exemptions; revenue and credits; target selection; the rate solution; 2024 deductions, brackets, payroll caps, Medicare, EITC, CTC and ACTC thresholds; zero through high income; marginal rates around kinks; expensing; border adjustment; domestic inputs; wages; and end-to-end regression fixtures.
+The 25-test suite covers NIPA summation; compliance and exemptions; GDP ratios; flat and progressive revenue identities; credit costs; target selection; algebraic rate solutions; 2025 deductions, brackets, payroll caps, Medicare, EITC, CTC and ACTC thresholds; two-earner payroll; earned and universal adult credits; zero through high income; marginal rates around kinks; the eight Taxing Wages patterns; expensing; border adjustment; domestic inputs; wages; and end-to-end fixtures.
+
+Validation commands:
+
+```text
+npm run typecheck  → passed
+npm test           → 25 passed
+npm run build      → passed
+python3 scripts/build_baseline.py --verify-only
+                   → $30.7621T GDP; $22.3119T default base (72.5% GDP)
+```
 
 ## Remaining audit risks
 
-1. The snapshot preserves archived aggregate net-capital and housing values, not every underlying observation; BEA revisions can change a rebuild.
+1. One annual housing series is estimated; the snapshot must be rebuilt after BEA publishes 2025.
 2. A fiscal-year receipts target is paired with a calendar-year base.
-3. The NIPA construction is a cash-flow approximation, not a legislative score of a fully drafted statute.
-4. Credit population counts omit eligibility and administration details.
-5. Household results omit nonwage income, deductions, AMT, dependent nuance, and transfers outside EITC/CTC.
-6. Negative DBCFT liabilities assume symmetric treatment; actual loss rules affect neutrality and timing.
+3. The NIPA construction is a cash-flow approximation, not a legislative score.
+4. Aggregate earned-credit cost and progressive wage revenue use visible calibration factors rather than microdata.
+5. The federal-only Taxing Wages table is not the official OECD wedge and excludes state/local tax.
+6. Household results omit nonwage income, itemization, AMT, dependent nuance, most transfers, and special 2025 deductions.
+7. Negative DBCFT liabilities assume symmetric treatment; actual loss rules affect neutrality and timing.

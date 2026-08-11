@@ -1,27 +1,25 @@
 # Model Specification — Iteration 1
 
-This file is authoritative for the active simulator. Historical notebooks and patch scripts are research provenance, not sources of active assumptions.
+This file is authoritative for the active simulator. Historical notebooks, old Python apps, and patch scripts are research provenance, not active assumptions.
 
 ## 1. Purpose and scope
 
-Iteration 1 is a static accounting model of a broad U.S. destination-based consumption tax. It answers what is taxed, how the national base is constructed, what a rate raises, what universal credits cost, what rate balances a selected revenue target, and how stylized households and businesses are treated.
+Iteration 1 is a static accounting model of a broad U.S. destination-based consumption tax. It answers what is taxed, how the national base is constructed, what a rate raises, how credits affect revenue and household marginal rates, what rate balances a selected target, and how stylized households and businesses are treated.
 
-It does **not** estimate behavior, growth, capital accumulation, transition incidence, price-level changes, existing-asset windfalls, tax evasion responses, or general-equilibrium effects.
+It does **not** estimate behavior, growth, capital accumulation, transition incidence, price-level changes, existing-asset windfalls, evasion responses, or general-equilibrium effects.
 
 ## 2. Canonical computational representation
 
-The canonical representation is a flat-rate X tax / destination-based cash-flow tax (DBCFT):
+The canonical representation is an X tax / destination-based cash-flow tax (DBCFT):
 
 1. Businesses pay a flat tax on destination-based cash flow after deducting domestic inputs, wages, and new investment.
 2. Imported inputs are not deductible and export receipts are excluded.
-3. Households pay the same tax-exclusive statutory rate on wage compensation.
-4. Every adult and child receives the selected fully refundable fixed-dollar credit.
+3. Households pay either a flat or progressive tax-exclusive schedule on reform wage compensation.
+4. Adults receive either an EITC-like refundable credit or a universal refundable credit; children receive a flat fully refundable credit.
 
-This representation was selected because it exposes the wage and business mechanics needed for the household and business calculators. An invoice-credit VAT can target a closely related economic consumption base, but it is a legally different collection system. The simulator uses VAT intuition only to explain the aggregate base; it does not claim the statutes are interchangeable.
+This representation exposes the wage and business mechanics needed by the calculators. An invoice-credit VAT can target a closely related economic consumption base, but it is a legally different collection system. VAT intuition explains the aggregate base; the simulator does not claim that the statutes are interchangeable.
 
-### Rate convention
-
-All displayed rates are **tax-exclusive**: liability equals rate × tax base. A tax-inclusive retail-price share would be `rate / (1 + rate)`, subject to the caveat that a real VAT statute can define its base and displayed rate differently.
+All displayed rates are **tax-exclusive**: liability equals rate × base. The corresponding tax-inclusive retail-price share is `rate / (1 + rate)`.
 
 ## 3. Economic base and collection
 
@@ -40,92 +38,129 @@ theoretical broad base
 + household investment − housing-sector value added
 ```
 
-The active model then applies two distinct reductions:
+The active model applies two distinct reductions:
 
 ```text
 base after compliance = theoretical base × (1 − noncompliance rate)
 final taxable base = base after compliance × (1 − policy exemption share)
 ```
 
-The exemption slider is an aggregate policy reduction, not a claim that any named sector is exempt. Explicit sector-by-sector exemptions are reserved for a later iteration.
+The exemption control is an aggregate policy reduction, not a claim that a named sector is exempt. The final base is split into wage and business components in proportion to the theoretical construction so progressive household wage rates can be scored without changing the flat business rate.
 
 ## 4. National revenue identity
 
 All national values are in billions of dollars.
 
+For a flat X tax:
+
 ```text
-gross revenue = final taxable base × statutory rate
-adult credit cost = adult population × adult credit
-child credit cost = child population × child credit
+rate-adjusted base = final taxable base
+```
+
+For a progressive X tax:
+
+```text
+rate-adjusted base
+= compliant taxable business base
++ compliant taxable wage base × average-wage-rate factor
+```
+
+The average-wage-rate factor is the population-average wage rate divided by the headline business/top wage rate. It is an explicit calibration, not a microsimulation result.
+
+```text
+gross revenue = rate-adjusted base × headline rate
+adult credit cost = adult population × maximum adult credit × budget factor
+child credit cost = child population × flat child credit
 net revenue = gross revenue − adult credits − child credits − other rebates
 surplus / deficit = net revenue − selected replacement-revenue target
 ```
 
-With fixed credits, the algebraic revenue-neutral rate is:
+The adult budget factor is 100% for a universal credit and editable for the earned-credit schedule. It bridges the household schedule to the aggregate score until microdata are added.
+
+The algebraic revenue-neutral headline rate is:
 
 ```text
 required rate
-= (target revenue + adult credit cost + child credit cost + other rebates)
-  / final taxable base
+= (target + adult credits + child credits + other rebates)
+  / rate-adjusted base
 ```
 
-Credits are fully refundable. The old 70%/80% adult “absorption” assumptions are not used.
-
-## 5. Default 2024 baseline
+## 5. Provisional default 2025 baseline
 
 | Item | Authoritative value |
 |---|---:|
-| GDP | $29,298.0B |
-| Theoretical broad base | $22,764.9B |
+| GDP | $30,762.099B |
+| Theoretical broad base | $24,120.939B |
 | Noncompliance | 7.5% |
-| Base after compliance | $21,057.5B |
+| Base after compliance | $22,311.869B |
 | Policy exemptions | 0% |
-| Final taxable base | $21,057.5B (71.9% of GDP) |
-| Adults | 267.0M |
-| Children | 73.1M |
-| Adult credit | $4,800 |
-| Child credit | $4,800 |
-| Statutory rate | 30.0% |
+| Final taxable base | $22,311.869B (72.5% of GDP) |
+| Adults | 269.764M |
+| Children | 72.021M |
+| Maximum adult credit | $4,800 |
+| Adult earned-credit budget factor | 75% |
+| Flat refundable child credit | $4,800 |
+| Statutory flat rate | 30.0% |
 
-The default target replaces FY2024 individual income tax ($2,426B), payroll taxes ($1,709B), corporate income tax ($530B), and customs duties ($77B): **$4,742B** total. The target uses fiscal-year receipts while the base is a calendar-year economic measure; that timing mismatch is explicit.
+Eleven of twelve inputs are observed for 2025. Housing-sector value added is provisional because FRED series `B952RC1A027NBEA` ends in 2024; the snapshot scales its 2024 value by 2024–25 nominal GDP growth. The builder requires an explicit opt-in for that estimate.
 
-At the defaults, gross collections are $6,317.3B, credits cost $1,632.5B, net revenue is $4,684.8B, the static deficit is $57.2B, and the algebraic revenue-neutral rate is **30.27%**.
+The default target replaces FY2025 individual income tax ($2,656.044B), social-insurance/payroll receipts ($1,748.294B), corporate income tax ($452.089B), and customs duties ($194.866B): **$5,051.293B**, or **16.42% of GDP**. The target is fiscal-year cash receipts while the base is a calendar-year economic measure.
+
+At the flat defaults, gross collections are $6,693.561B, adult credits cost $971.149B, child credits cost $345.702B, net revenue is $5,376.709B, and the surplus is $325.416B. The revenue-neutral rate is **28.5415%**.
 
 ## 6. Household model
 
 ### Input and resource convention
 
-The user enters annual cash wages. Current employer compensation equals cash wages plus the actual 2024 employer Social Security and Medicare contributions. Employer health and pension benefits are excluded from both systems rather than inconsistently estimated.
+The user enters primary and, for joint filers, secondary annual cash wages. Current employer compensation equals cash wages plus actual employer Social Security and Medicare contributions calculated per worker. Employer health and pension benefits are excluded from both systems.
 
-If payroll taxes are replaced, the model assumes the repealed employer contribution is converted dollar-for-dollar to wage compensation. If payroll taxes are retained, that conversion does not occur and employee/employer payroll liabilities remain in the reform column.
+If payroll taxes are replaced, the model assumes repealed employer contributions convert dollar-for-dollar to reform wage compensation. If retained, that conversion does not occur and employee/employer payroll liabilities remain in the reform column.
 
 ### Current law
 
-The current-law engine uses tax year 2024 throughout:
+The engine consistently uses enacted tax year 2025 parameters:
 
 - single and married-filing-jointly ordinary brackets;
-- $14,600 / $29,200 standard deductions;
-- employee and employer Social Security at 6.2% through $168,600;
+- $15,750 / $31,500 standard deductions;
+- employee and employer Social Security at 6.2% through $176,100 per worker;
 - employee and employer Medicare at 1.45% with no cap;
 - employee-only Additional Medicare Tax at 0.9% above $200,000 single / $250,000 joint;
 - wage-only EITC for zero through three-or-more children;
-- $2,000 CTC, statutory income phaseout, and ACTC limited to $1,700 per child and 15% of earnings above $2,500.
+- $2,200 CTC, statutory phaseout, and ACTC limited to $1,700 per child and 15% of earnings above $2,500.
 
-The model assumes every entered child qualifies and has the required Social Security number. It omits itemized deductions, nonwage income, filing nuances, and benefit programs other than EITC/CTC.
+The model assumes every entered child qualifies. It omits itemized deductions, nonwage income, filing nuances, benefits other than EITC/CTC, and the 2025 special deductions for tips, overtime, car-loan interest, and seniors.
 
-### Reform
+### Reform wage tax
+
+Flat mode applies the headline rate to reform wage compensation. Progressive mode applies a zero rate through an editable per-adult threshold, an editable fraction of the headline rate through a second per-adult threshold, and the headline rate above it. Brackets are tax-exclusive and filing thresholds scale with the number of adults.
+
+### Adult and child credits
+
+The earned adult credit is refundable and computed at the household level:
 
 ```text
-reform wage tax before credits = reform wage base × rate
-reform tax after credits
-= wage tax − adult credits − child credits + any retained current-law taxes
+maximum = adults × maximum credit per adult
+phase-in credit = min(maximum, reform wage compensation × phase-in rate)
+phaseout threshold = adults × threshold per adult
+earned adult credit
+= max(0, phase-in credit
+         − max(0, reform wages − phaseout threshold) × phaseout rate)
 ```
 
-Negative tax is paid as a refund. There is no credit phaseout in Iteration 1. Average rates use employer compensation as the denominator. Marginal rates use a one-dollar forward difference in total federal tax divided by the corresponding change in employer compensation.
+Universal mode pays the maximum regardless of earnings. The child credit is always `children × child credit` and fully refundable.
+
+```text
+reform tax after credits
+= wage tax − adult credit − child credit + retained current-law taxes
+```
+
+Average rates use employer compensation as the denominator. Marginal rates use a one-dollar forward difference in total federal tax divided by the corresponding change in employer compensation.
+
+The Taxing Wages table evaluates the OECD's eight standard family patterns at 67%, 100%, and 167% of the editable average wage. It is federal-only and therefore not the official OECD wedge.
 
 ## 7. Business model
 
-Inputs are total sales (including exports), domestic purchased inputs, imported inputs, wages, new investment, and exports.
+Inputs are total sales including exports, domestic purchased inputs, imported inputs, wages, new investment, and exports.
 
 ```text
 operating cash flow
@@ -134,19 +169,19 @@ operating cash flow
 DBCFT business base
 = operating cash flow + imports − exports
 
-business tax = DBCFT business base × rate
-wage-side tax before household credits = wages × rate
+business tax = DBCFT business base × headline rate
+wage-side tax before household credits = wages × applicable household schedule
 ```
 
-New investment is fully expensed. Imports are added back because they are not deductible. Exports are removed from the destination base. A negative business liability is displayed as refundable; loss carryforward/refund administration is left for Iteration 2.
+New investment is fully expensed. Imports are added back because they are not deductible. Exports are removed from the destination base. A negative business liability is displayed as refundable; loss administration is deferred.
 
 ## 8. Incidence assumptions
 
-The statutory collection mechanism is not an incidence estimate. The household comparison assumes full conversion of repealed employer payroll taxes to compensation and no short-run wage, price, profit, or exchange-rate adjustment beyond that explicit conversion. The national model is static and does not allocate the business tax to workers, owners, or consumers.
+The statutory mechanism is not an incidence estimate. The household comparison assumes full conversion of repealed employer payroll taxes to compensation and no other wage, price, profit, or exchange-rate adjustment. The national model does not allocate the business tax to workers, owners, or consumers.
 
 ## 9. Data versioning
 
-`src/data/baseline_2024.json` is the browser snapshot. `data/fred_series.json` centralizes series identifiers. `scripts/build_baseline.py` can rebuild the snapshot from FRED and fails if a series is missing; the deployed app never fetches FRED on interaction. `src/data/current_law_2024.json` is the sole source of household tax parameters.
+`src/data/baseline_2025.json` is the active browser snapshot. `data/fred_series.json` centralizes series identifiers. `scripts/build_baseline.py` rebuilds the snapshot and fails on missing data unless the specific provisional housing flag is supplied. `src/data/current_law_2025.json` is the sole active source of household tax parameters. The deployed app makes no live data requests.
 
 ## 10. Deferred work
 
