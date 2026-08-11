@@ -128,7 +128,17 @@ At the flat defaults, gross collections are $6,693.561B, adult credits cost $971
 
 The user enters primary and, for joint filers, secondary annual cash wages. Current employer compensation equals cash wages plus actual employer Social Security and Medicare contributions calculated per worker. Employer health and pension benefits are excluded from both systems.
 
-If payroll taxes are replaced, the model assumes repealed employer contributions convert dollar-for-dollar to reform wage compensation. If retained, that conversion does not occur and employee/employer payroll liabilities remain in the reform column.
+If payroll taxes are replaced, the core household comparator defaults to assuming that repealed employer contributions convert dollar-for-dollar to reform wage compensation. The Social spending view exposes this incidence assumption as an employer-FICA pass-through rate from 0% to 100%, defaulting to 100%:
+
+```text
+passed-through employer FICA
+= pass-through rate × current employer Social Security and Medicare
+
+reform gross household resources
+= cash wages + passed-through employer FICA
+```
+
+The same reform wage measure enters the wage tax and earned adult-credit schedule. The non-passed-through share is not silently assigned elsewhere: it remains outside the illustrated household's resources because this static model does not allocate it among profits, prices, or other workers. If payroll taxes are retained, the control is inapplicable, conversion does not occur, and employee/employer payroll liabilities remain in the reform column.
 
 ### Current law
 
@@ -194,13 +204,13 @@ C. reform with selected replacements
    + benefits from external programs not selected for repeal
 ```
 
-This is a budget/resource measure, not a welfare-equivalent valuation. The configurable in-kind factor defaults to 75%; cash and near-cash benefits enter dollar-for-dollar. No scenario divides resources by `1 + tax rate`, and no DBCFT price-pass-through assumption is introduced.
+This is a budget/resource measure, not a welfare-equivalent valuation. The configurable in-kind factor defaults to 75%; cash and near-cash benefits enter dollar-for-dollar. Reform disposable resources incorporate the visible employer-FICA pass-through assumption described above. No scenario divides resources by `1 + tax rate`, and no DBCFT price-pass-through assumption is introduced.
 
 EITC and CTC/ACTC are already inside current net individual income tax and current disposable resources. Reform adult and child credits are already inside reform tax after credits and reform disposable resources. They are shown in decomposition tables as memorandum items only. EITC/CTC are deliberately absent from the external-program selector and from federal transfer savings, preventing double-counting against individual-income-tax receipts.
 
 ### Household characteristics and receipt
 
-The transfer-specific interface adds preschool and school-age children, monthly shelter and dependent-care costs, explicit receipt flags, manual annual benefits, and the in-kind valuation factor. It does not alter `HouseholdInput` or the independent tax engine.
+The transfer-specific interface adds preschool and school-age children, monthly shelter and dependent-care costs, explicit receipt flags, manual annual benefits, the in-kind valuation factor, and the employer-FICA pass-through rate. It does not alter `HouseholdInput`; the shared tax engine accepts the pass-through as an optional sensitivity argument and retains a 100% default for every existing two-argument call.
 
 Eligibility and receipt are distinct. Every program requires the current-receipt switch before it contributes resources, including formula-based SNAP. Rationed/manual programs never pay merely because income is low. Preset households contain visible illustrative receipt and benefit assumptions that the user can edit.
 
@@ -259,7 +269,7 @@ New investment is fully expensed. Imports are added back because they are not de
 
 ## 9. Incidence assumptions
 
-The statutory mechanism is not an incidence estimate. The household comparison assumes full conversion of repealed employer payroll taxes to compensation and no other wage, price, profit, or exchange-rate adjustment. The national model does not allocate the business tax to workers, owners, or consumers.
+The statutory mechanism is not an incidence estimate. The household comparison defaults to full conversion of repealed employer payroll taxes to compensation, while the Social spending view permits a 0%–100% sensitivity. It assumes no other wage, price, profit, or exchange-rate adjustment. The national model does not allocate the business tax to workers, owners, or consumers.
 
 ## 10. Data versioning
 

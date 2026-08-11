@@ -81,7 +81,7 @@ The deterministic data snapshot is `src/data/transfers_2025.json`. SNAP uses a s
 
 External program replacement does not change the reform credit schedule. EITC and CTC/ACTC are not external toggles: both are already incorporated in the current-law household calculation and in the individual-income-tax receipts baseline. They appear as memorandum rows but are never added or subtracted a second time.
 
-The default is no external repeal, so the original macro and household results remain unchanged. The view includes seven illustrative programs, 2025 contiguous-state FPL context, three-scenario decomposition, interactive earnings traces, and a centered-$1,000 effective marginal resource-withdrawal measure. See the authoritative identities and timing notes in [MODEL_SPEC.md](MODEL_SPEC.md).
+The default is no external repeal, so the original macro and household results remain unchanged. When payroll taxes are replaced, the view defaults to passing 100% of repealed employer Social Security and Medicare contributions into reform wages and lets the user vary that incidence assumption from 0% to 100%. The selected share changes reform gross resources, the wage-tax base, and the earned adult-credit calculation; it is disabled when payroll taxes remain in place. The view also includes seven illustrative programs, 2025 contiguous-state FPL context, three-scenario decomposition, interactive earnings traces, and a centered-$1,000 effective marginal resource-withdrawal measure. See the authoritative identities and timing notes in [MODEL_SPEC.md](MODEL_SPEC.md).
 
 ## Historical notebooks
 

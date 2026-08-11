@@ -19,7 +19,7 @@ The original repository was a notebook research prototype. Calculations were spr
 | Payroll | Flat approximations | Actual 2025 SS cap and Medicare rules, per earner |
 | CTC/ACTC | Refund formula misordered; no phaseout | Nonrefundable CTC, earnings-limited ACTC, statutory phaseout |
 | Marginal rate | $10 difference and inconsistent arguments | Centered $1,000 local difference on the pure engine |
-| Compensation | Benefits mixed differently across systems | Benefits excluded from both; actual employer FICA added |
+| Compensation | Benefits mixed differently across systems | Benefits excluded from both; actual employer FICA added, with a visible 0%–100% reform pass-through sensitivity |
 | Healthcare | Optional subsidy changed reform results | Excluded from Iteration 1 |
 | Progressive reform | Flat tax only | Flat or progressive X tax with explicit macro calibration |
 | Transfer replacement | No distinction between household value and national savings | Separate resource and federal fiscal identities |
@@ -105,7 +105,7 @@ Current federal tax includes individual income tax net of EITC/CTC/ACTC plus bot
 
 ### Transfer-resource examples
 
-The following uses the default reform, a 75% resource factor for in-kind benefits, the visible preset receipt/manual amounts, and the illustrative six-program bundle above. Amounts are annual.
+The following uses the default reform, 100% employer-FICA pass-through, a 75% resource factor for in-kind benefits, the visible preset receipt/manual amounts, and the illustrative six-program bundle above. Amounts are annual.
 
 | Preset | Current law + transfers | Reform + transfers retained | Reform after selected repeal | Change C vs A | Held harmless? |
 |---|---:|---:|---:|---:|---|
@@ -120,13 +120,13 @@ The largest displayed marginal interactions occur at rule thresholds, not manual
 
 ## Automated validation
 
-The 39-test suite preserves all prior checks and adds no-selection macro/household regressions; federal savings summation; adjusted-target and adjusted-rate algebra; exclusion of state financing; three-scenario resource identities; EITC/CTC and reform-credit double-counting guards; exact program removal/retention; receipt gating; SNAP, school-meal, and Summer EBT thresholds; FPL sizes; and rule-based versus fixed-manual marginal behavior.
+The test suite preserves all prior checks and adds no-selection macro/household regressions; 100%, partial, and inapplicable employer-FICA pass-through cases; federal savings summation; adjusted-target and adjusted-rate algebra; exclusion of state financing; three-scenario resource identities; EITC/CTC and reform-credit double-counting guards; exact program removal/retention; receipt gating; SNAP, school-meal, and Summer EBT thresholds; FPL sizes; and rule-based versus fixed-manual marginal behavior.
 
 Validation commands:
 
 ```text
 npm run typecheck  → passed
-npm test           → 39 passed
+npm test           → 42 passed
 npm run build      → passed
 python3 scripts/build_baseline.py --verify-only
                    → $30.7621T GDP; $22.3119T default base (72.5% GDP)

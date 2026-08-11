@@ -90,6 +90,9 @@ export interface HouseholdResult {
   current: TaxBreakdown;
   totalCashWage: number;
   employerCompensation: number;
+  employerFicaPassThroughRate: number;
+  employerFicaPassThrough: number;
+  reformGrossResources: number;
   reformWageBase: number;
   reformTaxBeforeCredits: number;
   adultCreditMaximum: number;
@@ -119,6 +122,8 @@ export interface TransferReplacementSettings {
 
 export interface TransferHouseholdInput {
   household: HouseholdInput;
+  /** Share of repealed employer FICA converted into reform wages; defaults to 100%. */
+  employerFicaPassThroughRate: number;
   preschoolChildren: number;
   schoolAgeChildren: number;
   monthlyShelterCost: number;

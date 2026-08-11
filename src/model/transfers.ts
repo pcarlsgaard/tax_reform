@@ -215,7 +215,7 @@ export function calculateTransferAnalysis(
   reform: ReformSettings,
   replacements: TransferReplacementSettings = defaultTransferReplacementSettings,
 ): TransferAnalysisResult {
-  const tax = calculateHousehold(input.household, reform);
+  const tax = calculateHousehold(input.household, reform, input.employerFicaPassThroughRate);
   const programs = calculateTransferPrograms(input);
   const adults = tax.input.filingStatus === 'married' ? 2 : 1;
   const fpl = povertyGuideline(adults + tax.input.children);
@@ -279,6 +279,7 @@ const preset = (
   label,
   input: {
     household,
+    employerFicaPassThroughRate: 1,
     preschoolChildren: 0,
     schoolAgeChildren: 0,
     monthlyShelterCost: 900,

@@ -108,13 +108,20 @@ export function calculateReformWageTax(wageBase: number, filingStatus: FilingSta
   return middleBase * settings.rate * settings.progressiveMiddleRateShare + topBase * settings.rate;
 }
 
-function totalTaxAtWage(input: HouseholdInput, settings: ReformSettings): { current: number; reform: number; employerComp: number } {
+function normalizedPassThroughRate(rate: number): number {
+  return Math.max(0, Math.min(1, rate));
+}
+
+function totalTaxAtWage(input: HouseholdInput, settings: ReformSettings, passThroughRate: number): { current: number; reform: number; employerComp: number } {
   const current = calculateCurrentLaw(input);
   const [primaryWage, secondaryWage] = normalizedWages(input);
   const totalCashWage = primaryWage + secondaryWage;
   const employerComp = totalCashWage + current.employerPayrollTax;
   const payrollIsReplaced = settings.replacedTaxes.payroll;
-  const reformWageBase = totalCashWage + (payrollIsReplaced ? current.employerPayrollTax : 0);
+  const employerFicaPassThrough = payrollIsReplaced
+    ? current.employerPayrollTax * normalizedPassThroughRate(passThroughRate)
+    : 0;
+  const reformWageBase = totalCashWage + employerFicaPassThrough;
   const adults = input.filingStatus === 'married' ? 2 : 1;
   const credits = calculateAdultCredit(reformWageBase, adults, settings) + input.children * settings.childCredit;
   const retainedIncome = settings.replacedTaxes.individualIncome ? 0 : current.individualIncomeTax;
@@ -124,7 +131,7 @@ function totalTaxAtWage(input: HouseholdInput, settings: ReformSettings): { curr
   return { current: current.totalFederalTax, reform, employerComp };
 }
 
-export function calculateHousehold(input: HouseholdInput, settings: ReformSettings): HouseholdResult {
+export function calculateHousehold(input: HouseholdInput, settings: ReformSettings, employerFicaPassThroughRate = 1): HouseholdResult {
   const normalized: HouseholdInput = {
     filingStatus: input.filingStatus,
     children: Math.max(0, Math.min(4, Math.trunc(input.children))),
@@ -136,7 +143,14 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
   const current = calculateCurrentLaw(normalized);
   const employerCompensation = totalCashWage + current.employerPayrollTax;
   const payrollIsReplaced = settings.replacedTaxes.payroll;
-  const reformWageBase = totalCashWage + (payrollIsReplaced ? current.employerPayrollTax : 0);
+  const normalizedEmployerFicaPassThroughRate = normalizedPassThroughRate(employerFicaPassThroughRate);
+  const employerFicaPassThrough = payrollIsReplaced
+    ? current.employerPayrollTax * normalizedEmployerFicaPassThroughRate
+    : 0;
+  const reformGrossResources = payrollIsReplaced
+    ? totalCashWage + employerFicaPassThrough
+    : employerCompensation;
+  const reformWageBase = totalCashWage + employerFicaPassThrough;
   const adults = normalized.filingStatus === 'married' ? 2 : 1;
   const adultCreditMaximum = adults * settings.adultCredit;
   const adultCredit = calculateAdultCredit(reformWageBase, adults, settings);
@@ -149,7 +163,7 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
   const reformTaxAfterCredits = reformTaxBeforeCredits - totalReformCredit + retainedCurrentTaxes;
 
   const currentDisposableResources = employerCompensation - current.totalFederalTax;
-  const reformDisposableResources = employerCompensation - reformTaxAfterCredits;
+  const reformDisposableResources = reformGrossResources - reformTaxAfterCredits;
   const dollarChange = reformDisposableResources - currentDisposableResources;
 
   // A centered $1,000 local difference represents stepped provisions such as
@@ -157,8 +171,8 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
   const halfWindow = 500;
   const downInput = { ...normalized, cashWage: Math.max(0, normalized.cashWage - halfWindow) };
   const upInput = { ...normalized, cashWage: normalized.cashWage + halfWindow };
-  const baseTaxes = totalTaxAtWage(downInput, settings);
-  const upTaxes = totalTaxAtWage(upInput, settings);
+  const baseTaxes = totalTaxAtWage(downInput, settings, normalizedEmployerFicaPassThroughRate);
+  const upTaxes = totalTaxAtWage(upInput, settings, normalizedEmployerFicaPassThroughRate);
   const deltaComp = upTaxes.employerComp - baseTaxes.employerComp;
 
   return {
@@ -166,6 +180,9 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
     current,
     totalCashWage,
     employerCompensation,
+    employerFicaPassThroughRate: normalizedEmployerFicaPassThroughRate,
+    employerFicaPassThrough,
+    reformGrossResources,
     reformWageBase,
     reformTaxBeforeCredits,
     adultCreditMaximum,

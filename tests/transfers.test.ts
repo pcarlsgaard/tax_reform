@@ -50,6 +50,39 @@ describe('transfer integration regressions', () => {
     const transfer = calculateTransferAnalysis(input, defaultSettings, noReplacements());
     expect(transfer.tax).toEqual(direct);
   });
+
+  it('defaults employer FICA pass-through to 100%', () => {
+    const input = preset('parent-two');
+    const result = calculateTransferAnalysis(input, defaultSettings, noReplacements());
+    expect(input.employerFicaPassThroughRate).toBe(1);
+    expect(result.tax.employerFicaPassThrough).toBeCloseTo(result.tax.current.employerPayrollTax, 10);
+    expect(result.tax.reformGrossResources).toBeCloseTo(result.tax.totalCashWage + result.tax.employerFicaPassThrough, 10);
+  });
+
+  it('applies a partial pass-through to resources, reform wages, taxes, and credits', () => {
+    const input = preset('parent-two');
+    input.employerFicaPassThroughRate = 0.5;
+    const half = calculateTransferAnalysis(input, defaultSettings, noReplacements());
+    const full = calculateTransferAnalysis({ ...input, employerFicaPassThroughRate: 1 }, defaultSettings, noReplacements());
+    expect(half.tax.employerFicaPassThrough).toBeCloseTo(half.tax.current.employerPayrollTax * 0.5, 10);
+    expect(half.tax.reformWageBase).toBeCloseTo(half.tax.totalCashWage + half.tax.employerFicaPassThrough, 10);
+    expect(half.tax.reformDisposableResources).toBeLessThan(full.tax.reformDisposableResources);
+    expect(half.tax.reformTaxBeforeCredits).not.toBe(full.tax.reformTaxBeforeCredits);
+  });
+
+  it('makes the pass-through setting inapplicable when payroll taxes are retained', () => {
+    const input = preset('parent-two');
+    const retainedPayroll = {
+      ...defaultSettings,
+      replacedTaxes: { ...defaultSettings.replacedTaxes, payroll: false },
+    };
+    const zero = calculateTransferAnalysis({ ...input, employerFicaPassThroughRate: 0 }, retainedPayroll, noReplacements());
+    const full = calculateTransferAnalysis({ ...input, employerFicaPassThroughRate: 1 }, retainedPayroll, noReplacements());
+    expect(zero.tax.employerFicaPassThrough).toBe(0);
+    expect(full.tax.employerFicaPassThrough).toBe(0);
+    expect(zero.tax.reformDisposableResources).toBeCloseTo(full.tax.reformDisposableResources, 10);
+    expect(zero.tax.reformTaxAfterCredits).toBeCloseTo(full.tax.reformTaxAfterCredits, 10);
+  });
 });
 
 describe('federal fiscal replacement accounting', () => {
