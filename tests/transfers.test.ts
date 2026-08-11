@@ -126,35 +126,58 @@ describe('household resource identities', () => {
   it('reconciles all three resource scenarios', () => {
     const result = calculateTransferAnalysis(preset('parent-two'), defaultSettings, illustrativeCoreReplacement);
     expect(result.currentLaw.annual).toBeCloseTo(
-      result.tax.employerCompensation
-        - result.tax.currentPreCreditTaxLiability
-        + result.tax.currentTaxCredits
+      result.currentGrossResources
+        - result.currentPreCreditTaxLiability
+        + result.currentTaxCredits
         + result.totalCurrentExternalTransfers,
       8,
     );
     expect(result.reformRetained.annual).toBeCloseTo(
-      result.tax.reformGrossResources
-        - result.tax.reformPreCreditTaxLiability
-        + result.tax.reformTotalCredits
+      result.reformGrossResources
+        - result.reformPreCreditTaxLiability
+        + result.reformTaxCredits
         + result.totalCurrentExternalTransfers,
       8,
     );
     expect(result.reformAfterReplacement.annual).toBeCloseTo(
-      result.tax.reformGrossResources
-        - result.tax.reformPreCreditTaxLiability
-        + result.tax.reformTotalCredits
+      result.reformGrossResources
+        - result.reformPreCreditTaxLiability
+        + result.reformTaxCredits
         + result.totalCurrentExternalTransfers
         - result.eliminatedHouseholdBenefits,
       8,
     );
   });
 
+  it('adds employer FICA only as a reform-side pass-through', () => {
+    const result = calculateTransferAnalysis(preset('parent-two'), defaultSettings, noReplacements());
+    expect(result.currentGrossResources).toBe(result.tax.totalCashWage);
+    expect(result.currentPreCreditTaxLiability).toBeCloseTo(
+      result.tax.current.incomeTaxBeforeCredits + result.tax.current.employeePayrollTax,
+      10,
+    );
+    expect(result.reformGrossResources).toBeCloseTo(
+      result.tax.totalCashWage + result.tax.employerFicaPassThrough,
+      10,
+    );
+    expect(result.reformGrossResources - result.currentGrossResources).toBeCloseTo(
+      result.tax.employerFicaPassThrough,
+      10,
+    );
+  });
+
   it('does not double-count current EITC/CTC or reform credits', () => {
     const result = calculateTransferAnalysis(preset('parent-two'), defaultSettings, noReplacements());
     expect(result.tax.current.eitc + result.tax.current.nonrefundableCtc + result.tax.current.refundableCtc).toBeGreaterThan(0);
-    expect(result.currentLaw.annual - result.totalCurrentExternalTransfers).toBeCloseTo(result.tax.currentDisposableResources, 8);
+    expect(result.currentLaw.annual - result.totalCurrentExternalTransfers).toBeCloseTo(
+      result.tax.totalCashWage - result.currentPreCreditTaxLiability + result.currentTaxCredits,
+      8,
+    );
     expect(result.tax.totalReformCredit).toBeGreaterThan(0);
-    expect(result.reformRetained.annual - result.totalCurrentExternalTransfers).toBeCloseTo(result.tax.reformDisposableResources, 8);
+    expect(result.reformRetained.annual - result.totalCurrentExternalTransfers).toBeCloseTo(
+      result.reformGrossResources - result.reformPreCreditTaxLiability + result.reformTaxCredits,
+      8,
+    );
   });
 
   it('removes exactly the selected household resource value and retains unchecked benefits', () => {

@@ -224,23 +224,39 @@ export function calculateTransferAnalysis(
     (sum, row) => sum + (replacements.replacedPrograms[row.program.id] ? row.resourceEquivalentValue : 0),
     0,
   );
-  const currentAfterTaxResources = tax.employerCompensation
-    - tax.currentPreCreditTaxLiability
-    + tax.currentTaxCredits;
-  const reformAfterTaxResources = tax.reformGrossResources
-    - tax.reformPreCreditTaxLiability
-    + tax.reformTotalCredits;
+  // The transfer view uses cash household resources. Employer FICA is neither
+  // added nor subtracted under current law; only the selected reform pass-through
+  // converts repealed employer contributions into household cash resources.
+  const currentGrossResources = tax.totalCashWage;
+  const currentPreCreditTaxLiability = tax.currentPreCreditTaxLiability - tax.current.employerPayrollTax;
+  const currentTaxCredits = tax.currentTaxCredits;
+  const reformGrossResources = tax.reformGrossResources;
+  const retainedEmployerPayrollTax = reform.replacedTaxes.payroll ? 0 : tax.current.employerPayrollTax;
+  const reformPreCreditTaxLiability = tax.reformPreCreditTaxLiability - retainedEmployerPayrollTax;
+  const reformTaxCredits = tax.reformTotalCredits;
+  const currentAfterTaxResources = currentGrossResources
+    - currentPreCreditTaxLiability
+    + currentTaxCredits;
+  const reformAfterTaxResources = reformGrossResources
+    - reformPreCreditTaxLiability
+    + reformTaxCredits;
   const currentAnnual = currentAfterTaxResources + totalCurrentExternalTransfers;
   const reformRetainedAnnual = reformAfterTaxResources + totalCurrentExternalTransfers;
   const reformAfterAnnual = reformAfterTaxResources
     + totalCurrentExternalTransfers
     - eliminatedHouseholdBenefits;
-  const taxReformResourceGain = tax.reformDisposableResources - tax.currentDisposableResources;
+  const taxReformResourceGain = reformAfterTaxResources - currentAfterTaxResources;
 
   return {
     tax,
     programs,
     povertyGuideline: fpl,
+    currentGrossResources,
+    currentPreCreditTaxLiability,
+    currentTaxCredits,
+    reformGrossResources,
+    reformPreCreditTaxLiability,
+    reformTaxCredits,
     totalCurrentExternalTransfers,
     eliminatedHouseholdBenefits,
     federalProgramSavingsBillions: calculateFederalProgramSavings(replacements),

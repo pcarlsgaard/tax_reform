@@ -209,6 +209,16 @@ export interface TransferAnalysisResult {
   tax: HouseholdResult;
   programs: TransferProgramResult[];
   povertyGuideline: number;
+  /** Current-law cash wages; employer FICA is not household cash. */
+  currentGrossResources: number;
+  /** Current income tax before credits plus employee-side payroll tax. */
+  currentPreCreditTaxLiability: number;
+  currentTaxCredits: number;
+  /** Cash wages plus the selected reform-side employer-FICA pass-through. */
+  reformGrossResources: number;
+  /** Reform and retained household-side taxes, excluding statutory employer FICA. */
+  reformPreCreditTaxLiability: number;
+  reformTaxCredits: number;
   totalCurrentExternalTransfers: number;
   eliminatedHouseholdBenefits: number;
   federalProgramSavingsBillions: number;

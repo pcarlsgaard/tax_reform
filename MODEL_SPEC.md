@@ -214,8 +214,9 @@ The Taxing Wages table evaluates the OECD's eight standard family patterns at 67
 
 ```text
 A. current resource-equivalent consumption capacity
-   = current gross household resources
-   − current pre-credit federal tax liability
+   = current cash wages
+   − current income tax before credits
+   − employee-side payroll tax
    + current federal tax credits
    + current external transfer value
 
@@ -232,6 +233,8 @@ C. reform with selected replacements
    + current external transfer value
    − household value of selected benefit replacements
 ```
+
+Employer FICA is not current household cash in this transfer comparison and is not subtracted as a current household tax. Only the selected share of repealed employer FICA is added to reform resources. If payroll taxes are retained, employer FICA is neither passed through nor included in either household cash-resource liability. This presentation differs deliberately from the core economic tax-wedge view, which includes both sides of payroll tax against employer compensation.
 
 This is a budget/resource measure, not a welfare-equivalent valuation. The configurable in-kind factor defaults to 75%; cash and near-cash benefits enter dollar-for-dollar. Reform disposable resources incorporate the visible employer-FICA pass-through assumption described above. No scenario divides resources by `1 + tax rate`, and no DBCFT price-pass-through assumption is introduced.
 
