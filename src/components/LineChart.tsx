@@ -3,13 +3,14 @@ import { dollars, percent } from './format';
 
 interface Point { x: number; a: number; b: number }
 
-export function LineChart({ points, title, aLabel, bLabel, percentAxis = false, xScale = 'linear' }: {
+export function LineChart({ points, title, aLabel, bLabel, percentAxis = false, xScale = 'linear', yDomain }: {
   points: Point[];
   title: string;
   aLabel: string;
   bLabel: string;
   percentAxis?: boolean;
   xScale?: 'linear' | 'focus';
+  yDomain?: [number, number];
 }) {
   const [hovered, setHovered] = useState<number | null>(null);
   const width = 1100;
@@ -22,13 +23,16 @@ export function LineChart({ points, title, aLabel, bLabel, percentAxis = false, 
   const rawMin = Math.min(...ys, 0);
   const rawMax = Math.max(...ys, 0);
   const yPad = Math.max((rawMax - rawMin) * 0.08, 0.01);
-  const yMin = rawMin - yPad;
-  const yMax = rawMax + yPad;
+  const yMin = yDomain?.[0] ?? rawMin - yPad;
+  const yMax = yDomain?.[1] ?? rawMax + yPad;
   const normalizedX = (x: number) => Math.max(0, Math.min(1, (x - xMin) / Math.max(1, xMax - xMin)));
   const xTransform = (share: number) => xScale === 'focus' ? Math.sqrt(share) : share;
   const xInverse = (share: number) => xScale === 'focus' ? share ** 2 : share;
   const sx = (x: number) => pad.left + xTransform(normalizedX(x)) * (width - pad.left - pad.right);
-  const sy = (y: number) => pad.top + ((yMax - y) / Math.max(1e-9, yMax - yMin)) * (height - pad.top - pad.bottom);
+  const sy = (y: number) => {
+    const visibleY = Math.max(yMin, Math.min(yMax, y));
+    return pad.top + ((yMax - visibleY) / Math.max(1e-9, yMax - yMin)) * (height - pad.top - pad.bottom);
+  };
   const path = (key: 'a' | 'b') => points.map((point, index) => `${index ? 'L' : 'M'}${sx(point.x).toFixed(1)},${sy(point[key]).toFixed(1)}`).join(' ');
   const formatY = (value: number) => percentAxis ? percent(value, 1) : dollars(value);
   const ticks = [0, 0.25, 0.5, 0.75, 1];
