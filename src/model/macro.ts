@@ -1,7 +1,14 @@
 import baseline from '../data/baseline_2025.json';
-import type { MacroAdjustment, MacroResult, ReformSettings, ReplacedTax } from './types';
+import refundableTaxCreditOutlaysJson from '../data/refundable_tax_credit_outlays_2025.json';
+import type { MacroAdjustment, MacroResult, ReformSettings, ReplacedTax, RefundableTaxCreditOutlayData } from './types';
 
 const receiptKeys: ReplacedTax[] = ['individualIncome', 'payroll', 'corporateIncome', 'customs'];
+
+export const refundableTaxCreditOutlays = refundableTaxCreditOutlaysJson as RefundableTaxCreditOutlayData;
+export const totalRefundableTaxCreditOutlays = refundableTaxCreditOutlays.items.reduce(
+  (sum, item) => sum + item.actualOutlaysBillions,
+  0,
+);
 
 export function theoreticalConsumptionBase(): number {
   const c = baseline.components;
@@ -31,8 +38,12 @@ export function calculateMacro(settings: ReformSettings, adjustment: MacroAdjust
     (sum, key) => sum + (settings.replacedTaxes[key] ? baseline.federalReceipts[key] : 0),
     0,
   );
+  const refundableTaxCreditOutlaySavings = settings.replacedTaxes.individualIncome
+    ? totalRefundableTaxCreditOutlays
+    : 0;
   const federalTransferSavings = Math.max(0, adjustment.federalTransferSavings ?? 0);
-  const adjustedTargetRevenue = Math.max(0, targetRevenue - federalTransferSavings);
+  const totalFederalSavings = refundableTaxCreditOutlaySavings + federalTransferSavings;
+  const adjustedTargetRevenue = Math.max(0, targetRevenue - totalFederalSavings);
   const revenueNeutralRate = rateAdjustedBase > 0
     ? (targetRevenue + adultCreditCost + childCreditCost + otherRebates) / rateAdjustedBase
     : Number.POSITIVE_INFINITY;
@@ -61,7 +72,11 @@ export function calculateMacro(settings: ReformSettings, adjustment: MacroAdjust
     netRevenuePercentGdp: netRevenue / baseline.gdp,
     targetRevenue,
     targetRevenuePercentGdp: targetRevenue / baseline.gdp,
+    refundableTaxCreditOutlaySavings,
+    refundableTaxCreditOutlaySavingsPercentGdp: refundableTaxCreditOutlaySavings / baseline.gdp,
     federalTransferSavings,
+    totalFederalSavings,
+    totalFederalSavingsPercentGdp: totalFederalSavings / baseline.gdp,
     adjustedTargetRevenue,
     adjustedTargetRevenuePercentGdp: adjustedTargetRevenue / baseline.gdp,
     surplusDeficit: netRevenue - targetRevenue,

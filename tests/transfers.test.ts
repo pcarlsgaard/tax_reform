@@ -14,6 +14,7 @@ import {
   povertyGuideline,
   transferPresets,
   transferPrograms,
+  totalRefundableTaxCreditOutlays,
   type TransferHouseholdInput,
   type TransferProgramId,
   type TransferReplacementSettings,
@@ -34,14 +35,15 @@ function preset(id: string): TransferHouseholdInput {
 }
 
 describe('transfer integration regressions', () => {
-  it('leaves existing macro results unchanged when no external programs are selected', () => {
+  it('leaves macro results unchanged across callers when no external programs are selected', () => {
     const before = calculateMacro(defaultSettings);
     const after = calculateMacro(defaultSettings, { federalTransferSavings: calculateFederalProgramSavings(noReplacements()) });
     expect(after.targetRevenue).toBe(before.targetRevenue);
-    expect(after.adjustedTargetRevenue).toBe(before.targetRevenue);
+    expect(after.adjustedTargetRevenue).toBe(before.adjustedTargetRevenue);
     expect(after.revenueNeutralRate).toBe(before.revenueNeutralRate);
-    expect(after.adjustedRevenueNeutralRate).toBe(before.revenueNeutralRate);
-    expect(after.adjustedSurplusDeficit).toBe(before.surplusDeficit);
+    expect(after.adjustedRevenueNeutralRate).toBe(before.adjustedRevenueNeutralRate);
+    expect(after.adjustedSurplusDeficit).toBe(before.adjustedSurplusDeficit);
+    expect(after.refundableTaxCreditOutlaySavings).toBeCloseTo(totalRefundableTaxCreditOutlays, 10);
   });
 
   it('reuses the household tax engine without changing its output', () => {
@@ -94,9 +96,22 @@ describe('federal fiscal replacement accounting', () => {
   it('subtracts savings from the tax target and solves the adjusted rate algebraically', () => {
     const savings = calculateFederalProgramSavings(illustrativeCoreReplacement);
     const result = calculateMacro(defaultSettings, { federalTransferSavings: savings });
-    expect(result.adjustedTargetRevenue).toBeCloseTo(result.targetRevenue - savings, 10);
+    expect(result.totalFederalSavings).toBeCloseTo(totalRefundableTaxCreditOutlays + savings, 10);
+    expect(result.adjustedTargetRevenue).toBeCloseTo(result.targetRevenue - totalRefundableTaxCreditOutlays - savings, 10);
     const solved = calculateMacro({ ...defaultSettings, rate: result.adjustedRevenueNeutralRate }, { federalTransferSavings: savings });
     expect(solved.adjustedSurplusDeficit).toBeCloseTo(0, 8);
+  });
+
+  it('does not add refundable-credit outlay savings when individual income taxation is retained', () => {
+    const savings = calculateFederalProgramSavings(only('housing'));
+    const retainedIncomeTax = {
+      ...defaultSettings,
+      replacedTaxes: { ...defaultSettings.replacedTaxes, individualIncome: false },
+    };
+    const result = calculateMacro(retainedIncomeTax, { federalTransferSavings: savings });
+    expect(result.refundableTaxCreditOutlaySavings).toBe(0);
+    expect(result.totalFederalSavings).toBeCloseTo(savings, 10);
+    expect(result.adjustedTargetRevenue).toBeCloseTo(result.targetRevenue - savings, 10);
   });
 
   it('never treats documented state financing as federal savings', () => {

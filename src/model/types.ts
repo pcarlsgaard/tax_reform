@@ -43,7 +43,11 @@ export interface MacroResult {
   netRevenuePercentGdp: number;
   targetRevenue: number;
   targetRevenuePercentGdp: number;
+  refundableTaxCreditOutlaySavings: number;
+  refundableTaxCreditOutlaySavingsPercentGdp: number;
   federalTransferSavings: number;
+  totalFederalSavings: number;
+  totalFederalSavingsPercentGdp: number;
   adjustedTargetRevenue: number;
   adjustedTargetRevenuePercentGdp: number;
   surplusDeficit: number;
@@ -56,8 +60,30 @@ export interface MacroResult {
 }
 
 export interface MacroAdjustment {
-  /** FY2025 federal program spending removed outside the tax system, in billions. */
+  /** FY2025 federal program spending removed outside the individual-income-tax system, in billions. */
   federalTransferSavings?: number;
+}
+
+export interface RefundableTaxCreditOutlayItem {
+  id: 'eitcRefundableOutlay' | 'refundableChildTaxCreditOutlay';
+  label: string;
+  account: string;
+  line: string;
+  actualOutlaysDollars: number;
+  actualOutlaysBillions: number;
+  budgetTreatment: string;
+}
+
+export interface RefundableTaxCreditOutlayData {
+  schemaVersion: number;
+  baselineLabel: string;
+  fiscalYear: string;
+  policyTiming: string;
+  agency: string;
+  sourceTitle: string;
+  sourceUrl: string;
+  items: RefundableTaxCreditOutlayItem[];
+  accountingNote: string;
 }
 
 export interface HouseholdInput {

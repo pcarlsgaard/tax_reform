@@ -85,11 +85,20 @@ required rate
   / rate-adjusted base
 ```
 
+Refundable current-law tax credits require a budget-classification adjustment. The portion that offsets positive income-tax liability already lowers the individual-income-tax receipts target. The refundable excess is recorded as a mandatory outlay and disappears when the individual income tax is replaced:
+
+```text
+automatic refundable-credit outlay savings
+= FY2025 refundable EITC outlays
+ + FY2025 refundable child-credit outlays
+```
+
 External transfer repeal is a separate fiscal adjustment, not a rebate and not a second tax engine:
 
 ```text
 adjusted required federal revenue
 = tax-replacement revenue target
+− automatic refundable-credit outlay savings, if individual income tax is replaced
 − FY2025 federal fiscal amounts for selected external programs
 
 adjusted required rate
@@ -97,7 +106,7 @@ adjusted required rate
   / rate-adjusted base
 ```
 
-Only federal amounts enter this subtraction. State maintenance-of-effort, local contributions, and household resource values do not. With no program selected, the adjusted and original identities are exactly equal.
+Only federal amounts enter this subtraction. State maintenance-of-effort, local contributions, and household resource values do not. With no external program selected, the external adjustment is zero; the automatic refundable-credit adjustment still applies when individual income taxation is replaced.
 
 ## 5. Provisional default 2025 baseline
 
@@ -120,7 +129,9 @@ Eleven of twelve inputs are observed for 2025. Housing-sector value added is pro
 
 The default target replaces FY2025 individual income tax ($2,656.044B), social-insurance/payroll receipts ($1,748.294B), corporate income tax ($452.089B), and customs duties ($194.866B): **$5,051.293B**, or **16.42% of GDP**. The target is fiscal-year cash receipts while the base is a calendar-year economic measure.
 
-At the flat defaults, gross collections are $6,693.561B, adult credits cost $971.149B, child credits cost $345.702B, net revenue is $5,376.709B, and the surplus is $325.416B. The revenue-neutral rate is **28.5415%**.
+At the flat defaults, gross collections are $6,693.561B, adult credits cost $971.149B, child credits cost $345.702B, and net revenue is $5,376.709B. Against the unadjusted receipts target the surplus is $325.416B and the revenue-neutral rate is **28.5415%**. FY2025 actual refundable EITC outlays of $66.007B and refundable child-credit outlays of $26.567B reduce the operative requirement to $4,958.719B and the adjusted revenue-neutral rate to **28.1266%**. These Treasury outlays were recorded during FY2025 and primarily reflect tax year 2024 returns, another explicit timing mismatch.
+
+The refundable amounts and account identifiers are versioned in `src/data/refundable_tax_credit_outlays_2025.json` from the Treasury Bureau of the Fiscal Service's FY2025 Combined Statement, Department of the Treasury accounts 020-0906 and 020-0922.
 
 ## 6. Household model
 
@@ -224,7 +235,7 @@ C. reform with selected replacements
 
 This is a budget/resource measure, not a welfare-equivalent valuation. The configurable in-kind factor defaults to 75%; cash and near-cash benefits enter dollar-for-dollar. Reform disposable resources incorporate the visible employer-FICA pass-through assumption described above. No scenario divides resources by `1 + tax rate`, and no DBCFT price-pass-through assumption is introduced.
 
-EITC and CTC/ACTC are components of the current tax-credit row; reform adult and child credits are components of the reform credit rows. The decomposition displays them once as additions after pre-credit tax liability. EITC/CTC remain deliberately absent from the external-program selector and from federal transfer savings, preventing double-counting against individual-income-tax receipts.
+EITC and CTC/ACTC are components of the current household tax-credit row; reform adult and child credits are components of the reform rows. The decomposition displays them once as additions after pre-credit tax liability. EITC/CTC remain deliberately absent from the external-program selector. In national fiscal accounting, only their refundable excess recorded by Treasury as an outlay is an additional automatic saving; the liability-offset portion already lowers individual-income-tax receipts and is never counted again.
 
 ### Household characteristics and receipt
 

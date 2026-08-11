@@ -9,6 +9,7 @@ import {
   calculateMarginalResourceWithdrawalRate,
   calculateTransferAnalysis,
   cloneTransferPreset,
+  refundableTaxCreditOutlays,
   transferData,
   transferPresets,
   type FilingStatus,
@@ -89,8 +90,9 @@ export function Transfers({
     <div className="metric-grid transfer-metrics">
       <MetricCard label="Household held harmless" value={analysis.heldHarmless ? 'Yes' : 'No'} note={`${dollars(analysis.reformAfterReplacement.changeFromCurrent)} versus current law`} tone={analysis.heldHarmless ? 'good' : 'bad'} />
       <MetricCard label="Household replacement ratio" value={analysis.householdReplacementRatio == null ? '—' : `${analysis.householdReplacementRatio.toFixed(Math.abs(analysis.householdReplacementRatio) < 0.01 ? 3 : 2)}×`} note="Tax-reform resource gain ÷ eliminated benefit value"><Audit><Formula>{dollars(analysis.tax.dollarChange)} reform tax/credit gain ÷ {dollars(analysis.eliminatedHouseholdBenefits)} eliminated household resources. This is not a national budget efficiency measure.</Formula></Audit></MetricCard>
-      <MetricCard label="Federal program savings" value={billions(federalSavings)} note={`${percent(federalSavings / macro.gdp, 2)} of GDP`}><Audit><Formula>Only checked external programs are summed. State-financed amounts are excluded; EITC and CTC are already inside the tax baseline.</Formula></Audit></MetricCard>
-      <MetricCard label="Adjusted revenue requirement" value={moneyB(macro.adjustedTargetRevenue)} note={`${percent(macro.adjustedTargetRevenuePercentGdp)} of GDP`}><Audit><Formula>{moneyB(macro.targetRevenue)} tax-replacement target − {moneyB(federalSavings)} federal program savings = {moneyB(macro.adjustedTargetRevenue)}</Formula></Audit></MetricCard>
+      <MetricCard label="Automatic refundable-credit savings" value={billions(macro.refundableTaxCreditOutlaySavings)} note={`${percent(macro.refundableTaxCreditOutlaySavingsPercentGdp, 2)} of GDP · ${settings.replacedTaxes.individualIncome ? 'income tax replaced' : 'income tax retained'}`}><Audit><Formula>FY2025 actual refundable EITC and child-credit outlays are removed automatically only when individual income taxation is replaced. The liability-offset portion already lowers receipts and is not counted again.</Formula></Audit></MetricCard>
+      <MetricCard label="Selected external-program savings" value={billions(federalSavings)} note={`${percent(federalSavings / macro.gdp, 2)} of GDP`}><Audit><Formula>Only checked external programs are summed. State-financed amounts are excluded.</Formula></Audit></MetricCard>
+      <MetricCard label="Adjusted revenue requirement" value={moneyB(macro.adjustedTargetRevenue)} note={`${percent(macro.adjustedTargetRevenuePercentGdp)} of GDP`}><Audit><Formula>{moneyB(macro.targetRevenue)} tax-replacement target<br />− {moneyB(macro.refundableTaxCreditOutlaySavings)} automatic refundable-credit outlay savings<br />− {moneyB(federalSavings)} selected external-program savings<br />= {moneyB(macro.adjustedTargetRevenue)}</Formula></Audit></MetricCard>
       <MetricCard label="Revenue-neutral rate after savings" value={percent(macro.adjustedRevenueNeutralRate, 2)} note={`Before savings ${percent(macro.revenueNeutralRate, 2)}`} tone="accent"><Audit><Formula>({moneyB(macro.adjustedTargetRevenue)} adjusted target + {moneyB(macro.adultCreditCost + macro.childCreditCost)} reform credits) ÷ {moneyB(macro.rateAdjustedBase)} = {percent(macro.adjustedRevenueNeutralRate, 2)}</Formula></Audit></MetricCard>
       <MetricCard label="Rate reduction" value={`${(macro.revenueNeutralRateReduction * 100).toFixed(2)} pp`} note={`Adjusted balance at selected rate ${moneyB(macro.adjustedSurplusDeficit)}`} tone={macro.adjustedSurplusDeficit >= 0 ? 'good' : 'bad'} />
     </div>
@@ -106,6 +108,17 @@ export function Transfers({
     </section>
 
     <section className="table-card compact program-table">
+      <div className="section-heading"><div><span className="eyebrow">Tax-system outlays</span><h2>Refundable EITC and child-credit savings</h2><p>These are automatic when the individual income tax is replaced; they are not optional external-program toggles.</p></div><strong>{settings.replacedTaxes.individualIncome ? 'Automatically replaced' : 'Retained'}</strong></div>
+      <div className="responsive-table"><table><thead><tr><th>Budget item</th><th>FY2025 actual outlay</th><th>Budget treatment</th><th>Status</th></tr></thead><tbody>{refundableTaxCreditOutlays.items.map((item) => <tr key={item.id}>
+        <td><strong>{item.label}</strong><small>Treasury account {item.account}</small></td>
+        <td>{billions(item.actualOutlaysBillions)}</td>
+        <td>{item.budgetTreatment}</td>
+        <td><span className="program-tag cash">{settings.replacedTaxes.individualIncome ? 'Automatic saving' : 'Retained'}</span></td>
+      </tr>)}</tbody></table></div>
+      <Audit title="Audit refundable-credit budget treatment"><Formula>{refundableTaxCreditOutlays.accountingNote}<br /><br />Recorded outlays: {billions(refundableTaxCreditOutlays.items[0].actualOutlaysBillions)} refundable EITC + {billions(refundableTaxCreditOutlays.items[1].actualOutlaysBillions)} refundable child credit = {billions(macro.refundableTaxCreditOutlaySavings)} automatic savings under the selected tax replacement.<br /><br />Source: {refundableTaxCreditOutlays.agency}, {refundableTaxCreditOutlays.fiscalYear}. {refundableTaxCreditOutlays.policyTiming}.<br /><a href={refundableTaxCreditOutlays.sourceUrl} target="_blank" rel="noreferrer">Treasury Combined Statement</a></Formula></Audit>
+    </section>
+
+    <section className="table-card compact program-table">
       <div className="section-heading"><div><span className="eyebrow">External programs only</span><h2>Receipt and replacement controls</h2><p>“Replace” removes the program without changing the adult or child credit schedule selected in Reform Designer.</p></div><strong>{analysis.programs.filter((row) => replacements.replacedPrograms[row.program.id]).length} selected</strong></div>
       <div className="responsive-table"><table><thead><tr><th>Program</th><th>Type / model</th><th>Federal fiscal amount</th><th>Current receipt</th><th>Household annual value</th><th>Replace with reform credits</th></tr></thead><tbody>{analysis.programs.map((row) => <tr key={row.program.id}>
         <td><strong>{row.program.shortName}</strong><Audit title="Program audit"><Formula>{row.program.householdMethod}<br /><br />Fiscal: {billions(row.program.federalFiscalAmountBillions)} — {row.program.federalFiscalMeasure}. State financing included: {billions(row.program.stateFinancingIncludedBillions)}.<br /><br />Receipt: {row.program.receiptAccess}<br /><br />Source: {row.program.agency}, {row.program.policyYear} / {row.program.fiscalYear}.<br /><a href={row.program.sourceUrl} target="_blank" rel="noreferrer">Fiscal source</a> · <a href={row.program.ruleSourceUrl} target="_blank" rel="noreferrer">Rule source</a><br /><br />Limits: {row.program.limitations.join(' ')}</Formula></Audit></td>
@@ -115,7 +128,7 @@ export function Transfers({
         <td>{row.program.method === 'manual_receipt' ? <div className="manual-benefit"><span>$</span><input aria-label={`${row.program.shortName} annual benefit`} type="number" min="0" step="100" value={input.manualAnnualBenefits[row.program.id] ?? 0} onChange={(event) => setManualBenefit(row.program.id, Number(event.target.value))} /></div> : dollars(row.resourceEquivalentValue)}<small>{row.program.method === 'manual_receipt' ? `${dollars(row.annualGovernmentBenefit)} government amount → ${dollars(row.resourceEquivalentValue)} resources` : row.calculationStatus.replaceAll('_', ' ')}{row.program.kind === 'in_kind' ? ` · ${percent(row.valuationFactor)} resource factor` : ''}</small></td>
         <td><label className="check-control replacement"><input type="checkbox" checked={replacements.replacedPrograms[row.program.id]} onChange={() => toggleReplacement(row.program.id)} /><span>{replacements.replacedPrograms[row.program.id] ? 'Selected' : 'Retain'}</span></label></td>
       </tr>)}</tbody></table></div>
-      <p className="table-note">FY2025 actual outlays are used where the account exposes them. School meals and Summer EBT use FY2025 actual obligations to isolate those program components. These are federal budget amounts, not household values.</p>
+      <p className="table-note">FY2025 actual outlays are used where the account exposes them. School meals and Summer EBT use FY2025 actual obligations to isolate those program components. These are federal budget amounts, not household values. EITC and CTC/ACTC remain outside this selector because their refundable outlays follow the individual-income-tax switch above.</p>
     </section>
 
     <section className="table-card compact decomposition-table">

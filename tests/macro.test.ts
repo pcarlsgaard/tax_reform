@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateMacro, defaultSettings, theoreticalConsumptionBase } from '../src/model';
+import { calculateMacro, defaultSettings, theoreticalConsumptionBase, totalRefundableTaxCreditOutlays } from '../src/model';
 
 describe('2025 national accounting', () => {
   it('sums the saved NIPA components', () => {
@@ -23,6 +23,9 @@ describe('2025 national accounting', () => {
     expect(result.childCreditCost).toBeCloseTo(345.7024704, 8);
     expect(result.netRevenue).toBeCloseTo(result.grossRevenue - result.adultCreditCost - result.childCreditCost, 8);
     expect(result.targetRevenue).toBeCloseTo(5051.293, 8);
+    expect(result.refundableTaxCreditOutlaySavings).toBeCloseTo(92.5742078756, 10);
+    expect(result.totalFederalSavings).toBeCloseTo(totalRefundableTaxCreditOutlays, 10);
+    expect(result.adjustedTargetRevenue).toBeCloseTo(result.targetRevenue - totalRefundableTaxCreditOutlays, 10);
     expect(result.surplusDeficit).toBeCloseTo(result.netRevenue - result.targetRevenue, 8);
     expect(result.grossRevenuePercentGdp).toBeCloseTo(result.grossRevenue / result.gdp, 12);
     expect(result.netRevenuePercentGdp).toBeCloseTo(result.netRevenue / result.gdp, 12);
@@ -44,6 +47,18 @@ describe('2025 national accounting', () => {
   it('changes the target only for selected replacement taxes', () => {
     const result = calculateMacro({ ...defaultSettings, replacedTaxes: { individualIncome: true, payroll: false, corporateIncome: false, customs: false } });
     expect(result.targetRevenue).toBeCloseTo(2656.044, 8);
+  });
+
+  it('removes refundable credit outlays only when individual income taxation is replaced', () => {
+    const replaced = calculateMacro(defaultSettings);
+    const retained = calculateMacro({
+      ...defaultSettings,
+      replacedTaxes: { ...defaultSettings.replacedTaxes, individualIncome: false },
+    });
+    expect(replaced.refundableTaxCreditOutlaySavings).toBeCloseTo(66.00744660284 + 26.56676127276, 10);
+    expect(retained.refundableTaxCreditOutlaySavings).toBe(0);
+    expect(retained.totalFederalSavings).toBe(0);
+    expect(retained.adjustedTargetRevenue).toBe(retained.targetRevenue);
   });
 
   it('scores a universal adult credit at 100% rather than the earned-credit budget share', () => {

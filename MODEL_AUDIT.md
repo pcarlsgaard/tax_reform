@@ -23,7 +23,7 @@ The original repository was a notebook research prototype. Calculations were spr
 | Healthcare | Optional subsidy changed reform results | Excluded from Iteration 1 |
 | Progressive reform | Flat tax only | Flat or progressive X tax with explicit macro calibration |
 | Transfer replacement | No distinction between household value and national savings | Separate resource and federal fiscal identities |
-| EITC/CTC replacement | Risk of treating tax credits as outside spending | Memorandum-only display; no external toggles or second fiscal saving |
+| EITC/CTC replacement | Liability-offset amounts reduce receipts, while refundable excess payments are mandatory outlays | No external toggles; FY2025 refundable outlays are an automatic saving when individual income taxation is replaced, while receipt offsets are not counted twice |
 | Program eligibility | No transfer engine | Explicit receipt; formulas only where credible; rationed programs stay manual |
 | Household resource signs | Net tax could be negative and was subtracted in the display | Positive pre-credit liability is subtracted, credits are added, and selected transfer replacements are subtracted explicitly |
 
@@ -57,11 +57,11 @@ $22,311.8686B × 30.0% = $6,693.5606B gross collections (21.76% GDP)
 =   $325.4165B static surplus (1.06% GDP)
 ```
 
-The flat revenue-neutral rate is **28.54150956%**. Re-running the engine at that rate reproduces the target within `1e-8` billion dollars. At the default progressive calibration, the rate-adjusted base is $17,220.2815B and the revenue-neutral business/top wage rate is **36.9804879%**.
+The unadjusted flat revenue-neutral rate is **28.54150956%**. The [FY2025 Treasury Combined Statement](https://fiscal.treasury.gov/system/files/files/reports-statements/combined-statement/cs2025/c40.pdf) records $66.0074466B of refundable EITC outlays (account 020-0906) and $26.5667613B of refundable child-credit outlays (account 020-0922). Replacing individual income taxation therefore removes $92.5742079B of mandatory outlays in addition to replacing receipts, producing an adjusted requirement of $4,958.7187921B and an adjusted flat rate of **28.1265994%**. The credit portion that offsets positive liability already reduces receipts and is not counted again. At the default progressive calibration, the pre-savings rate-adjusted base is $17,220.2815B and the unadjusted revenue-neutral business/top wage rate is **36.9804879%**.
 
 ## Transfer-replacement fiscal reconciliation
 
-No external program is selected by default, so all original national and household regression results remain unchanged. The audit uses one neutral illustrative bundle—SNAP, WIC, school meals, Summer EBT, TANF, and LIHEAP, excluding rationed housing assistance:
+No external program is selected by default, so external selections do not change the household analysis. The automatic refundable-credit outlay savings still follow the individual-income-tax replacement switch. The audit uses one neutral illustrative external bundle—SNAP, WIC, school meals, Summer EBT, TANF, and LIHEAP, excluding rationed housing assistance:
 
 ```text
 $106.336B SNAP actual net outlays
@@ -73,11 +73,12 @@ $106.336B SNAP actual net outlays
 = $163.768B illustrative federal fiscal savings
 
 $5,051.293B original tax-replacement target
-−  163.768B selected federal program savings
-= $4,887.525B adjusted revenue requirement
+−   92.574B automatic refundable-credit outlay savings
+−  163.768B selected external federal program savings
+= $4,794.951B adjusted revenue requirement
 ```
 
-At the default flat settings, the revenue-neutral rate falls from **28.5415% to 27.8075%**, a **0.7340 percentage-point** reduction. Adding tenant-based rental assistance would add $38.320B of modeled federal savings, but it is excluded from this illustrative bundle because household receipt is rationed and a national repeal has distributional issues that this illustration cannot resolve.
+At the default flat settings, automatic refundable-credit savings reduce the rate from **28.5415% to 28.1266%**. Adding the illustrative external bundle reduces it further to **27.3926%**, a total **1.1489 percentage-point** reduction. Adding tenant-based rental assistance would add $38.320B of modeled federal savings, but it is excluded from this illustrative bundle because household receipt is rationed and a national repeal has distributional issues that this illustration cannot resolve.
 
 Fiscal amounts do not derive from household benefits or recipient averages. Conversely, household values do not derive from dividing fiscal amounts by caseloads. School meals and Summer EBT are actual obligations rather than outlays; the UI labels the measure. State TANF maintenance-of-effort and other nonfederal financing are excluded from federal savings.
 
@@ -127,7 +128,7 @@ Validation commands:
 
 ```text
 npm run typecheck  → passed
-npm test           → 44 passed
+npm test           → 46 passed
 npm run build      → passed
 python3 scripts/build_baseline.py --verify-only
                    → $30.7621T GDP; $22.3119T default base (72.5% GDP)
