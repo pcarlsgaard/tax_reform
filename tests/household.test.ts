@@ -123,6 +123,9 @@ describe('OECD-style tax-wedge table', () => {
     for (const row of rows) {
       expect(Number.isFinite(row.currentWedge)).toBe(true);
       expect(Number.isFinite(row.reformWedge)).toBe(true);
+      expect(row.currentAfterTaxIncome).toBeCloseTo(row.employerCompensation - row.currentTax, 8);
+      expect(row.reformAfterTaxIncome).toBeCloseTo(row.employerCompensation - row.reformTax, 8);
+      expect(row.afterTaxIncomeChange).toBeCloseTo(row.reformAfterTaxIncome - row.currentAfterTaxIncome, 8);
     }
   });
 });

@@ -111,6 +111,9 @@ export interface TaxWedgeRow extends TaxWedgeScenario {
   employerCompensation: number;
   currentTax: number;
   reformTax: number;
+  currentAfterTaxIncome: number;
+  reformAfterTaxIncome: number;
+  afterTaxIncomeChange: number;
   currentWedge: number;
   reformWedge: number;
   changePercentagePoints: number;

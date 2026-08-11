@@ -80,7 +80,7 @@ Current federal tax includes individual income tax net of EITC/CTC/ACTC plus bot
 
 ## Automated validation
 
-The 26-test suite covers NIPA summation; compliance and exemptions; GDP ratios; flat and progressive revenue identities; credit costs; target selection; algebraic rate solutions; 2025 deductions, brackets, payroll caps, Medicare, EITC, CTC and ACTC thresholds; two-earner payroll; earned and universal adult credits; zero through high income; bounded local marginal rates around kinks; the eight Taxing Wages patterns; expensing; border adjustment; domestic inputs; wages; and end-to-end fixtures.
+The 26-test suite covers NIPA summation; compliance and exemptions; GDP ratios; flat and progressive revenue identities; credit costs; target selection; algebraic rate solutions; 2025 deductions, brackets, payroll caps, Medicare, EITC, CTC and ACTC thresholds; two-earner payroll; earned and universal adult credits; zero through high income; bounded local marginal rates around kinks; the eight Taxing Wages patterns and their after-tax-income identities; expensing; border adjustment; domestic inputs; wages; and end-to-end fixtures.
 
 Validation commands:
 

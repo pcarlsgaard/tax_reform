@@ -3,12 +3,13 @@ import { dollars, percent } from './format';
 
 interface Point { x: number; a: number; b: number }
 
-export function LineChart({ points, title, aLabel, bLabel, percentAxis = false }: {
+export function LineChart({ points, title, aLabel, bLabel, percentAxis = false, xScale = 'linear' }: {
   points: Point[];
   title: string;
   aLabel: string;
   bLabel: string;
   percentAxis?: boolean;
+  xScale?: 'linear' | 'focus';
 }) {
   const [hovered, setHovered] = useState<number | null>(null);
   const width = 1100;
@@ -23,7 +24,10 @@ export function LineChart({ points, title, aLabel, bLabel, percentAxis = false }
   const yPad = Math.max((rawMax - rawMin) * 0.08, 0.01);
   const yMin = rawMin - yPad;
   const yMax = rawMax + yPad;
-  const sx = (x: number) => pad.left + ((x - xMin) / Math.max(1, xMax - xMin)) * (width - pad.left - pad.right);
+  const normalizedX = (x: number) => Math.max(0, Math.min(1, (x - xMin) / Math.max(1, xMax - xMin)));
+  const xTransform = (share: number) => xScale === 'focus' ? Math.sqrt(share) : share;
+  const xInverse = (share: number) => xScale === 'focus' ? share ** 2 : share;
+  const sx = (x: number) => pad.left + xTransform(normalizedX(x)) * (width - pad.left - pad.right);
   const sy = (y: number) => pad.top + ((yMax - y) / Math.max(1e-9, yMax - yMin)) * (height - pad.top - pad.bottom);
   const path = (key: 'a' | 'b') => points.map((point, index) => `${index ? 'L' : 'M'}${sx(point.x).toFixed(1)},${sy(point[key]).toFixed(1)}`).join(' ');
   const formatY = (value: number) => percentAxis ? percent(value, 1) : dollars(value);
@@ -52,7 +56,7 @@ export function LineChart({ points, title, aLabel, bLabel, percentAxis = false }
           return <g key={`y-${tick}`}><line x1={pad.left} x2={width - pad.right} y1={y} y2={y} className="grid-line" /><text x={pad.left - 12} y={y + 4} textAnchor="end">{formatY(yValue)}</text></g>;
         })}
         {ticks.map((tick) => {
-          const xValue = xMin + (xMax - xMin) * tick;
+          const xValue = xMin + (xMax - xMin) * xInverse(tick);
           const x = sx(xValue);
           return <text key={`x-${tick}`} x={x} y={height - 18} textAnchor="middle">{dollars(xValue)}</text>;
         })}
