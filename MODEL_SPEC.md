@@ -173,10 +173,23 @@ earned adult credit
 
 Universal mode pays the maximum regardless of earnings. The child credit is always `children × child credit` and fully refundable.
 
+The engine does not rely on subtracting a negative net-tax value when it constructs household resources. It separates liabilities and credits:
+
 ```text
-reform tax after credits
-= wage tax − adult credit − child credit + retained current-law taxes
+reform pre-credit tax liability
+= reform wage tax + retained current-law tax before credits
+
+reform total household credits
+= refundable adult credit + refundable child credit
+ + retained current-law tax credits, if individual income tax is retained
+
+reform disposable resources
+= reform gross household resources
+ − reform pre-credit tax liability
+ + reform total household credits
 ```
+
+`reform tax after credits` remains available as the signed net fiscal position—positive means tax and negative means refund—but it is not used as an opaque subtraction in the resource identity.
 
 Average rates use employer compensation as the denominator. Local marginal rates use a centered $1,000 earnings difference in total federal tax divided by the corresponding change in employer compensation. The window makes the CTC's statutory $50-per-$1,000 steps appear as the intended 5% phaseout wedge instead of a one-dollar discontinuity spike.
 
@@ -190,23 +203,28 @@ The Taxing Wages table evaluates the OECD's eight standard family patterns at 67
 
 ```text
 A. current resource-equivalent consumption capacity
-   = current household disposable resources
-   + current cash transfers
-   + current near-cash transfers
-   + visible valuation share of current in-kind benefits
+   = current gross household resources
+   − current pre-credit federal tax liability
+   + current federal tax credits
+   + current external transfer value
 
 B. reform with transfers retained
-   = reform household disposable resources
-   + the same current external transfers
+   = cash wages + employer-FICA pass-through
+   − reform pre-credit federal tax liability
+   + reform household credits
+   + current external transfer value
 
 C. reform with selected replacements
-   = reform household disposable resources
-   + benefits from external programs not selected for repeal
+   = cash wages + employer-FICA pass-through
+   − reform pre-credit federal tax liability
+   + reform household credits
+   + current external transfer value
+   − household value of selected benefit replacements
 ```
 
 This is a budget/resource measure, not a welfare-equivalent valuation. The configurable in-kind factor defaults to 75%; cash and near-cash benefits enter dollar-for-dollar. Reform disposable resources incorporate the visible employer-FICA pass-through assumption described above. No scenario divides resources by `1 + tax rate`, and no DBCFT price-pass-through assumption is introduced.
 
-EITC and CTC/ACTC are already inside current net individual income tax and current disposable resources. Reform adult and child credits are already inside reform tax after credits and reform disposable resources. They are shown in decomposition tables as memorandum items only. EITC/CTC are deliberately absent from the external-program selector and from federal transfer savings, preventing double-counting against individual-income-tax receipts.
+EITC and CTC/ACTC are components of the current tax-credit row; reform adult and child credits are components of the reform credit rows. The decomposition displays them once as additions after pre-credit tax liability. EITC/CTC remain deliberately absent from the external-program selector and from federal transfer savings, preventing double-counting against individual-income-tax receipts.
 
 ### Household characteristics and receipt
 

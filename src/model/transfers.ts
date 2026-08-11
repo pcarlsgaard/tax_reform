@@ -224,9 +224,17 @@ export function calculateTransferAnalysis(
     (sum, row) => sum + (replacements.replacedPrograms[row.program.id] ? row.resourceEquivalentValue : 0),
     0,
   );
-  const currentAnnual = tax.currentDisposableResources + totalCurrentExternalTransfers;
-  const reformRetainedAnnual = tax.reformDisposableResources + totalCurrentExternalTransfers;
-  const reformAfterAnnual = reformRetainedAnnual - eliminatedHouseholdBenefits;
+  const currentAfterTaxResources = tax.employerCompensation
+    - tax.currentPreCreditTaxLiability
+    + tax.currentTaxCredits;
+  const reformAfterTaxResources = tax.reformGrossResources
+    - tax.reformPreCreditTaxLiability
+    + tax.reformTotalCredits;
+  const currentAnnual = currentAfterTaxResources + totalCurrentExternalTransfers;
+  const reformRetainedAnnual = reformAfterTaxResources + totalCurrentExternalTransfers;
+  const reformAfterAnnual = reformAfterTaxResources
+    + totalCurrentExternalTransfers
+    - eliminatedHouseholdBenefits;
   const taxReformResourceGain = tax.reformDisposableResources - tax.currentDisposableResources;
 
   return {

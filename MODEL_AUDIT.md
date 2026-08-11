@@ -25,6 +25,7 @@ The original repository was a notebook research prototype. Calculations were spr
 | Transfer replacement | No distinction between household value and national savings | Separate resource and federal fiscal identities |
 | EITC/CTC replacement | Risk of treating tax credits as outside spending | Memorandum-only display; no external toggles or second fiscal saving |
 | Program eligibility | No transfer engine | Explicit receipt; formulas only where credible; rationed programs stay manual |
+| Household resource signs | Net tax could be negative and was subtracted in the display | Positive pre-credit liability is subtracted, credits are added, and selected transfer replacements are subtracted explicitly |
 
 The old FRED helper swallowed errors and returned zero. The replacement fails closed, accepts FRED's current `observation_date` CSV header, and permits the one 2025 housing estimate only with an explicit flag.
 
@@ -120,13 +121,13 @@ The largest displayed marginal interactions occur at rule thresholds, not manual
 
 ## Automated validation
 
-The test suite preserves all prior checks and adds no-selection macro/household regressions; 100%, partial, and inapplicable employer-FICA pass-through cases; federal savings summation; adjusted-target and adjusted-rate algebra; exclusion of state financing; three-scenario resource identities; EITC/CTC and reform-credit double-counting guards; exact program removal/retention; receipt gating; SNAP, school-meal, and Summer EBT thresholds; FPL sizes; and rule-based versus fixed-manual marginal behavior.
+The test suite preserves all prior checks and adds no-selection macro/household regressions; explicit `gross resources − pre-credit liability + credits` identities; 100%, partial, and inapplicable employer-FICA pass-through cases; federal savings summation; adjusted-target and adjusted-rate algebra; exclusion of state financing; three-scenario resource identities; EITC/CTC and reform-credit double-counting guards; exact program removal/retention; receipt gating; SNAP, school-meal, and Summer EBT thresholds; FPL sizes; and rule-based versus fixed-manual marginal behavior.
 
 Validation commands:
 
 ```text
 npm run typecheck  → passed
-npm test           → 42 passed
+npm test           → 44 passed
 npm run build      → passed
 python3 scripts/build_baseline.py --verify-only
                    → $30.7621T GDP; $22.3119T default base (72.5% GDP)

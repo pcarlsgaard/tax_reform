@@ -57,6 +57,45 @@ describe('2025 current-law household engine', () => {
 });
 
 describe('reform adult and child credits', () => {
+  it('builds disposable resources by subtracting pre-credit tax and adding credits', () => {
+    const result = calculateHousehold(household(25000, 'single', 2), defaultSettings);
+    expect(result.currentPreCreditTaxLiability).toBeCloseTo(
+      result.current.incomeTaxBeforeCredits + result.current.employeePayrollTax + result.current.employerPayrollTax,
+      10,
+    );
+    expect(result.currentTaxCredits).toBeCloseTo(
+      result.current.eitc + result.current.nonrefundableCtc + result.current.refundableCtc,
+      10,
+    );
+    expect(result.currentDisposableResources).toBeCloseTo(
+      result.employerCompensation - result.currentPreCreditTaxLiability + result.currentTaxCredits,
+      10,
+    );
+    expect(result.reformTaxAfterCredits).toBeCloseTo(
+      result.reformPreCreditTaxLiability - result.reformTotalCredits,
+      10,
+    );
+    expect(result.reformDisposableResources).toBeCloseTo(
+      result.reformGrossResources - result.reformPreCreditTaxLiability + result.reformTotalCredits,
+      10,
+    );
+  });
+
+  it('separates retained current-law liabilities and credits when income tax remains', () => {
+    const settings = {
+      ...defaultSettings,
+      replacedTaxes: { ...defaultSettings.replacedTaxes, individualIncome: false },
+    };
+    const result = calculateHousehold(household(25000, 'single', 2), settings);
+    expect(result.retainedCurrentTaxBeforeCredits).toBeCloseTo(result.current.incomeTaxBeforeCredits, 10);
+    expect(result.retainedCurrentTaxCredits).toBeCloseTo(result.currentTaxCredits, 10);
+    expect(result.reformPreCreditTaxLiability).toBeCloseTo(
+      result.reformTaxBeforeCredits + result.retainedCurrentTaxBeforeCredits,
+      10,
+    );
+    expect(result.reformTotalCredits).toBeCloseTo(result.totalReformCredit + result.retainedCurrentTaxCredits, 10);
+  });
+
   it('phases the adult credit in with earnings while keeping the child credit flat and refundable', () => {
     const zero = calculateHousehold(household(0, 'single', 2), defaultSettings);
     expect(zero.adultCredit).toBe(0);

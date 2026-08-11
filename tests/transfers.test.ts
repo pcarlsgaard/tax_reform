@@ -110,9 +110,28 @@ describe('federal fiscal replacement accounting', () => {
 describe('household resource identities', () => {
   it('reconciles all three resource scenarios', () => {
     const result = calculateTransferAnalysis(preset('parent-two'), defaultSettings, illustrativeCoreReplacement);
-    expect(result.currentLaw.annual).toBeCloseTo(result.tax.currentDisposableResources + result.totalCurrentExternalTransfers, 8);
-    expect(result.reformRetained.annual).toBeCloseTo(result.tax.reformDisposableResources + result.totalCurrentExternalTransfers, 8);
-    expect(result.reformAfterReplacement.annual).toBeCloseTo(result.reformRetained.annual - result.eliminatedHouseholdBenefits, 8);
+    expect(result.currentLaw.annual).toBeCloseTo(
+      result.tax.employerCompensation
+        - result.tax.currentPreCreditTaxLiability
+        + result.tax.currentTaxCredits
+        + result.totalCurrentExternalTransfers,
+      8,
+    );
+    expect(result.reformRetained.annual).toBeCloseTo(
+      result.tax.reformGrossResources
+        - result.tax.reformPreCreditTaxLiability
+        + result.tax.reformTotalCredits
+        + result.totalCurrentExternalTransfers,
+      8,
+    );
+    expect(result.reformAfterReplacement.annual).toBeCloseTo(
+      result.tax.reformGrossResources
+        - result.tax.reformPreCreditTaxLiability
+        + result.tax.reformTotalCredits
+        + result.totalCurrentExternalTransfers
+        - result.eliminatedHouseholdBenefits,
+      8,
+    );
   });
 
   it('does not double-count current EITC/CTC or reform credits', () => {

@@ -112,6 +112,14 @@ function normalizedPassThroughRate(rate: number): number {
   return Math.max(0, Math.min(1, rate));
 }
 
+function taxCredits(current: TaxBreakdown): number {
+  return current.nonrefundableCtc + current.refundableCtc + current.eitc;
+}
+
+function preCreditTaxLiability(current: TaxBreakdown): number {
+  return current.incomeTaxBeforeCredits + current.employeePayrollTax + current.employerPayrollTax;
+}
+
 function totalTaxAtWage(input: HouseholdInput, settings: ReformSettings, passThroughRate: number): { current: number; reform: number; employerComp: number } {
   const current = calculateCurrentLaw(input);
   const [primaryWage, secondaryWage] = normalizedWages(input);
@@ -123,11 +131,12 @@ function totalTaxAtWage(input: HouseholdInput, settings: ReformSettings, passThr
     : 0;
   const reformWageBase = totalCashWage + employerFicaPassThrough;
   const adults = input.filingStatus === 'married' ? 2 : 1;
-  const credits = calculateAdultCredit(reformWageBase, adults, settings) + input.children * settings.childCredit;
-  const retainedIncome = settings.replacedTaxes.individualIncome ? 0 : current.individualIncomeTax;
-  const retainedPayroll = payrollIsReplaced ? 0 : current.employeePayrollTax + current.employerPayrollTax;
+  const reformCredits = calculateAdultCredit(reformWageBase, adults, settings) + input.children * settings.childCredit;
+  const retainedTaxBeforeCredits = (settings.replacedTaxes.individualIncome ? 0 : current.incomeTaxBeforeCredits)
+    + (payrollIsReplaced ? 0 : current.employeePayrollTax + current.employerPayrollTax);
+  const retainedTaxCredits = settings.replacedTaxes.individualIncome ? 0 : taxCredits(current);
   const reform = calculateReformWageTax(reformWageBase, input.filingStatus, settings)
-    - credits + retainedIncome + retainedPayroll;
+    + retainedTaxBeforeCredits - reformCredits - retainedTaxCredits;
   return { current: current.totalFederalTax, reform, employerComp };
 }
 
@@ -156,14 +165,19 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
   const adultCredit = calculateAdultCredit(reformWageBase, adults, settings);
   const childCredit = normalized.children * settings.childCredit;
   const totalReformCredit = adultCredit + childCredit;
+  const currentPreCreditTaxLiability = preCreditTaxLiability(current);
+  const currentTaxCredits = taxCredits(current);
   const reformTaxBeforeCredits = calculateReformWageTax(reformWageBase, normalized.filingStatus, settings);
-  const retainedIncome = settings.replacedTaxes.individualIncome ? 0 : current.individualIncomeTax;
-  const retainedPayroll = payrollIsReplaced ? 0 : current.employeePayrollTax + current.employerPayrollTax;
-  const retainedCurrentTaxes = retainedIncome + retainedPayroll;
-  const reformTaxAfterCredits = reformTaxBeforeCredits - totalReformCredit + retainedCurrentTaxes;
+  const retainedCurrentTaxBeforeCredits = (settings.replacedTaxes.individualIncome ? 0 : current.incomeTaxBeforeCredits)
+    + (payrollIsReplaced ? 0 : current.employeePayrollTax + current.employerPayrollTax);
+  const retainedCurrentTaxCredits = settings.replacedTaxes.individualIncome ? 0 : currentTaxCredits;
+  const retainedCurrentTaxes = retainedCurrentTaxBeforeCredits - retainedCurrentTaxCredits;
+  const reformPreCreditTaxLiability = reformTaxBeforeCredits + retainedCurrentTaxBeforeCredits;
+  const reformTotalCredits = totalReformCredit + retainedCurrentTaxCredits;
+  const reformTaxAfterCredits = reformPreCreditTaxLiability - reformTotalCredits;
 
-  const currentDisposableResources = employerCompensation - current.totalFederalTax;
-  const reformDisposableResources = reformGrossResources - reformTaxAfterCredits;
+  const currentDisposableResources = employerCompensation - currentPreCreditTaxLiability + currentTaxCredits;
+  const reformDisposableResources = reformGrossResources - reformPreCreditTaxLiability + reformTotalCredits;
   const dollarChange = reformDisposableResources - currentDisposableResources;
 
   // A centered $1,000 local difference represents stepped provisions such as
@@ -184,12 +198,18 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
     employerFicaPassThrough,
     reformGrossResources,
     reformWageBase,
+    currentPreCreditTaxLiability,
+    currentTaxCredits,
     reformTaxBeforeCredits,
     adultCreditMaximum,
     adultCredit,
     childCredit,
     totalReformCredit,
+    retainedCurrentTaxBeforeCredits,
+    retainedCurrentTaxCredits,
     retainedCurrentTaxes,
+    reformPreCreditTaxLiability,
+    reformTotalCredits,
     reformTaxAfterCredits,
     currentDisposableResources,
     reformDisposableResources,

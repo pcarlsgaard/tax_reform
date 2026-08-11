@@ -94,12 +94,18 @@ export interface HouseholdResult {
   employerFicaPassThrough: number;
   reformGrossResources: number;
   reformWageBase: number;
+  currentPreCreditTaxLiability: number;
+  currentTaxCredits: number;
   reformTaxBeforeCredits: number;
   adultCreditMaximum: number;
   adultCredit: number;
   childCredit: number;
   totalReformCredit: number;
+  retainedCurrentTaxBeforeCredits: number;
+  retainedCurrentTaxCredits: number;
   retainedCurrentTaxes: number;
+  reformPreCreditTaxLiability: number;
+  reformTotalCredits: number;
   reformTaxAfterCredits: number;
   currentDisposableResources: number;
   reformDisposableResources: number;
