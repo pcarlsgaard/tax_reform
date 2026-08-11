@@ -22,6 +22,9 @@ The original repository was a notebook research prototype. Calculations were spr
 | Compensation | Benefits mixed differently across systems | Benefits excluded from both; actual employer FICA added |
 | Healthcare | Optional subsidy changed reform results | Excluded from Iteration 1 |
 | Progressive reform | Flat tax only | Flat or progressive X tax with explicit macro calibration |
+| Transfer replacement | No distinction between household value and national savings | Separate resource and federal fiscal identities |
+| EITC/CTC replacement | Risk of treating tax credits as outside spending | Memorandum-only display; no external toggles or second fiscal saving |
+| Program eligibility | No transfer engine | Explicit receipt; formulas only where credible; rationed programs stay manual |
 
 The old FRED helper swallowed errors and returned zero. The replacement fails closed, accepts FRED's current `observation_date` CSV header, and permits the one 2025 housing estimate only with an explicit flag.
 
@@ -55,6 +58,28 @@ $22,311.8686B × 30.0% = $6,693.5606B gross collections (21.76% GDP)
 
 The flat revenue-neutral rate is **28.54150956%**. Re-running the engine at that rate reproduces the target within `1e-8` billion dollars. At the default progressive calibration, the rate-adjusted base is $17,220.2815B and the revenue-neutral business/top wage rate is **36.9804879%**.
 
+## Transfer-replacement fiscal reconciliation
+
+No external program is selected by default, so all original national and household regression results remain unchanged. The audit uses one neutral illustrative bundle—SNAP, WIC, school meals, Summer EBT, TANF, and LIHEAP, excluding rationed housing assistance:
+
+```text
+$106.336B SNAP actual net outlays
++   7.960B WIC actual net outlays
++  24.281B NSLP/SBP actual obligations
++   3.100B Summer EBT benefit obligations
++  17.714B federal TANF account net outlays
++   4.377B LIHEAP actual net outlays
+= $163.768B illustrative federal fiscal savings
+
+$5,051.293B original tax-replacement target
+−  163.768B selected federal program savings
+= $4,887.525B adjusted revenue requirement
+```
+
+At the default flat settings, the revenue-neutral rate falls from **28.5415% to 27.8075%**, a **0.7340 percentage-point** reduction. Adding tenant-based rental assistance would add $38.320B of modeled federal savings, but it is excluded from this illustrative bundle because household receipt is rationed and a national repeal has distributional issues that this illustration cannot resolve.
+
+Fiscal amounts do not derive from household benefits or recipient averages. Conversely, household values do not derive from dividing fiscal amounts by caseloads. School meals and Summer EBT are actual obligations rather than outlays; the UI labels the measure. State TANF maintenance-of-effort and other nonfederal financing are excluded from federal savings.
+
 ## Regression examples at default settings
 
 ### Households
@@ -78,15 +103,30 @@ Current federal tax includes individual income tax net of EITC/CTC/ACTC plus bot
 | Importer-heavy retailer | $85.0M | $25.5M | $6.0M | $31.5M |
 | Exporter / manufacturer | −$40.0M | −$12.0M | $21.0M | $9.0M |
 
+### Transfer-resource examples
+
+The following uses the default reform, a 75% resource factor for in-kind benefits, the visible preset receipt/manual amounts, and the illustrative six-program bundle above. Amounts are annual.
+
+| Preset | Current law + transfers | Reform + transfers retained | Reform after selected repeal | Change C vs A | Held harmless? |
+|---|---:|---:|---:|---:|---|
+| Single adult, $20,000 earnings | $18,495 | $20,321 | $19,871 | +$1,376 | Yes |
+| Single parent, two children, $25,000 earnings | $45,534 | $45,506 | $33,239 | −$12,295 | No |
+| Married, two children, one $35,000 earner | $50,467 | $54,121 | $45,574 | −$4,893 | No |
+| Married, two children, $30,000 + $25,000 earners | $55,772 | $61,589 | $60,645 | +$4,873 | Yes |
+
+The selected household benefits removed are respectively $450; $12,267; $8,547; and $943.50. The single-parent preset loses even with transfers retained (−$28) and loses substantially when its modeled SNAP, WIC, school food, Summer EBT, TANF, and LIHEAP are removed. This is intentionally not optimized to produce favorable results.
+
+The largest displayed marginal interactions occur at rule thresholds, not manual benefits. In the presets, the centered-$1,000 current-law resource-withdrawal measure can exceed 400% around the simplified SNAP gross-income cutoff because a full annual benefit disappears inside the window. The one-parent example reaches roughly 501% around $33,250; the one-earner married example roughly 469% around $40,250. The two-earner case has a roughly 133% interaction near $34,250 of primary earnings as school-food/Summer eligibility and the tax system change within the window. These are transparent discontinuity diagnostics, not claims about smooth statutory marginal rates. Manual WIC/TANF/LIHEAP/housing benefits are held fixed and contribute no invented phaseout.
+
 ## Automated validation
 
-The 26-test suite covers NIPA summation; compliance and exemptions; GDP ratios; flat and progressive revenue identities; credit costs; target selection; algebraic rate solutions; 2025 deductions, brackets, payroll caps, Medicare, EITC, CTC and ACTC thresholds; two-earner payroll; earned and universal adult credits; zero through high income; bounded local marginal rates around kinks; the eight Taxing Wages patterns and their after-tax-income identities; expensing; border adjustment; domestic inputs; wages; and end-to-end fixtures.
+The 39-test suite preserves all prior checks and adds no-selection macro/household regressions; federal savings summation; adjusted-target and adjusted-rate algebra; exclusion of state financing; three-scenario resource identities; EITC/CTC and reform-credit double-counting guards; exact program removal/retention; receipt gating; SNAP, school-meal, and Summer EBT thresholds; FPL sizes; and rule-based versus fixed-manual marginal behavior.
 
 Validation commands:
 
 ```text
 npm run typecheck  → passed
-npm test           → 26 passed
+npm test           → 39 passed
 npm run build      → passed
 python3 scripts/build_baseline.py --verify-only
                    → $30.7621T GDP; $22.3119T default base (72.5% GDP)
@@ -101,3 +141,8 @@ python3 scripts/build_baseline.py --verify-only
 5. The federal-only Taxing Wages table is not the official OECD wedge and excludes state/local tax.
 6. Household results omit nonwage income, itemization, AMT, dependent nuance, most transfers, and special 2025 deductions.
 7. Negative DBCFT liabilities assume symmetric treatment; actual loss rules affect neutrality and timing.
+8. SNAP omits categorical eligibility, asset/work/immigration and several deduction rules; it is a threshold illustration, not an eligibility determination.
+9. WIC, TANF, LIHEAP, and housing household amounts are explicit user/preset assumptions; state and local variation is not simulated.
+10. School meal household values use reimbursement rates and assumed meal days, not observed meal consumption; the in-kind factor is a sensitivity, not welfare evidence.
+11. Full federal account repeal may not generate immediate cash savings equal to one year's outlays because administration, contracts, and transition timing are not modeled.
+12. Health, retirement, disability, SSI, and detailed benefit interactions remain deliberately outside the working-age resource model.

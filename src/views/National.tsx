@@ -1,9 +1,10 @@
 import { Audit, Formula } from '../components/Audit';
 import { moneyB, percent } from '../components/format';
-import { baseline, calculateMacro, type ReformSettings } from '../model';
+import { baseline, calculateFederalProgramSavings, calculateMacro, type ReformSettings, type TransferReplacementSettings } from '../model';
 
-export function National({ settings }: { settings: ReformSettings }) {
-  const result = calculateMacro(settings);
+export function National({ settings, transferSettings }: { settings: ReformSettings; transferSettings: TransferReplacementSettings }) {
+  const federalTransferSavings = calculateFederalProgramSavings(transferSettings);
+  const result = calculateMacro(settings, { federalTransferSavings });
   const components = [
     ['Compensation of employees', baseline.components.compensation, 'COE'],
     ['Net capital income after investment', baseline.components.netCapitalIncomeAfterInvestment, baseline.componentFormulas.netCapitalIncomeAfterInvestment],
@@ -24,10 +25,13 @@ export function National({ settings }: { settings: ReformSettings }) {
         <tr><td>Adult credits</td><td>−{moneyB(result.adultCreditCost)}</td><td>−{percent(result.adultCreditCost / result.gdp)}</td></tr>
         <tr><td>Child credits</td><td>−{moneyB(result.childCreditCost)}</td><td>−{percent(result.childCreditCost / result.gdp)}</td></tr>
         <tr className="subtotal"><td>Net revenue</td><td>{moneyB(result.netRevenue)}</td><td>{percent(result.netRevenuePercentGdp)}</td></tr>
-        <tr><td>Selected replacement target</td><td>{moneyB(result.targetRevenue)}</td><td>{percent(result.targetRevenuePercentGdp)}</td></tr>
-        <tr className="total"><td>Surplus / deficit</td><td>{moneyB(result.surplusDeficit)}</td><td>{percent(result.surplusDeficitPercentGdp)}</td></tr>
+        <tr><td>Original tax-replacement target</td><td>{moneyB(result.targetRevenue)}</td><td>{percent(result.targetRevenuePercentGdp)}</td></tr>
+        <tr><td>Selected federal transfer savings</td><td>−{moneyB(result.federalTransferSavings)}</td><td>−{percent(result.federalTransferSavings / result.gdp)}</td></tr>
+        <tr className="subtotal"><td>Adjusted revenue requirement</td><td>{moneyB(result.adjustedTargetRevenue)}</td><td>{percent(result.adjustedTargetRevenuePercentGdp)}</td></tr>
+        <tr className="total"><td>Adjusted surplus / deficit</td><td>{moneyB(result.adjustedSurplusDeficit)}</td><td>{percent(result.adjustedSurplusDeficitPercentGdp)}</td></tr>
       </tbody></table></div>
       <Audit title="Audit the rate-adjusted X-tax base"><Formula>{moneyB(result.businessTaxableBase)} business-side base + {moneyB(result.wageTaxableBase)} wage base {settings.wageTaxMode === 'progressive' ? `× ${percent(settings.progressiveAverageWageRateShare)} calibrated average-rate factor` : '× 100% flat-rate factor'} = {moneyB(result.rateAdjustedBase)} rate-adjusted base.</Formula></Audit>
+      {federalTransferSavings > 0 && <Audit title="Audit transfer savings"><Formula>{moneyB(result.targetRevenue)} original tax-replacement target − {moneyB(federalTransferSavings)} selected federal program savings = {moneyB(result.adjustedTargetRevenue)} adjusted requirement.<br /><br />Revenue-neutral rate: {percent(result.revenueNeutralRate, 2)} before savings → {percent(result.adjustedRevenueNeutralRate, 2)} after savings, a {(result.revenueNeutralRateReduction * 100).toFixed(2)} percentage-point reduction.</Formula></Audit>}
     </section>
     <div className="two-column">
       <section className="content-card"><h2>Why the base is below GDP</h2><p>New investment is expensed rather than taxed; exports leave the destination base; housing requires a special cash-flow adjustment; and noncompliance removes otherwise taxable consumption. Policy exemptions are then applied separately.</p><p className="callout">The {moneyB(result.taxableBase)} default is not “before exemptions.” It is after {percent(settings.noncomplianceRate)} noncompliance and after the currently selected {percent(settings.exemptionShare)} policy reduction.</p></section>

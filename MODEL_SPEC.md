@@ -85,6 +85,20 @@ required rate
   / rate-adjusted base
 ```
 
+External transfer repeal is a separate fiscal adjustment, not a rebate and not a second tax engine:
+
+```text
+adjusted required federal revenue
+= tax-replacement revenue target
+− FY2025 federal fiscal amounts for selected external programs
+
+adjusted required rate
+= (adjusted target + adult credits + child credits + other rebates)
+  / rate-adjusted base
+```
+
+Only federal amounts enter this subtraction. State maintenance-of-effort, local contributions, and household resource values do not. With no program selected, the adjusted and original identities are exactly equal.
+
 ## 5. Provisional default 2025 baseline
 
 | Item | Authoritative value |
@@ -158,7 +172,75 @@ Average rates use employer compensation as the denominator. Local marginal rates
 
 The Taxing Wages table evaluates the OECD's eight standard family patterns at 67%, 100%, and 167% of the editable average wage. It reports both tax wedges and after-tax income, defined consistently as employer compensation minus modeled federal tax including refundable credits. It is federal-only and therefore not the official OECD wedge.
 
-## 7. Business model
+## 7. Transfer-replacement model
+
+### Separate household and federal identities
+
+`calculateTransferAnalysis()` calls the existing `calculateHousehold()` engine; it never recreates federal income, payroll, or reform tax. For a selected representative working-age household:
+
+```text
+A. current resource-equivalent consumption capacity
+   = current household disposable resources
+   + current cash transfers
+   + current near-cash transfers
+   + visible valuation share of current in-kind benefits
+
+B. reform with transfers retained
+   = reform household disposable resources
+   + the same current external transfers
+
+C. reform with selected replacements
+   = reform household disposable resources
+   + benefits from external programs not selected for repeal
+```
+
+This is a budget/resource measure, not a welfare-equivalent valuation. The configurable in-kind factor defaults to 75%; cash and near-cash benefits enter dollar-for-dollar. No scenario divides resources by `1 + tax rate`, and no DBCFT price-pass-through assumption is introduced.
+
+EITC and CTC/ACTC are already inside current net individual income tax and current disposable resources. Reform adult and child credits are already inside reform tax after credits and reform disposable resources. They are shown in decomposition tables as memorandum items only. EITC/CTC are deliberately absent from the external-program selector and from federal transfer savings, preventing double-counting against individual-income-tax receipts.
+
+### Household characteristics and receipt
+
+The transfer-specific interface adds preschool and school-age children, monthly shelter and dependent-care costs, explicit receipt flags, manual annual benefits, and the in-kind valuation factor. It does not alter `HouseholdInput` or the independent tax engine.
+
+Eligibility and receipt are distinct. Every program requires the current-receipt switch before it contributes resources, including formula-based SNAP. Rationed/manual programs never pay merely because income is low. Preset households contain visible illustrative receipt and benefit assumptions that the user can edit.
+
+### Program methods and 2025 rules
+
+| Program | Household method | Fiscal amount used when selected |
+|---|---|---:|
+| SNAP | Simplified FY2025 48-state gross/net tests, earned-income/standard/dependent-care/shelter deductions, and maximum allotment less 30% of net income | $106.336B FY2025 actual net outlays, full account |
+| WIC | Explicit receipt and user-entered annual package value | $7.960B FY2025 actual net outlays |
+| School meals | School-age children × 180 days × SY2024-25 free/reduced federal breakfast/lunch reimbursement; then in-kind factor | $24.281B FY2025 actual NSLP/SBP obligations |
+| Summer EBT | $120 per school-age child in 2025, income screen at 185% FPL, explicit receipt/participating jurisdiction | $3.100B FY2025 actual benefit obligations |
+| TANF | Explicit receipt and user-entered annual cash amount; no national state-rule fiction | $17.714B FY2025 actual federal-account net outlays |
+| LIHEAP | Explicit receipt and annual benefit; then in-kind factor | $4.377B FY2025 actual net outlays |
+| Tenant-based housing | Explicit rationed receipt and annual subsidy; then in-kind factor | $38.320B FY2025 actual net outlays |
+
+Fiscal figures come from the FY2027 OMB Budget Appendix, which reports FY2025 actuals. School meals and Summer EBT use obligations because that is the available program-specific split; all other rows use actual net outlays. Full-account amounts can include administration and related activities beyond the benefit represented by one household. Static “savings” assumes the selected federal account/component is fully removed; it does not model contract runout or transition timing.
+
+SNAP rules use FY2025 (October 2024–September 2025), school meals use school year 2024-25, Summer EBT uses calendar 2025, WIC's cited income guideline begins July 2025, and fiscal amounts use FY2025. Those timing mismatches are explicit in `src/data/transfers_2025.json` and every program audit.
+
+### FPL and analytical measures
+
+The model uses the 2025 HHS guideline for the contiguous states and DC: $15,650 for one person, $21,150 for two, then $5,500 per additional person. Alaska and Hawaii are not modeled.
+
+```text
+household replacement ratio
+= (reform disposable resources − current disposable resources)
+  / household resource value of selected eliminated benefits
+
+effective marginal resource withdrawal rate
+= 1 − (change in resource-equivalent capacity
+       / change in employer compensation)
+```
+
+The marginal measure uses the same centered $1,000 window as the tax engine. Rule-calculated SNAP, school-meal, and Summer EBT transitions can appear. Fixed manual benefits have no fabricated phaseout.
+
+### Exclusions
+
+Medicaid, Medicare, ACA premium/cost-sharing subsidies, employer-sponsored health-insurance exclusions, and other major health subsidies are excluded because their heterogeneous actuarial value cannot be represented as ordinary consumption resources. Social Security retirement and SSDI are excluded. SSI is deferred because age/disability circumstances are absent from the working-age tax model. These exclusions prevent a precise-looking but conceptually invalid comparison.
+
+## 8. Business model
 
 Inputs are total sales including exports, domestic purchased inputs, imported inputs, wages, new investment, and exports.
 
@@ -175,14 +257,14 @@ wage-side tax before household credits = wages × applicable household schedule
 
 New investment is fully expensed. Imports are added back because they are not deductible. Exports are removed from the destination base. A negative business liability is displayed as refundable; loss administration is deferred.
 
-## 8. Incidence assumptions
+## 9. Incidence assumptions
 
 The statutory mechanism is not an incidence estimate. The household comparison assumes full conversion of repealed employer payroll taxes to compensation and no other wage, price, profit, or exchange-rate adjustment. The national model does not allocate the business tax to workers, owners, or consumers.
 
-## 9. Data versioning
+## 10. Data versioning
 
-`src/data/baseline_2025.json` is the active browser snapshot. `data/fred_series.json` centralizes series identifiers. `scripts/build_baseline.py` rebuilds the snapshot and fails on missing data unless the specific provisional housing flag is supplied. `src/data/current_law_2025.json` is the sole active source of household tax parameters. The deployed app makes no live data requests.
+`src/data/baseline_2025.json` is the active browser snapshot. `data/fred_series.json` centralizes series identifiers. `scripts/build_baseline.py` rebuilds the snapshot and fails on missing data unless the specific provisional housing flag is supplied. `src/data/current_law_2025.json` is the sole active source of household tax parameters. `src/data/transfers_2025.json` versions transfer rules, fiscal measures, methods, source links, and limitations. The deployed app makes no live data requests.
 
-## 10. Deferred work
+## 11. Deferred work
 
-Dynamic scoring, capital and GDP effects, transition rules, existing-asset effects, household consumption microsimulation, income-decile distribution, Tax-Calculator, OG-USA, state/local taxes, healthcare reform, detailed exemptions, and business-loss administration are outside Iteration 1.
+Dynamic scoring, capital and GDP effects, transition rules, existing-asset effects, household consumption microsimulation, income-decile distribution, Tax-Calculator, OG-USA, state/local taxes, healthcare reform, detailed transfer take-up/state rules, benefit-unit nuance, health and retirement transfers, detailed exemptions, and business-loss administration are outside Iteration 1.

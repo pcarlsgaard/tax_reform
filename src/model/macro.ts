@@ -1,5 +1,5 @@
 import baseline from '../data/baseline_2025.json';
-import type { MacroResult, ReformSettings, ReplacedTax } from './types';
+import type { MacroAdjustment, MacroResult, ReformSettings, ReplacedTax } from './types';
 
 const receiptKeys: ReplacedTax[] = ['individualIncome', 'payroll', 'corporateIncome', 'customs'];
 
@@ -8,7 +8,7 @@ export function theoreticalConsumptionBase(): number {
   return c.compensation + c.netCapitalIncomeAfterInvestment + c.netImports + c.housingAdjustment;
 }
 
-export function calculateMacro(settings: ReformSettings): MacroResult {
+export function calculateMacro(settings: ReformSettings, adjustment: MacroAdjustment = {}): MacroResult {
   const theoreticalBase = theoreticalConsumptionBase();
   const noncomplianceLoss = theoreticalBase * settings.noncomplianceRate;
   const baseAfterCompliance = theoreticalBase - noncomplianceLoss;
@@ -31,8 +31,13 @@ export function calculateMacro(settings: ReformSettings): MacroResult {
     (sum, key) => sum + (settings.replacedTaxes[key] ? baseline.federalReceipts[key] : 0),
     0,
   );
+  const federalTransferSavings = Math.max(0, adjustment.federalTransferSavings ?? 0);
+  const adjustedTargetRevenue = Math.max(0, targetRevenue - federalTransferSavings);
   const revenueNeutralRate = rateAdjustedBase > 0
     ? (targetRevenue + adultCreditCost + childCreditCost + otherRebates) / rateAdjustedBase
+    : Number.POSITIVE_INFINITY;
+  const adjustedRevenueNeutralRate = rateAdjustedBase > 0
+    ? (adjustedTargetRevenue + adultCreditCost + childCreditCost + otherRebates) / rateAdjustedBase
     : Number.POSITIVE_INFINITY;
 
   return {
@@ -56,9 +61,16 @@ export function calculateMacro(settings: ReformSettings): MacroResult {
     netRevenuePercentGdp: netRevenue / baseline.gdp,
     targetRevenue,
     targetRevenuePercentGdp: targetRevenue / baseline.gdp,
+    federalTransferSavings,
+    adjustedTargetRevenue,
+    adjustedTargetRevenuePercentGdp: adjustedTargetRevenue / baseline.gdp,
     surplusDeficit: netRevenue - targetRevenue,
     surplusDeficitPercentGdp: (netRevenue - targetRevenue) / baseline.gdp,
+    adjustedSurplusDeficit: netRevenue - adjustedTargetRevenue,
+    adjustedSurplusDeficitPercentGdp: (netRevenue - adjustedTargetRevenue) / baseline.gdp,
     revenueNeutralRate,
+    adjustedRevenueNeutralRate,
+    revenueNeutralRateReduction: revenueNeutralRate - adjustedRevenueNeutralRate,
   };
 }
 

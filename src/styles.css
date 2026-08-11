@@ -121,21 +121,25 @@ tr.total td { background:var(--ink); color:white; font-weight:800; border-color:
 .chart-legend span::before { content:''; display:inline-block; width:18px; height:3px; border-radius:2px; margin-right:6px; vertical-align:middle; }
 .legend-a::before { background:#82919d; }
 .legend-b::before { background:var(--teal); }
+.legend-c::before { background:var(--orange); }
 .line-chart svg { width:100%; height:auto; overflow:visible; }
 .line-chart text { font:9px 'DM Mono',monospace; fill:#72808c; }
 .grid-line { stroke:#e9eeee; stroke-width:1; }
 .zero-line { stroke:#bac5c6; stroke-width:1; }
-.series-a, .series-b { fill:none; stroke-width:2.7; vector-effect:non-scaling-stroke; }
+.series-a, .series-b, .series-c { fill:none; stroke-width:2.7; vector-effect:non-scaling-stroke; }
 .series-a { stroke:#82919d; }
 .series-b { stroke:var(--teal); }
+.series-c { stroke:var(--orange); }
 .chart-trace>line { stroke:#263c4a; stroke-width:1; stroke-dasharray:4 4; }
 .chart-trace circle { stroke:white; stroke-width:2; }
 .chart-trace .point-a { fill:#82919d; }
 .chart-trace .point-b { fill:var(--teal); }
+.chart-trace .point-c { fill:var(--orange); }
 .chart-trace rect { fill:#0b1f33ed; stroke:#ffffff22; }
 .chart-trace text { font-size:11px; fill:white; }
 .chart-trace .trace-a { fill:#cbd4da; }
 .chart-trace .trace-b { fill:#79d4c0; }
+.chart-trace .trace-c { fill:#f1a16f; }
 .wedge-table { margin-top:28px; }
 .wedge-table table { min-width:1380px; }
 .table-note { color:var(--muted); font-size:10px; line-height:1.55; margin:10px 0 0; }
@@ -147,6 +151,35 @@ tr.total td { background:var(--ink); color:white; font-weight:800; border-color:
 .good-text { color:#137452; font-weight:800; }
 .bad-text { color:var(--red); font-weight:800; }
 .method-note { font-size:11px; line-height:1.6; color:var(--muted); margin-top:16px; }
+.transfer-inputs { display:grid; grid-template-columns:1.5fr repeat(4,minmax(130px,1fr)); gap:12px; background:var(--ink); padding:18px; border-radius:16px; margin-bottom:14px; }
+.transfer-inputs label { display:flex; flex-direction:column; gap:7px; color:#b9c5cd; font-size:10px; font-weight:700; min-width:0; }
+.transfer-inputs label.wide { grid-column:span 2; }
+.transfer-inputs select,.transfer-inputs input[type=number] { width:100%; min-width:0; background:#ffffff10; color:white; border:1px solid #ffffff2b; border-radius:9px; padding:10px 11px; outline:none; }
+.transfer-inputs option { color:var(--ink); }
+.number-inline { display:flex; align-items:center; border:1px solid #ffffff2b; border-radius:9px; padding-left:10px; }
+.number-inline input[type=number] { border:0; }
+.inline-range { min-height:39px; display:flex; gap:9px; align-items:center; }
+.inline-range input { min-width:0; accent-color:#61c4ae; }
+.inline-range b { color:#8fd2c3; font-family:'DM Mono',monospace; font-size:10px; }
+.transfer-metrics { margin-bottom:14px; }
+.scenario-table table { min-width:820px; }
+.program-table table { min-width:1180px; }
+.program-table td:first-child { width:245px; text-align:left; }
+.program-table td:nth-child(2) { width:145px; }
+.program-table td small { display:block; max-width:210px; margin:6px 0 0 auto; color:var(--muted); font-size:9px; line-height:1.45; }
+.program-table td:first-child small { margin-left:0; }
+.program-tag { display:inline-block; padding:5px 8px; border-radius:999px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+.program-tag.cash { color:#125c44; background:#dff1ea; }
+.program-tag.near_cash { color:#315d75; background:#e4eff5; }
+.program-tag.in_kind { color:#78552f; background:#fff0dc; }
+.check-control { display:inline-flex; flex-direction:row!important; justify-content:flex-end; align-items:center; gap:7px; color:var(--ink); font-size:10px; font-weight:800; white-space:nowrap; }
+.check-control input { accent-color:var(--teal); }
+.check-control.replacement { padding:7px 10px; border:1px solid var(--line); border-radius:9px; background:#f7f9f8; }
+.manual-benefit { display:flex; align-items:center; margin-left:auto; max-width:130px; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:white; }
+.manual-benefit span { padding-left:9px; color:var(--muted); }
+.manual-benefit input { width:100%; min-width:0; border:0; padding:8px 8px 8px 3px; text-align:right; outline:none; color:var(--ink); }
+.decomposition-table table { min-width:920px; }
+.transfer-notes { margin-top:14px; }
 .business-layout { display:grid; grid-template-columns:300px minmax(0,1fr); gap:18px; align-items:start; }
 .business-controls { position:sticky; top:128px; }
 .number-field { display:block; margin-bottom:15px; }
@@ -169,5 +202,5 @@ tr.total td { background:var(--ink); color:white; font-weight:800; border-color:
 footer { border-top:1px solid var(--line); padding:22px 4vw; display:flex; justify-content:space-between; color:var(--muted); font-size:10px; max-width:1500px; margin:auto; }
 footer p { margin:0; }
 
-@media (max-width:1100px) { .overview-view, .business-layout { grid-template-columns:1fr; } .control-panel, .business-controls { position:relative; top:auto; } .control-panel { display:grid; grid-template-columns:1fr 1fr; gap:0 24px; } .control-panel>h2,.control-panel>.eyebrow,.tax-checks { grid-column:1/-1; } .control-group { min-width:0; } .metric-grid { grid-template-columns:repeat(2,1fr); } .flow-row { grid-template-columns:repeat(3,1fr); } .flow-item:nth-child(4) { border-left:0; } .business-equation { grid-template-columns:1fr auto 1fr; } .business-equation>div:last-child { grid-column:1/4; } .household-inputs.four-up { grid-template-columns:1fr 1fr; } }
-@media (max-width:760px) { .site-header { height:68px; } .brand small,.status-pill { display:none; } .view-nav { padding-top:12px; } .view-nav button { padding:9px 11px; font-size:12px; } .view-grid,.page-shell { padding-top:20px; } .view-intro { display:block; } .view-intro>p { margin-top:16px; } .metric-grid,.two-column,.chart-stack,.household-inputs,.household-inputs.four-up,.business-headlines { grid-template-columns:1fr; } .metric-card { min-height:0; } .control-panel { display:block; } .flow-row { grid-template-columns:1fr 1fr; } .flow-item:nth-child(odd) { border-left:0; } .comparison-column strong { font-size:21px; } .chart-toolbar,.section-heading { display:block; } .chart-scale-controls { grid-template-columns:1fr; min-width:0; margin-top:14px; } .chart-toolbar label,.reference-wage { display:block; margin-top:14px; } .chart-legend small { display:none; } .business-equation { display:flex; flex-direction:column; } .business-equation>i { transform:rotate(90deg); } footer { display:block; line-height:1.8; } }
+@media (max-width:1100px) { .overview-view, .business-layout { grid-template-columns:1fr; } .control-panel, .business-controls { position:relative; top:auto; } .control-panel { display:grid; grid-template-columns:1fr 1fr; gap:0 24px; } .control-panel>h2,.control-panel>.eyebrow,.tax-checks { grid-column:1/-1; } .control-group { min-width:0; } .metric-grid { grid-template-columns:repeat(2,1fr); } .flow-row { grid-template-columns:repeat(3,1fr); } .flow-item:nth-child(4) { border-left:0; } .business-equation { grid-template-columns:1fr auto 1fr; } .business-equation>div:last-child { grid-column:1/4; } .household-inputs.four-up { grid-template-columns:1fr 1fr; } .transfer-inputs { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:760px) { .site-header { height:68px; } .brand small,.status-pill { display:none; } .view-nav { padding-top:12px; } .view-nav button { padding:9px 11px; font-size:12px; } .view-grid,.page-shell { padding-top:20px; } .view-intro { display:block; } .view-intro>p { margin-top:16px; } .metric-grid,.two-column,.chart-stack,.household-inputs,.household-inputs.four-up,.business-headlines,.transfer-inputs { grid-template-columns:1fr; } .transfer-inputs label.wide { grid-column:auto; } .metric-card { min-height:0; } .control-panel { display:block; } .flow-row { grid-template-columns:1fr 1fr; } .flow-item:nth-child(odd) { border-left:0; } .comparison-column strong { font-size:21px; } .chart-toolbar,.section-heading { display:block; } .chart-scale-controls { grid-template-columns:1fr; min-width:0; margin-top:14px; } .chart-toolbar label,.reference-wage { display:block; margin-top:14px; } .chart-legend { flex-wrap:wrap; } .chart-legend small { display:none; } .business-equation { display:flex; flex-direction:column; } .business-equation>i { transform:rotate(90deg); } footer { display:block; line-height:1.8; } }

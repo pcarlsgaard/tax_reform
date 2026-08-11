@@ -2,7 +2,7 @@ import { Audit, Formula } from '../components/Audit';
 import { RangeField, SelectField } from '../components/Controls';
 import { MetricCard } from '../components/MetricCard';
 import { moneyB, percent } from '../components/format';
-import { calculateMacro, type AdultCreditMode, type MacroResult, type ReformSettings, type ReplacedTax, type WageTaxMode } from '../model';
+import { calculateFederalProgramSavings, calculateMacro, type AdultCreditMode, type MacroResult, type ReformSettings, type ReplacedTax, type TransferReplacementSettings, type WageTaxMode } from '../model';
 
 const taxLabels: Record<ReplacedTax, string> = {
   individualIncome: 'Individual income tax',
@@ -11,8 +11,10 @@ const taxLabels: Record<ReplacedTax, string> = {
   customs: 'Customs duties',
 };
 
-export function Overview({ settings, setSettings }: { settings: ReformSettings; setSettings: (value: ReformSettings) => void }) {
-  const result = calculateMacro(settings);
+export function Overview({ settings, setSettings, transferSettings }: { settings: ReformSettings; setSettings: (value: ReformSettings) => void; transferSettings: TransferReplacementSettings }) {
+  const federalTransferSavings = calculateFederalProgramSavings(transferSettings);
+  const result = calculateMacro(settings, { federalTransferSavings });
+  const hasTransferSavings = federalTransferSavings > 0;
   const update = (patch: Partial<ReformSettings>) => setSettings({ ...settings, ...patch });
   const toggleTax = (key: ReplacedTax) => update({ replacedTaxes: { ...settings.replacedTaxes, [key]: !settings.replacedTaxes[key] } });
 
@@ -51,9 +53,9 @@ export function Overview({ settings, setSettings }: { settings: ReformSettings; 
           <MetricCard label="Final taxable base" value={moneyB(result.taxableBase)} note={`${percent(result.basePercentGdp)} of GDP`} tone="accent"><MacroBaseAudit result={result} /></MetricCard>
           <MetricCard label="Gross collections" value={moneyB(result.grossRevenue)} note={`${percent(result.grossRevenuePercentGdp)} of GDP`}><Audit><Formula>{moneyB(result.rateAdjustedBase)} rate-adjusted base × {percent(settings.rate)} = {moneyB(result.grossRevenue)}</Formula></Audit></MetricCard>
           <MetricCard label="Refundable credits" value={moneyB(result.adultCreditCost + result.childCreditCost)} note={`${percent(result.creditCostPercentGdp)} of GDP`}><Audit><Formula>{moneyB(result.adultCreditCost)} adult + {moneyB(result.childCreditCost)} child</Formula></Audit></MetricCard>
-          <MetricCard label="Net federal revenue" value={moneyB(result.netRevenue)} note={`${percent(result.netRevenuePercentGdp)} of GDP · target ${percent(result.targetRevenuePercentGdp)}`} tone={result.surplusDeficit >= 0 ? 'good' : 'bad'}><RevenueAudit result={result} /></MetricCard>
-          <MetricCard label={result.surplusDeficit >= 0 ? 'Static surplus' : 'Static deficit'} value={moneyB(result.surplusDeficit)} note={`${percent(result.surplusDeficitPercentGdp)} of GDP`} tone={result.surplusDeficit >= 0 ? 'good' : 'bad'} />
-          <MetricCard label="Revenue-neutral rate" value={percent(result.revenueNeutralRate, 2)} note="Solved algebraically" tone="accent"><Audit><Formula>({moneyB(result.targetRevenue)} + {moneyB(result.adultCreditCost + result.childCreditCost)}) ÷ {moneyB(result.rateAdjustedBase)} rate-adjusted base = {percent(result.revenueNeutralRate, 2)}</Formula></Audit></MetricCard>
+          <MetricCard label="Net federal revenue" value={moneyB(result.netRevenue)} note={`${percent(result.netRevenuePercentGdp)} of GDP · adjusted target ${percent(result.adjustedTargetRevenuePercentGdp)}`} tone={result.adjustedSurplusDeficit >= 0 ? 'good' : 'bad'}><RevenueAudit result={result} /></MetricCard>
+          <MetricCard label={result.adjustedSurplusDeficit >= 0 ? 'Adjusted static surplus' : 'Adjusted static deficit'} value={moneyB(result.adjustedSurplusDeficit)} note={`${percent(result.adjustedSurplusDeficitPercentGdp)} of GDP${hasTransferSavings ? ` · ${moneyB(federalTransferSavings)} program savings` : ''}`} tone={result.adjustedSurplusDeficit >= 0 ? 'good' : 'bad'} />
+          <MetricCard label="Revenue-neutral rate" value={percent(result.adjustedRevenueNeutralRate, 2)} note={hasTransferSavings ? `Before transfer savings ${percent(result.revenueNeutralRate, 2)}` : 'Solved algebraically'} tone="accent"><Audit><Formula>{hasTransferSavings && <>{moneyB(result.targetRevenue)} original target − {moneyB(result.federalTransferSavings)} federal program savings = {moneyB(result.adjustedTargetRevenue)} adjusted target.<br /><br /></>}({moneyB(result.adjustedTargetRevenue)} + {moneyB(result.adultCreditCost + result.childCreditCost)}) ÷ {moneyB(result.rateAdjustedBase)} rate-adjusted base = {percent(result.adjustedRevenueNeutralRate, 2)}</Formula></Audit></MetricCard>
         </div>
         <Flow result={result} />
         <section className="concept-note"><span className="eyebrow">Canonical implementation</span><h2>{settings.wageTaxMode === 'flat' ? 'Flat-rate' : 'Progressive'} X tax / DBCFT presentation</h2><p>Businesses pay the headline rate on destination-based cash flow after wages and new investment. Households pay either that same flat rate or the selected progressive wage schedule, then receive refundable adult and child credits. This is economically related to a broad VAT, but the statutory collection and household presentation are not treated as interchangeable.</p></section>

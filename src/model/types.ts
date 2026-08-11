@@ -43,9 +43,21 @@ export interface MacroResult {
   netRevenuePercentGdp: number;
   targetRevenue: number;
   targetRevenuePercentGdp: number;
+  federalTransferSavings: number;
+  adjustedTargetRevenue: number;
+  adjustedTargetRevenuePercentGdp: number;
   surplusDeficit: number;
   surplusDeficitPercentGdp: number;
+  adjustedSurplusDeficit: number;
+  adjustedSurplusDeficitPercentGdp: number;
   revenueNeutralRate: number;
+  adjustedRevenueNeutralRate: number;
+  revenueNeutralRateReduction: number;
+}
+
+export interface MacroAdjustment {
+  /** FY2025 federal program spending removed outside the tax system, in billions. */
+  federalTransferSavings?: number;
 }
 
 export interface HouseholdInput {
@@ -94,6 +106,86 @@ export interface HouseholdResult {
   reformAverageRate: number;
   currentMarginalRate: number;
   reformMarginalRate: number;
+}
+
+export type TransferProgramId = 'snap' | 'wic' | 'schoolMeals' | 'summerEbt' | 'tanf' | 'liheap' | 'housing';
+export type TransferKind = 'cash' | 'near_cash' | 'in_kind';
+export type TransferMethod = 'rule_based' | 'preset_assumption' | 'manual_receipt';
+export type TransferReceiptMode = 'assumed' | 'user_entered';
+
+export interface TransferReplacementSettings {
+  replacedPrograms: Record<TransferProgramId, boolean>;
+}
+
+export interface TransferHouseholdInput {
+  household: HouseholdInput;
+  preschoolChildren: number;
+  schoolAgeChildren: number;
+  monthlyShelterCost: number;
+  monthlyDependentCareExpense: number;
+  inKindValuationFactor: number;
+  receives: Record<TransferProgramId, boolean>;
+  manualAnnualBenefits: Partial<Record<TransferProgramId, number>>;
+}
+
+export interface TransferProgramDefinition {
+  id: TransferProgramId;
+  name: string;
+  shortName: string;
+  kind: TransferKind;
+  method: TransferMethod;
+  financing: string;
+  receiptAccess: string;
+  federalFiscalAmountBillions: number;
+  federalFiscalMeasure: string;
+  stateFinancingIncludedBillions: number;
+  policyYear: string;
+  fiscalYear: string;
+  agency: string;
+  sourceUrl: string;
+  ruleSourceUrl: string;
+  householdMethod: string;
+  limitations: string[];
+}
+
+export interface TransferProgramResult {
+  program: TransferProgramDefinition;
+  eligible: boolean | null;
+  receives: boolean;
+  potentialAnnualBenefit: number;
+  annualGovernmentBenefit: number;
+  resourceEquivalentValue: number;
+  valuationFactor: number;
+  calculationStatus: 'exact_rule' | 'approximate_rule' | 'illustrative' | 'user_entered';
+  calculationNote: string;
+}
+
+export interface ResourceScenario {
+  annual: number;
+  monthly: number;
+  fplShare: number;
+  changeFromCurrent: number;
+  percentChangeFromCurrent: number | null;
+}
+
+export interface TransferAnalysisResult {
+  tax: HouseholdResult;
+  programs: TransferProgramResult[];
+  povertyGuideline: number;
+  totalCurrentExternalTransfers: number;
+  eliminatedHouseholdBenefits: number;
+  federalProgramSavingsBillions: number;
+  currentLaw: ResourceScenario;
+  reformRetained: ResourceScenario;
+  reformAfterReplacement: ResourceScenario;
+  householdReplacementRatio: number | null;
+  heldHarmless: boolean;
+}
+
+export interface TransferPreset {
+  id: string;
+  label: string;
+  input: TransferHouseholdInput;
 }
 
 export interface TaxWedgeScenario {
