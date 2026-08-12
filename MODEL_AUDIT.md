@@ -13,7 +13,7 @@ The original repository was a notebook research prototype. Calculations were spr
 | Base labeling | Post-compliance result called “before exemptions” | Compliance status shown at every stage |
 | Revenue target | $4.3T, $4.4T, and $4.6T | Selected FY2025 Treasury receipts; $5.051293T default |
 | Population | 258M/74M and 267M/73M | Census Vintage 2025: 269.764M adults / 72.021M children |
-| Adult credits | Nonrefundable with 70%/80% “absorption” | Refundable schedule plus explicit aggregate budget factor |
+| Adult credits | Nonrefundable with 70%/80% “absorption” | Refundable schedule scored on CPS tax units, plus explicit take-up |
 | Reform household credit | Adult offset multiplied by `1 + rate` | Removed; direct refundable credit identity |
 | Tax year | 2024 deductions/payroll with 2025 brackets | Enacted tax year 2025 throughout |
 | Payroll | Flat approximations | Actual 2025 SS cap and Medicare rules, per earner |
@@ -21,7 +21,8 @@ The original repository was a notebook research prototype. Calculations were spr
 | Marginal rate | $10 difference and inconsistent arguments | Centered $1,000 local difference on the pure engine |
 | Compensation | Benefits and employer payroll costs mixed differently across systems | Core tax-wedge view uses employer compensation; Social spending uses current cash wages and adds employer FICA only as a visible 0%–100% reform-side pass-through |
 | Healthcare | Optional subsidy changed reform results | Excluded from Iteration 1 |
-| Progressive reform | Flat tax only | Flat or progressive X tax with explicit macro calibration |
+| Progressive reform | Flat tax only | Flat or progressive X tax scored over the CPS wage distribution |
+| Compensation exemptions | Compensation treated as one undifferentiated aggregate | Cash wages, employer social insurance, and pension/insurance supplements separately controlled; all taxable by default |
 | Transfer replacement | No distinction between household value and national savings | Separate resource and federal fiscal identities |
 | EITC/CTC replacement | Liability-offset amounts reduce receipts, while refundable excess payments are mandatory outlays | No external toggles; FY2025 refundable outlays are an automatic saving when individual income taxation is replaced, while receipt offsets are not counted twice |
 | Program eligibility | No transfer engine | Explicit receipt; formulas only where credible; rationed programs stay manual |
@@ -46,18 +47,39 @@ $15,726.910B compensation
 
 Housing-sector value added is the only estimated input: `$1,954.169B × ($30,762.099B / $29,298.013B)`. All other 2025 series are observed in the checked-in build.
 
+## CPS ASEC microdata reconciliation
+
+The official 2025 ASEC person file contains 142,125 records grouped into 76,652 Census `TAX_ID` units. Reference-person survey weights produce $12,055.471B of cash wages for 2024. Raking that distribution to the 2025 BEA cash-wage control of $12,958.656B requires a **1.0749** factor, a 7.49% aggregate adjustment. Weighted adult counts require a **1.0284** factor to match the Census 2025 adult-population control. Both are moderate enough to pass explicit ETL guardrails.
+
+BEA compensation reconciles exactly:
+
+```text
+$12,958.656B cash wages and salaries
++   908.979B employer government social insurance
++ 1,859.275B employer pension and insurance supplements
+=15,726.910B employee compensation
+```
+
+Employer supplements are allocated in proportion to cash wages. Under the default $30,000/$100,000 per-adult progressive schedule with a 50% middle-rate fraction, the microdata produce a **$7,527.900B** rate-equivalent compensation base, or **47.8664%** of total compensation. The proposed earned adult credit produces **$542.013B** of statutory eligibility at 100% take-up, averaging $2,009 per Census adult and 41.86% of the universal maximum-population cost.
+
+The 160 ASEC replicate weights give sampling standard errors of **$3.095B** for the adult-credit cost and **$22.594B** for the rate-equivalent compensation base. These are under 1% of their point estimates. They do not capture model error from tax-unit construction, benefit allocation, take-up, behavioral response, or public-use top coding.
+
+As a distributional gut check, BEA-raked tax-unit cash wages are about $36,500 at the median, $172,000 at the 90th percentile, and $489,000 at the 99th percentile. The top 10% of tax units receive 46.0% of cash wages and the top 1% receive 12.5%. These figures include zero-wage nonfiling/dependent units and joint returns, so they are not individual-worker earnings statistics; they are useful chiefly for detecting an obviously broken tax-unit or weight construction.
+
 ## Default revenue reconciliation
 
 ```text
 $22,311.8686B × 30.0% = $6,693.5606B gross collections (21.76% GDP)
-−   $971.1486B adult credits
+−   $542.0128B adult credits
 −   $345.7025B child credits
-= $5,376.7095B net revenue (17.48% GDP)
+= $5,805.8453B net revenue (18.87% GDP)
 − $5,051.2930B selected target (16.42% GDP)
-=   $325.4165B static surplus (1.06% GDP)
+=   $754.5523B static surplus (2.45% GDP)
 ```
 
-The unadjusted flat revenue-neutral rate is **28.54150956%**. The [FY2025 Treasury Combined Statement](https://fiscal.treasury.gov/system/files/files/reports-statements/combined-statement/cs2025/c40.pdf) records $66.0074466B of refundable EITC outlays (account 020-0906) and $26.5667613B of refundable child-credit outlays (account 020-0922). Replacing individual income taxation therefore removes $92.5742079B of mandatory outlays in addition to replacing receipts, producing an adjusted requirement of $4,958.7187921B and an adjusted flat rate of **28.1265994%**. The credit portion that offsets positive liability already reduces receipts and is not counted again. At the default progressive calibration, the pre-savings rate-adjusted base is $17,220.2815B and the unadjusted revenue-neutral business/top wage rate is **36.9804879%**.
+The unadjusted flat revenue-neutral rate is **26.6181573%**. The [FY2025 Treasury Combined Statement](https://fiscal.treasury.gov/system/files/files/reports-statements/combined-statement/cs2025/c40.pdf) records $66.0074466B of refundable EITC outlays (account 020-0906) and $26.5667613B of refundable child-credit outlays (account 020-0922). Replacing individual income taxation therefore removes $92.5742079B of mandatory outlays in addition to replacing receipts, producing an adjusted requirement of $4,958.7187921B and an adjusted flat rate of **26.2032471%**. The credit portion that offsets positive liability already reduces receipts and is not counted again. At the default progressive schedule, the pre-savings rate-adjusted base is $14,727.7840B; the unadjusted and adjusted revenue-neutral business/top wage rates are **40.3251994%** and **39.6966309%**.
+
+Two exemption sensitivities expose the importance of the compensation definition. Fully exempting employer pension/insurance supplements removes $1,719.829B after default compliance and raises the adjusted flat neutral rate from 26.20% to **28.39%**. Exempting both employer supplement categories removes $2,560.635B and raises it to **29.60%**. Cash wages remain fully taxed in both cases.
 
 ## Transfer-replacement fiscal reconciliation
 
@@ -78,7 +100,7 @@ $5,051.293B original tax-replacement target
 = $4,794.951B adjusted revenue requirement
 ```
 
-At the default flat settings, automatic refundable-credit savings reduce the rate from **28.5415% to 28.1266%**. Adding the illustrative external bundle reduces it further to **27.3926%**, a total **1.1489 percentage-point** reduction. Adding tenant-based rental assistance would add $38.320B of modeled federal savings, but it is excluded from this illustrative bundle because household receipt is rationed and a national repeal has distributional issues that this illustration cannot resolve.
+At the default flat settings, automatic refundable-credit savings reduce the rate from **26.6182% to 26.2032%**. Adding the illustrative external bundle reduces it further to **25.4693%**, a total **1.1489 percentage-point** reduction. Adding tenant-based rental assistance would add $38.320B of modeled federal savings, but it is excluded from this illustrative bundle because household receipt is rationed and a national repeal has distributional issues that this illustration cannot resolve.
 
 Fiscal amounts do not derive from household benefits or recipient averages. Conversely, household values do not derive from dividing fiscal amounts by caseloads. School meals and Summer EBT are actual obligations rather than outlays; the UI labels the measure. State TANF maintenance-of-effort and other nonfederal financing are excluded from federal savings.
 
@@ -122,16 +144,18 @@ The largest displayed marginal interactions occur at rule thresholds, not manual
 
 ## Automated validation
 
-The test suite preserves all prior checks and adds no-selection macro/household regressions; explicit `gross resources − pre-credit liability + credits` identities; a guard that employer FICA enters only reform-side Social spending resources; 100%, partial, and inapplicable employer-FICA pass-through cases; federal savings summation; adjusted-target and adjusted-rate algebra; exclusion of state financing; three-scenario resource identities; EITC/CTC and reform-credit double-counting guards; exact program removal/retention; receipt gating; SNAP, school-meal, and Summer EBT thresholds; FPL sizes; and rule-based versus fixed-manual marginal behavior.
+The test suite preserves all prior checks and adds microdata snapshot reconciliation, independent compensation-exemption controls, statutory-versus-take-up adult-credit scoring, and household exemption consistency. It also covers no-selection macro/household regressions; explicit `gross resources − pre-credit liability + credits` identities; employer-FICA resource treatment; pass-through sensitivities; fiscal savings; program receipt gating and thresholds; FPL sizes; and rule-based versus fixed-manual marginal behavior.
 
 Validation commands:
 
 ```text
 npm run typecheck  → passed
-npm test           → 47 passed
+npm test           → 53 passed
 npm run build      → passed
 python3 scripts/build_baseline.py --verify-only
                    → $30.7621T GDP; $22.3119T default base (72.5% GDP)
+npm run microdata:verify
+                   → 76,652 tax units; $542.0B adult credit; 47.87% progressive factor
 ```
 
 ## Remaining audit risks
@@ -139,12 +163,15 @@ python3 scripts/build_baseline.py --verify-only
 1. One annual housing series is estimated; the snapshot must be rebuilt after BEA publishes 2025.
 2. A fiscal-year receipts target is paired with a calendar-year base.
 3. The NIPA construction is a cash-flow approximation, not a legislative score.
-4. Aggregate earned-credit cost and progressive wage revenue use visible calibration factors rather than microdata.
-5. The federal-only Taxing Wages table is not the official OECD wedge and excludes state/local tax.
-6. Household results omit nonwage income, itemization, AMT, dependent nuance, most transfers, and special 2025 deductions.
-7. Negative DBCFT liabilities assume symmetric treatment; actual loss rules affect neutrality and timing.
-8. SNAP omits categorical eligibility, asset/work/immigration and several deduction rules; it is a threshold illustration, not an eligibility determination.
-9. WIC, TANF, LIHEAP, and housing household amounts are explicit user/preset assumptions; state and local variation is not simulated.
-10. School meal household values use reimbursement rates and assumed meal days, not observed meal consumption; the in-kind factor is a sensitivity, not welfare evidence.
-11. Full federal account repeal may not generate immediate cash savings equal to one year's outlays because administration, contracts, and transition timing are not modeled.
-12. Health, retirement, disability, SSI, and detailed benefit interactions remain deliberately outside the working-age resource model.
+4. The CPS public-use wage distribution has top coding and no administrative-data top-tail match; BEA controls correct the aggregate, not the shape.
+5. Employer social-insurance and pension/insurance supplements are allocated in proportion to cash wages because CPS does not identify them completely at the tax-unit level. This likely overstates supplements for some workers and understates them for others.
+6. The 2025 CPS ASEC reports 2024 income. Raking to 2025 BEA totals does not capture every distributional change between years.
+7. Adult-credit take-up defaults to 100%; the control is a sensitivity rather than an estimated participation model.
+8. The federal-only Taxing Wages table is not the official OECD wedge and excludes state/local tax.
+9. Household results omit nonwage income, employer pension/insurance benefits, itemization, AMT, dependent nuance, most transfers, and special 2025 deductions.
+10. Negative DBCFT liabilities assume symmetric treatment; actual loss rules affect neutrality and timing.
+11. SNAP omits categorical eligibility, asset/work/immigration and several deduction rules; it is a threshold illustration, not an eligibility determination.
+12. WIC, TANF, LIHEAP, and housing household amounts are explicit user/preset assumptions; state and local variation is not simulated.
+13. School meal household values use reimbursement rates and assumed meal days, not observed meal consumption; the in-kind factor is a sensitivity, not welfare evidence.
+14. Full federal account repeal may not generate immediate cash savings equal to one year's outlays because administration, contracts, and transition timing are not modeled.
+15. Health, retirement, disability, SSI, and detailed benefit interactions remain deliberately outside the working-age resource model.

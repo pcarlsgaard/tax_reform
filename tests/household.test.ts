@@ -124,6 +124,19 @@ describe('reform adult and child credits', () => {
     expect(result.reformMarginalRate).toBeCloseTo(0.30, 8);
   });
 
+  it('applies named compensation exemptions to tax but not adult-credit eligibility', () => {
+    const base = calculateHousehold(household(50000), defaultSettings);
+    const exempt = calculateHousehold(household(50000), {
+      ...defaultSettings,
+      cashWageExemptionShare: 0.20,
+      employerSocialInsuranceExemptionShare: 1,
+    });
+    expect(exempt.reformWageBase).toBeCloseTo(base.reformWageBase, 10);
+    expect(exempt.adultCredit).toBeCloseTo(base.adultCredit, 10);
+    expect(exempt.taxableReformWageBase).toBeCloseTo(40000, 10);
+    expect(exempt.reformTaxBeforeCredits).toBeCloseTo(12000, 10);
+  });
+
   it('produces finite marginal rates around major current-law and reform kinks', () => {
     for (const wage of [15750, 27675, 50000, 100000, 176100, 200000, 250000]) {
       const result = calculateHousehold(household(wage), defaultSettings);

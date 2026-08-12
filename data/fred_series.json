@@ -1,6 +1,9 @@
 {
   "gdp": { "id": "GDP", "label": "Gross domestic product" },
   "compensation": { "id": "COE", "label": "Compensation of employees" },
+  "wagesAndSalaries": { "id": "WASCUR", "label": "Wages and salary disbursements" },
+  "employerGovernmentSocialInsurance": { "id": "B039RC1A027NBEA", "label": "Employer contributions for government social insurance" },
+  "employerPensionAndInsurance": { "id": "B040RC1A027NBEA", "label": "Employer contributions for employee pension and insurance funds" },
   "corporateProfits": { "id": "CPROFIT", "label": "Corporate profits" },
   "proprietorsIncome": { "id": "PROPINC", "label": "Proprietors' income" },
   "netInterest": { "id": "B471RC1Q027SBEA", "label": "Net interest and miscellaneous payments" },

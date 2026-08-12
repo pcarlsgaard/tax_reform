@@ -9,16 +9,18 @@ export interface ReformSettings {
   progressiveZeroBracketPerAdult: number;
   progressiveTopBracketPerAdult: number;
   progressiveMiddleRateShare: number;
-  progressiveAverageWageRateShare: number;
   adultCredit: number;
   adultCreditMode: AdultCreditMode;
   adultCreditPhaseInRate: number;
   adultCreditPhaseOutStartPerAdult: number;
   adultCreditPhaseOutRate: number;
-  adultCreditBudgetShare: number;
+  adultCreditTakeUpRate: number;
   childCredit: number;
   noncomplianceRate: number;
   exemptionShare: number;
+  cashWageExemptionShare: number;
+  employerSocialInsuranceExemptionShare: number;
+  employerPensionInsuranceExemptionShare: number;
   replacedTaxes: Record<ReplacedTax, boolean>;
 }
 
@@ -27,15 +29,21 @@ export interface MacroResult {
   theoreticalBase: number;
   noncomplianceLoss: number;
   baseAfterCompliance: number;
+  broadPolicyExemptionLoss: number;
+  compensationExemptionLoss: number;
   exemptionLoss: number;
   taxableBase: number;
   basePercentGdp: number;
   wageTaxableBase: number;
   businessTaxableBase: number;
+  rateAdjustedWageBase: number;
+  microdataAverageWageRateShare: number;
   rateAdjustedBase: number;
   grossRevenue: number;
   grossRevenuePercentGdp: number;
+  adultCreditStatutoryCost: number;
   adultCreditCost: number;
+  adultCreditTakeUpRate: number;
   childCreditCost: number;
   otherRebates: number;
   creditCostPercentGdp: number;
@@ -119,6 +127,9 @@ export interface HouseholdResult {
   employerFicaPassThroughRate: number;
   employerFicaPassThrough: number;
   reformGrossResources: number;
+  /** Cash wages and modeled employer FICA remaining after named compensation exemptions. */
+  taxableReformWageBase: number;
+  /** Gross compensation used to test statutory adult-credit eligibility. */
   reformWageBase: number;
   currentPreCreditTaxLiability: number;
   currentTaxCredits: number;

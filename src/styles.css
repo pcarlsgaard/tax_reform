@@ -38,6 +38,8 @@ a { color:var(--teal-dark); }
 .control-group { border:1px solid #ffffff1f; border-radius:12px; padding:14px 14px 0; margin:0 0 20px; }
 .control-group>span { display:block; color:#8fd2c3; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; margin-bottom:13px; }
 .control-group .control-field { margin-bottom:15px; }
+.control-note { color:#9fb0bd; font-size:10px; line-height:1.45; margin:-4px 0 15px; }
+.control-note strong { color:#b8e6dc; }
 .tax-checks { border:0; border-top:1px solid #ffffff20; padding:19px 0 0; margin:4px 0 0; }
 .tax-checks legend { padding:0 0 12px; font-size:12px; font-weight:800; color:#9fb0bd; }
 .tax-checks label { display:flex; align-items:center; gap:9px; font-size:12px; margin:10px 0; }

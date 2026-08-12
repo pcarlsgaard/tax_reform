@@ -38,14 +38,23 @@ theoretical broad base
 + household investment − housing-sector value added
 ```
 
-The active model applies two distinct reductions:
+The active model applies compliance, an optional broad exemption, and named compensation exemptions sequentially. Let `r = (1 − noncompliance) × (1 − other broad exemption share)`:
 
 ```text
 base after compliance = theoretical base × (1 − noncompliance rate)
-final taxable base = base after compliance × (1 − policy exemption share)
+
+taxable business base
+= (theoretical base − total employee compensation) × r
+
+taxable wage base
+= [cash wages × (1 − cash-wage exemption)
+   + employer social insurance × (1 − social-insurance exemption)
+   + employer pension/insurance × (1 − pension/insurance exemption)] × r
+
+final taxable base = taxable business base + taxable wage base
 ```
 
-The exemption control is an aggregate policy reduction, not a claim that a named sector is exempt. The final base is split into wage and business components in proportion to the theoretical construction so progressive household wage rates can be scored without changing the flat business rate.
+All three compensation exemptions are zero by default, so all compensation is taxed. The residual broad exemption remains an aggregate policy reduction, not a claim that a named sector is exempt. Named compensation exemptions are shown separately and do not reduce the non-compensation business base.
 
 ## 4. National revenue identity
 
@@ -62,20 +71,30 @@ For a progressive X tax:
 ```text
 rate-adjusted base
 = compliant taxable business base
-+ compliant taxable wage base × average-wage-rate factor
++ sum over CPS tax units of:
+    survey weight × progressive-equivalent taxable compensation
 ```
 
-The average-wage-rate factor is the population-average wage rate divided by the headline business/top wage rate. It is an explicit calibration, not a microsimulation result.
+The progressive-equivalent amount applies the selected zero/middle/top wage schedule to each tax unit and divides liability by the headline rate. The displayed average-wage-rate factor is therefore an output—microdata rate-adjusted wage base divided by the taxable wage base—not an editable assumption.
 
 ```text
 gross revenue = rate-adjusted base × headline rate
-adult credit cost = adult population × maximum adult credit × budget factor
+statutory adult credit cost
+= sum over CPS tax units of survey weight × statutory refundable credit
+
+adult credit cost = statutory adult credit cost × take-up rate
 child credit cost = child population × flat child credit
 net revenue = gross revenue − adult credits − child credits − other rebates
 surplus / deficit = net revenue − selected replacement-revenue target
 ```
 
-The adult budget factor is 100% for a universal credit and editable for the earned-credit schedule. It bridges the household schedule to the aggregate score until microdata are added.
+Universal adult-credit cost uses the Census adult-population control directly. The earned schedule is calculated from tax-unit compensation, adult counts, and the selected phase-in/out parameters. The aggregate take-up control defaults to 100% and is applied after statutory eligibility; it does not change an illustrative household's statutory entitlement.
+
+### CPS ASEC distribution and calibration
+
+The active distribution comes from the Census Bureau's 2025 CPS Annual Social and Economic Supplement public-use CSV files, covering 2024 income. It uses Census `TAX_ID`, a reference-person `MARSUPWT`, `FILESTAT` for one- versus two-adult filing thresholds, `WSAL_VAL` for cash wages, and age for adult-credit units. Cash wages are raked to the 2025 BEA wages-and-salaries control. Census adult and child population controls reconcile people counts. Employer social-insurance and pension/insurance supplements are allocated to tax units in proportion to cash wages.
+
+The checked-in browser asset aggregates identical `[cash wages, schedule adults, credit adults]` cells rather than retaining respondent records. The ETL records the official archive digest and uses the 160 ASEC replicate weights with `variance = (4/160) × Σ(replicate − full sample)²`.
 
 The algebraic revenue-neutral headline rate is:
 
@@ -121,7 +140,7 @@ Only federal amounts enter this subtraction. State maintenance-of-effort, local 
 | Adults | 269.764M |
 | Children | 72.021M |
 | Maximum adult credit | $4,800 |
-| Adult earned-credit budget factor | 75% |
+| Adult-credit aggregate take-up | 100% |
 | Flat refundable child credit | $4,800 |
 | Statutory flat rate | 30.0% |
 
@@ -129,7 +148,9 @@ Eleven of twelve inputs are observed for 2025. Housing-sector value added is pro
 
 The default target replaces FY2025 individual income tax ($2,656.044B), social-insurance/payroll receipts ($1,748.294B), corporate income tax ($452.089B), and customs duties ($194.866B): **$5,051.293B**, or **16.42% of GDP**. The target is fiscal-year cash receipts while the base is a calendar-year economic measure.
 
-At the flat defaults, gross collections are $6,693.561B, adult credits cost $971.149B, child credits cost $345.702B, and net revenue is $5,376.709B. Against the unadjusted receipts target the surplus is $325.416B and the revenue-neutral rate is **28.5415%**. FY2025 actual refundable EITC outlays of $66.007B and refundable child-credit outlays of $26.567B reduce the operative requirement to $4,958.719B and the adjusted revenue-neutral rate to **28.1266%**. These Treasury outlays were recorded during FY2025 and primarily reflect tax year 2024 returns, another explicit timing mismatch.
+At the flat defaults, gross collections are $6,693.561B, CPS-scored adult credits cost $542.013B, child credits cost $345.702B, and net revenue is $5,805.845B. Against the unadjusted receipts target the surplus is $754.552B and the revenue-neutral rate is **26.6182%**. FY2025 actual refundable EITC outlays of $66.007B and refundable child-credit outlays of $26.567B reduce the operative requirement to $4,958.719B and the adjusted revenue-neutral rate to **26.2032%**. These Treasury outlays were recorded during FY2025 and primarily reflect tax year 2024 returns, another explicit timing mismatch.
+
+The default progressive schedule produces a $7,527.900B rate-equivalent compensation base, or **47.8664%** of total compensation before compliance. After compliance, the total rate-adjusted base is $14,727.784B and the adjusted revenue-neutral business/top wage rate is **39.6966%**.
 
 The refundable amounts and account identifiers are versioned in `src/data/refundable_tax_credit_outlays_2025.json` from the Treasury Bureau of the Fiscal Service's FY2025 Combined Statement, Department of the Treasury accounts 020-0906 and 020-0922.
 
@@ -149,7 +170,7 @@ reform gross household resources
 = cash wages + passed-through employer FICA
 ```
 
-The same reform wage measure enters the wage tax and earned adult-credit schedule. The non-passed-through share is not silently assigned elsewhere: it remains outside the illustrated household's resources because this static model does not allocate it among profits, prices, or other workers. If payroll taxes are retained, the control is inapplicable, conversion does not occur, and employee/employer payroll liabilities remain in the reform column.
+Gross reform wage compensation enters the earned adult-credit schedule. The named cash-wage and employer-social-insurance exemptions determine the taxable portion used by the wage tax. Employer pension and insurance supplements are part of the national base but are absent from the wage-only household example. The non-passed-through employer-FICA share is not silently assigned elsewhere: it remains outside the illustrated household's resources because this static model does not allocate it among profits, prices, or other workers. If payroll taxes are retained, the control is inapplicable, conversion does not occur, and employee/employer payroll liabilities remain in the reform column.
 
 ### Current law
 
@@ -167,7 +188,7 @@ The model assumes every entered child qualifies. It omits itemized deductions, n
 
 ### Reform wage tax
 
-Flat mode applies the headline rate to reform wage compensation. Progressive mode applies a zero rate through an editable per-adult threshold, an editable fraction of the headline rate through a second per-adult threshold, and the headline rate above it. Brackets are tax-exclusive and filing thresholds scale with the number of adults.
+Flat mode applies the headline rate to taxable reform wage compensation after named exemptions. Progressive mode applies a zero rate through an editable per-adult threshold, an editable fraction of the headline rate through a second per-adult threshold, and the headline rate above it. Brackets are tax-exclusive and filing thresholds scale with the number of adults.
 
 ### Adult and child credits
 

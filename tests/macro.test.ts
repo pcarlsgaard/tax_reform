@@ -19,7 +19,7 @@ describe('2025 national accounting', () => {
     const result = calculateMacro(defaultSettings);
     expect(result.taxableBase).toBeCloseTo(22311.868575, 8);
     expect(result.grossRevenue).toBeCloseTo(result.taxableBase * defaultSettings.rate, 8);
-    expect(result.adultCreditCost).toBeCloseTo(971.1486324, 8);
+    expect(result.adultCreditCost).toBeCloseTo(542.0128005205615, 8);
     expect(result.childCreditCost).toBeCloseTo(345.7024704, 8);
     expect(result.netRevenue).toBeCloseTo(result.grossRevenue - result.adultCreditCost - result.childCreditCost, 8);
     expect(result.targetRevenue).toBeCloseTo(5051.293, 8);
@@ -65,5 +65,22 @@ describe('2025 national accounting', () => {
     const universal = calculateMacro({ ...defaultSettings, adultCreditMode: 'universal' });
     expect(universal.adultCreditCost).toBeCloseTo(269.763509 * 4.8, 8);
     expect(universal.adultCreditCost).toBeGreaterThan(calculateMacro(defaultSettings).adultCreditCost);
+  });
+
+  it('starts with all compensation taxable and scores named exemptions separately', () => {
+    const base = calculateMacro(defaultSettings);
+    expect(base.compensationExemptionLoss).toBe(0);
+    const pensionExempt = calculateMacro({ ...defaultSettings, employerPensionInsuranceExemptionShare: 1 });
+    expect(pensionExempt.compensationExemptionLoss).toBeCloseTo(1859.275 * 0.925, 8);
+    expect(base.taxableBase - pensionExempt.taxableBase).toBeCloseTo(pensionExempt.compensationExemptionLoss, 8);
+    expect(pensionExempt.businessTaxableBase).toBeCloseTo(base.businessTaxableBase, 8);
+  });
+
+  it('applies adult-credit take-up after statutory eligibility without changing the tax base', () => {
+    const full = calculateMacro(defaultSettings);
+    const partial = calculateMacro({ ...defaultSettings, adultCreditTakeUpRate: 0.80 });
+    expect(partial.adultCreditStatutoryCost).toBeCloseTo(full.adultCreditStatutoryCost, 10);
+    expect(partial.adultCreditCost).toBeCloseTo(full.adultCreditCost * 0.80, 10);
+    expect(partial.taxableBase).toBeCloseTo(full.taxableBase, 10);
   });
 });

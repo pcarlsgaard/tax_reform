@@ -73,6 +73,11 @@ def build(year: int, prior: dict, allow_provisional_housing: bool = False) -> di
             "netImports": round(values["imports"] - values["exports"], 3),
             "housingAdjustment": round(values["householdInvestment"] - values["housingValueAdded"], 3),
         },
+        "compensationComponents": {
+            "cashWagesAndSalaries": round(values["wagesAndSalaries"], 3),
+            "employerGovernmentSocialInsurance": round(values["employerGovernmentSocialInsurance"], 3),
+            "employerPensionAndInsurance": round(values["employerPensionAndInsurance"], 3),
+        },
     }
 
 
@@ -82,8 +87,15 @@ def verify(snapshot: dict) -> None:
     if theoretical <= 0 or snapshot["gdp"] <= 0:
         raise RuntimeError("Baseline contains a nonpositive GDP or theoretical base")
     default_base = theoretical * (1 - snapshot["defaultNoncomplianceRate"]) * (1 - snapshot["defaultExemptionShare"])
+    compensation_components = snapshot["compensationComponents"]
+    compensation_sum = sum(compensation_components.values())
+    if abs(compensation_sum - components["compensation"]) > 0.01:
+        raise RuntimeError(
+            f"Compensation detail does not reconcile: {compensation_sum:.3f} versus {components['compensation']:.3f}"
+        )
     print(f"GDP: ${snapshot['gdp']:,.1f}B")
     print(f"Theoretical base: ${theoretical:,.1f}B")
+    print(f"Compensation detail: ${compensation_sum:,.1f}B")
     print(f"Default taxable base: ${default_base:,.1f}B ({default_base / snapshot['gdp']:.1%} of GDP)")
 
 

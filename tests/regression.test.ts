@@ -27,8 +27,8 @@ describe('end-to-end regression fixtures', () => {
       }),
     };
     expect(report.macro.taxableBase).toBeCloseTo(22311.868575, 6);
-    expect(report.macro.netRevenue).toBeCloseTo(5376.7094697, 6);
-    expect(report.macro.revenueNeutralRate).toBeCloseTo(0.2854150956, 9);
+    expect(report.macro.netRevenue).toBeCloseTo(5805.845301579439, 6);
+    expect(report.macro.revenueNeutralRate).toBeCloseTo(0.2661815728681326, 9);
     expect(report.households).toEqual([
       expect.objectContaining({ currentTax: 6061.5, reformTax: 4888.5, change: 1173 }),
       expect.objectContaining({ currentTax: 19424, reformTax: 21726.5625, change: -2302.5625 }),

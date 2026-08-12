@@ -8,7 +8,9 @@ The provisional 2025 snapshot has GDP of **$30.762T** and a theoretical broad ca
 
 Eleven of the twelve national inputs are observed for 2025. BEA/FRED housing-sector value added still ends in 2024, so the builder carries its 2024 share of GDP into 2025. The app labels the baseline provisional and exposes the estimate and formula in its audit panel.
 
-The default flat reform uses a 30% tax-exclusive rate, a maximum $4,800 EITC-like adult credit, and a flat fully refundable $4,800 child credit. The adult-credit budget factor is explicitly calibrated to 75% of the maximum-population cost because the aggregate model has no household microdata. Replacing FY2025 individual income, payroll, corporate income, and customs receipts sets a **$5.051T gross target (16.42% of GDP)**. Because replacing individual income taxation also removes **$92.574B (0.30% of GDP)** of FY2025 refundable EITC and child-credit outlays, the default adjusted requirement is **$4.959T (16.12% of GDP)**. Net static revenue is **$5.377T (17.48% of GDP)**; the algebraic revenue-neutral rate is **28.54% before** and **28.13% after** those automatic outlay savings.
+The default flat reform uses a 30% tax-exclusive rate, a maximum $4,800 EITC-like adult credit, and a flat fully refundable $4,800 child credit. A tax-unit score built from the 2025 CPS ASEC estimates **$542.013B** of statutory adult-credit eligibility at 100% take-up; it also replaces the former hand-set progressive wage-rate factor. All $15.727T of BEA employee compensation is taxable by default, with separate controls for exemptions of cash wages, employer social-insurance contributions, and employer pension/insurance supplements.
+
+Replacing FY2025 individual income, payroll, corporate income, and customs receipts sets a **$5.051T gross target (16.42% of GDP)**. Because replacing individual income taxation also removes **$92.574B (0.30% of GDP)** of FY2025 refundable EITC and child-credit outlays, the default adjusted requirement is **$4.959T (16.12% of GDP)**. Net static flat-tax revenue is **$5.806T (18.87% of GDP)**; the algebraic revenue-neutral rate is **26.62% before** and **26.20% after** those automatic outlay savings.
 
 ## Architecture
 
@@ -19,6 +21,7 @@ src/views/                 Five simulator views
 src/components/            Audits, controls, and interactive SVG charts
 data/fred_series.json      Central FRED/BEA series catalog
 scripts/build_baseline.py  Offline data-build/reference step
+scripts/build_microdata.py CPS ASEC tax-unit ETL and replicate-weight score
 tests/                     Unit and end-to-end regression tests
 MODEL_SPEC.md              Authoritative economic specification
 MODEL_AUDIT.md             Historical inconsistencies and validation
@@ -42,6 +45,7 @@ Verify the checked-in baseline without network access:
 
 ```bash
 python3 scripts/build_baseline.py --verify-only
+npm run microdata:verify
 ```
 
 Rebuild it from live FRED data during a deliberate data update:
@@ -52,6 +56,16 @@ npm test
 ```
 
 Without `--allow-provisional-housing`, the 2025 build fails closed until the missing annual housing observation is published. Review snapshot changes before committing because BEA revisions can change historical values.
+
+Rebuild the checked-in tax-unit distribution from the official Census archive (about 140 MB compressed):
+
+```bash
+python3 scripts/build_microdata.py
+npm run microdata:verify
+npm test
+```
+
+The generated `src/data/microdata_2025.json` contains aggregated tax-unit cells, not respondent-level records. The builder records the source URL and SHA-256 digest and uses all 160 Census replicate weights for sampling standard errors.
 
 ## GitHub Pages
 
@@ -64,7 +78,7 @@ The user can select either:
 - a flat X tax / DBCFT plus wage-side tax at the same rate; or
 - a progressive X tax with a flat business rate and a zero/middle/top household wage schedule.
 
-Business wages and new investment are deductible, imports are not deductible, and exports are excluded. The progressive national score uses an explicit average-wage-rate calibration because an aggregate NIPA base cannot infer the distribution of wages. Adult credits can be EITC-like or universal; the default earned-credit schedule has editable phase-in, maximum, phaseout threshold, and phaseout rate. Child credits remain flat and fully refundable.
+Business wages and new investment are deductible, imports are not deductible, and exports are excluded. The progressive national score applies the selected wage schedule to CPS ASEC tax units after raking their cash wages to the 2025 BEA control. Employer social-insurance and pension/insurance supplements are allocated in proportion to cash wages, and each compensation component has a separate exemption control. Adult credits can be EITC-like or universal; the default earned-credit schedule has editable phase-in, maximum, phaseout threshold, phaseout rate, and aggregate take-up. Child credits remain flat and fully refundable.
 
 An invoice-credit VAT can reach a closely related economic consumption base, but it is a legally different collection mechanism. The simulator distinguishes economic base, statutory mechanism, incidence assumptions, and household disposable resources. See [MODEL_SPEC.md](MODEL_SPEC.md) and [MODEL_AUDIT.md](MODEL_AUDIT.md).
 
@@ -91,4 +105,4 @@ The default is no external-program repeal, so external selections do not change 
 
 ## Iteration 1 limitations
 
-The model intentionally excludes dynamic GDP and capital effects, behavioral scoring, intergenerational transition incidence, existing-asset windfalls, household consumption microsimulation, income-decile distributions, Tax-Calculator, OG-USA, state/local taxes, and healthcare reform. Transfer results do not model take-up, assets, immigration/work rules, detailed state variation, local housing availability, or health-insurance value. Medicaid, Medicare, ACA subsidies, employer health exclusions, Social Security retirement, SSDI, and SSI are outside this module. The model pairs fiscal-year targets with a calendar-year base; uses calibration factors rather than microdata for aggregate earned credits and progressive wage rates; excludes 2025 special deductions for tips, overtime, car-loan interest, and seniors; and treats negative business liabilities symmetrically.
+The model intentionally excludes dynamic GDP and capital effects, behavioral scoring, intergenerational transition incidence, existing-asset windfalls, household consumption microsimulation, Tax-Calculator, OG-USA, state/local taxes, and healthcare reform. Transfer results do not model assets, immigration/work rules, detailed state variation, local housing availability, or health-insurance value. Medicaid, Medicare, ACA subsidies, Social Security retirement, SSDI, and SSI are outside this module. The model pairs fiscal-year targets with a calendar-year base; the CPS distribution reports prior-year income; no administrative-data top-tail match is available; employer supplements are allocated pro rata to cash wages; adult-credit take-up is a policy assumption; and the score remains static. The household comparator also excludes employer pension and insurance benefits and the 2025 special deductions for tips, overtime, car-loan interest, and seniors. Negative business liabilities are treated symmetrically.

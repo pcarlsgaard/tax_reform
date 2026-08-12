@@ -112,6 +112,11 @@ function normalizedPassThroughRate(rate: number): number {
   return Math.max(0, Math.min(1, rate));
 }
 
+function taxableReformWageBase(cashWage: number, employerFicaPassThrough: number, settings: ReformSettings): number {
+  return cashWage * (1 - normalizedPassThroughRate(settings.cashWageExemptionShare))
+    + employerFicaPassThrough * (1 - normalizedPassThroughRate(settings.employerSocialInsuranceExemptionShare));
+}
+
 function taxCredits(current: TaxBreakdown): number {
   return current.nonrefundableCtc + current.refundableCtc + current.eitc;
 }
@@ -130,12 +135,13 @@ function totalTaxAtWage(input: HouseholdInput, settings: ReformSettings, passThr
     ? current.employerPayrollTax * normalizedPassThroughRate(passThroughRate)
     : 0;
   const reformWageBase = totalCashWage + employerFicaPassThrough;
+  const taxableWageBase = taxableReformWageBase(totalCashWage, employerFicaPassThrough, settings);
   const adults = input.filingStatus === 'married' ? 2 : 1;
   const reformCredits = calculateAdultCredit(reformWageBase, adults, settings) + input.children * settings.childCredit;
   const retainedTaxBeforeCredits = (settings.replacedTaxes.individualIncome ? 0 : current.incomeTaxBeforeCredits)
     + (payrollIsReplaced ? 0 : current.employeePayrollTax + current.employerPayrollTax);
   const retainedTaxCredits = settings.replacedTaxes.individualIncome ? 0 : taxCredits(current);
-  const reform = calculateReformWageTax(reformWageBase, input.filingStatus, settings)
+  const reform = calculateReformWageTax(taxableWageBase, input.filingStatus, settings)
     + retainedTaxBeforeCredits - reformCredits - retainedTaxCredits;
   return { current: current.totalFederalTax, reform, employerComp };
 }
@@ -160,6 +166,7 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
     ? totalCashWage + employerFicaPassThrough
     : employerCompensation;
   const reformWageBase = totalCashWage + employerFicaPassThrough;
+  const taxableWageBase = taxableReformWageBase(totalCashWage, employerFicaPassThrough, settings);
   const adults = normalized.filingStatus === 'married' ? 2 : 1;
   const adultCreditMaximum = adults * settings.adultCredit;
   const adultCredit = calculateAdultCredit(reformWageBase, adults, settings);
@@ -167,7 +174,7 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
   const totalReformCredit = adultCredit + childCredit;
   const currentPreCreditTaxLiability = preCreditTaxLiability(current);
   const currentTaxCredits = taxCredits(current);
-  const reformTaxBeforeCredits = calculateReformWageTax(reformWageBase, normalized.filingStatus, settings);
+  const reformTaxBeforeCredits = calculateReformWageTax(taxableWageBase, normalized.filingStatus, settings);
   const retainedCurrentTaxBeforeCredits = (settings.replacedTaxes.individualIncome ? 0 : current.incomeTaxBeforeCredits)
     + (payrollIsReplaced ? 0 : current.employeePayrollTax + current.employerPayrollTax);
   const retainedCurrentTaxCredits = settings.replacedTaxes.individualIncome ? 0 : currentTaxCredits;
@@ -197,6 +204,7 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
     employerFicaPassThroughRate: normalizedEmployerFicaPassThroughRate,
     employerFicaPassThrough,
     reformGrossResources,
+    taxableReformWageBase: taxableWageBase,
     reformWageBase,
     currentPreCreditTaxLiability,
     currentTaxCredits,
