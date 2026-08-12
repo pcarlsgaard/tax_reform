@@ -3,6 +3,44 @@ export type ReplacedTax = 'individualIncome' | 'payroll' | 'corporateIncome' | '
 export type AdultCreditMode = 'universal' | 'earned';
 export type WageTaxMode = 'flat' | 'progressive';
 
+export type AdultCreditAuditBucketId =
+  | 'noEligibleAdult'
+  | 'zeroCompensation'
+  | 'phaseIn'
+  | 'fullCredit'
+  | 'phaseInPhaseOutOverlap'
+  | 'phaseOut'
+  | 'fullyPhasedOut'
+  | 'noCreditUnderSchedule'
+  | 'universalCredit';
+
+export interface AdultCreditAuditBucket {
+  id: AdultCreditAuditBucketId;
+  taxUnitsMillions: number;
+  adultsMillions: number;
+  adultPopulationShare: number;
+  statutoryCostBillions: number;
+  budgetCostBillions: number;
+  averageStatutoryCreditPerAdult: number;
+  statutoryCostShare: number;
+}
+
+export interface AdultCreditAudit {
+  buckets: AdultCreditAuditBucket[];
+  totalTaxUnitsMillions: number;
+  totalAdultsMillions: number;
+  positiveCreditTaxUnitsMillions: number;
+  adultsInPositiveCreditUnitsMillions: number;
+  adultsInPositiveCreditUnitsShare: number;
+  universalMaximumCostBillions: number;
+  statutoryCostShareOfUniversalMaximum: number;
+  averageStatutoryCreditPerAdult: number;
+  fullPhaseInCompensationPerAdult: number | null;
+  phaseOutStartCompensationPerAdult: number;
+  zeroCreditCompensationPerAdult: number | null;
+  phaseInPhaseOutOverlap: boolean;
+}
+
 export interface ReformSettings {
   rate: number;
   wageTaxMode: WageTaxMode;
@@ -44,6 +82,7 @@ export interface MacroResult {
   adultCreditStatutoryCost: number;
   adultCreditCost: number;
   adultCreditTakeUpRate: number;
+  adultCreditAudit: AdultCreditAudit;
   childCreditCost: number;
   otherRebates: number;
   creditCostPercentGdp: number;

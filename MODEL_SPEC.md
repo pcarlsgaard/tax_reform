@@ -90,11 +90,15 @@ surplus / deficit = net revenue − selected replacement-revenue target
 
 Universal adult-credit cost uses the Census adult-population control directly. The earned schedule is calculated from tax-unit compensation, adult counts, and the selected phase-in/out parameters. The aggregate take-up control defaults to 100% and is applied after statutory eligibility; it does not change an illustrative household's statutory entitlement.
 
+The browser reruns this microdata score whenever the maximum credit, phase-in rate, phaseout threshold, phaseout rate, mode, or take-up changes. Its live audit assigns every weighted tax unit to a mutually exclusive schedule position: no eligible adult, zero compensation, phase-in, full-credit plateau, overlapping phase-in/phaseout, partial phaseout, fully phased out, another zero-credit condition, or universal credit. The rows reconcile tax units, calibrated adults, statutory cost, and take-up-adjusted cost to the displayed totals. The audit also reports the universal maximum-population benchmark, average statutory credit per adult, and adults in credit-receiving tax units.
+
 ### CPS ASEC distribution and calibration
 
 The active distribution comes from the Census Bureau's 2025 CPS Annual Social and Economic Supplement public-use CSV files, covering 2024 income. It uses Census `TAX_ID`, a reference-person `MARSUPWT`, `FILESTAT` for one- versus two-adult filing thresholds, `WSAL_VAL` for cash wages, and age for adult-credit units. Cash wages are raked to the 2025 BEA wages-and-salaries control. Census adult and child population controls reconcile people counts. Employer social-insurance and pension/insurance supplements are allocated to tax units in proportion to cash wages.
 
 The checked-in browser asset aggregates identical `[cash wages, schedule adults, credit adults]` cells rather than retaining respondent records. The ETL records the official archive digest and uses the 160 ASEC replicate weights with `variance = (4/160) × Σ(replicate − full sample)²`.
+
+National adult-credit eligibility currently uses gross employee compensation: BEA-raked CPS cash wages plus employer government social-insurance and employer pension/insurance supplements allocated in proportion to cash wages. Self-employment income is excluded. Named compensation exemptions, the broad exemption, and noncompliance affect the tax base but not this credit-income measure. These are explicit policy-definition choices, not data necessities. The replicate-weight standard error stored in the snapshot applies only to the default credit schedule and is not recomputed for arbitrary browser settings.
 
 The algebraic revenue-neutral headline rate is:
 

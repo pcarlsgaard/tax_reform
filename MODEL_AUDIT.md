@@ -62,6 +62,22 @@ $12,958.656B cash wages and salaries
 
 Employer supplements are allocated in proportion to cash wages. Under the default $30,000/$100,000 per-adult progressive schedule with a 50% middle-rate fraction, the microdata produce a **$7,527.900B** rate-equivalent compensation base, or **47.8664%** of total compensation. The proposed earned adult credit produces **$542.013B** of statutory eligibility at 100% take-up, averaging $2,009 per Census adult and 41.86% of the universal maximum-population cost.
 
+The default live adult-credit decomposition is:
+
+| Schedule position | Weighted tax units | Calibrated adults | Statutory cost | Average per adult |
+|---|---:|---:|---:|---:|
+| No credit-eligible adult | 1.094M | 0.000M | $0.000B | — |
+| Zero compensation | 61.946M | 76.174M | $0.000B | $0 |
+| Phase-in only | 11.744M | 17.273M | $43.003B | $2,490 |
+| Full-credit plateau | 38.259M | 57.646M | $276.703B | $4,800 |
+| Partial credit in phaseout | 52.458M | 79.361M | $222.308B | $2,801 |
+| Credit fully phased out | 24.720M | 39.308M | $0.000B | $0 |
+| **Total** | **190.221M** | **269.764M** | **$542.013B** | **$2,009** |
+
+Thus 154.281M adults, 57.2% of the adult control, are in tax units receiving a positive credit; only 57.646M are on the full-credit plateau. The live browser table recomputes these rows rather than scaling the default estimate. It creates a separate overlap row when the selected phaseout starts before phase-in can reach the maximum, and it separates statutory eligibility from the take-up-adjusted budget amount.
+
+The credit-income definition remains a material structural sensitivity. The active score uses $12,958.656B of cash wages plus $908.979B of employer government social insurance and $1,859.275B of employer pension/insurance supplements. It excludes self-employment earnings. The interface now discloses that definition and makes clear that tax-base exemptions do not alter credit eligibility.
+
 The 160 ASEC replicate weights give sampling standard errors of **$3.095B** for the adult-credit cost and **$22.594B** for the rate-equivalent compensation base. These are under 1% of their point estimates. They do not capture model error from tax-unit construction, benefit allocation, take-up, behavioral response, or public-use top coding.
 
 As a distributional gut check, BEA-raked tax-unit cash wages are about $36,500 at the median, $172,000 at the 90th percentile, and $489,000 at the 99th percentile. The top 10% of tax units receive 46.0% of cash wages and the top 1% receive 12.5%. These figures include zero-wage nonfiling/dependent units and joint returns, so they are not individual-worker earnings statistics; they are useful chiefly for detecting an obviously broken tax-unit or weight construction.
@@ -150,7 +166,7 @@ Validation commands:
 
 ```text
 npm run typecheck  → passed
-npm test           → 53 passed
+npm test           → 56 passed
 npm run build      → passed
 python3 scripts/build_baseline.py --verify-only
                    → $30.7621T GDP; $22.3119T default base (72.5% GDP)

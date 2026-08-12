@@ -77,6 +77,7 @@ export function calculateMacro(settings: ReformSettings, adjustment: MacroAdjust
     adultCreditStatutoryCost,
     adultCreditCost,
     adultCreditTakeUpRate: settings.adultCreditTakeUpRate,
+    adultCreditAudit: microdata.adultCreditAudit,
     childCreditCost,
     otherRebates,
     creditCostPercentGdp: (adultCreditCost + childCreditCost + otherRebates) / baseline.gdp,

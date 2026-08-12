@@ -10,6 +10,8 @@ Eleven of the twelve national inputs are observed for 2025. BEA/FRED housing-sec
 
 The default flat reform uses a 30% tax-exclusive rate, a maximum $4,800 EITC-like adult credit, and a flat fully refundable $4,800 child credit. A tax-unit score built from the 2025 CPS ASEC estimates **$542.013B** of statutory adult-credit eligibility at 100% take-up; it also replaces the former hand-set progressive wage-rate factor. All $15.727T of BEA employee compensation is taxable by default, with separate controls for exemptions of cash wages, employer social-insurance contributions, and employer pension/insurance supplements.
 
+The Reform Designer includes a live adult-credit audit. Every credit-slider change rescans the aggregated CPS distribution and displays the weighted tax units, calibrated adults, statutory cost, take-up-adjusted cost, average benefit, and cost share in each phase of the schedule. It also exposes the universal-credit maximum benchmark, schedule landmarks, overlap warnings, compensation-income definition, population calibration, and the limits of the default-only sampling error.
+
 Replacing FY2025 individual income, payroll, corporate income, and customs receipts sets a **$5.051T gross target (16.42% of GDP)**. Because replacing individual income taxation also removes **$92.574B (0.30% of GDP)** of FY2025 refundable EITC and child-credit outlays, the default adjusted requirement is **$4.959T (16.12% of GDP)**. Net static flat-tax revenue is **$5.806T (18.87% of GDP)**; the algebraic revenue-neutral rate is **26.62% before** and **26.20% after** those automatic outlay savings.
 
 ## Architecture

@@ -1,8 +1,19 @@
 import { Audit, Formula } from '../components/Audit';
 import { RangeField, SelectField } from '../components/Controls';
 import { MetricCard } from '../components/MetricCard';
-import { moneyB, percent } from '../components/format';
-import { calculateFederalProgramSavings, calculateMacro, type AdultCreditMode, type MacroResult, type ReformSettings, type ReplacedTax, type TransferReplacementSettings, type WageTaxMode } from '../model';
+import { dollars, moneyB, percent } from '../components/format';
+import {
+  calculateFederalProgramSavings,
+  calculateMacro,
+  microdata2025,
+  type AdultCreditAuditBucketId,
+  type AdultCreditMode,
+  type MacroResult,
+  type ReformSettings,
+  type ReplacedTax,
+  type TransferReplacementSettings,
+  type WageTaxMode,
+} from '../model';
 
 const taxLabels: Record<ReplacedTax, string> = {
   individualIncome: 'Individual income tax',
@@ -10,6 +21,21 @@ const taxLabels: Record<ReplacedTax, string> = {
   corporateIncome: 'Corporate income tax',
   customs: 'Customs duties',
 };
+
+const adultCreditBucketLabels: Record<AdultCreditAuditBucketId, string> = {
+  noEligibleAdult: 'No credit-eligible adult',
+  zeroCompensation: 'Zero compensation',
+  phaseIn: 'Phase-in only',
+  fullCredit: 'Full-credit plateau',
+  phaseInPhaseOutOverlap: 'Phase-in and phaseout overlap',
+  phaseOut: 'Partial credit in phaseout',
+  fullyPhasedOut: 'Credit fully phased out',
+  noCreditUnderSchedule: 'Zero credit for another reason',
+  universalCredit: 'Universal credit',
+};
+
+const billions = (value: number) => `$${value.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}B`;
+const countMillions = (value: number) => `${value.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}M`;
 
 export function Overview({ settings, setSettings, transferSettings }: { settings: ReformSettings; setSettings: (value: ReformSettings) => void; transferSettings: TransferReplacementSettings }) {
   const federalTransferSavings = calculateFederalProgramSavings(transferSettings);
@@ -63,11 +89,43 @@ export function Overview({ settings, setSettings, transferSettings }: { settings
           <MetricCard label={result.adjustedSurplusDeficit >= 0 ? 'Adjusted static surplus' : 'Adjusted static deficit'} value={moneyB(result.adjustedSurplusDeficit)} note={`${percent(result.adjustedSurplusDeficitPercentGdp)} of GDP${hasFiscalSavings ? ` · ${moneyB(result.totalFederalSavings)} total savings` : ''}`} tone={result.adjustedSurplusDeficit >= 0 ? 'good' : 'bad'} />
           <MetricCard label="Revenue-neutral rate" value={percent(result.adjustedRevenueNeutralRate, 2)} note={hasFiscalSavings ? `Before fiscal savings ${percent(result.revenueNeutralRate, 2)}` : 'Solved algebraically'} tone="accent"><Audit><Formula>{hasFiscalSavings && <>{moneyB(result.targetRevenue)} original target<br />− {moneyB(result.refundableTaxCreditOutlaySavings)} automatic refundable EITC/CTC outlay savings<br />− {moneyB(result.federalTransferSavings)} selected external-program savings<br />= {moneyB(result.adjustedTargetRevenue)} adjusted target.<br /><br /></>}({moneyB(result.adjustedTargetRevenue)} + {moneyB(result.adultCreditCost + result.childCreditCost)}) ÷ {moneyB(result.rateAdjustedBase)} rate-adjusted base = {percent(result.adjustedRevenueNeutralRate, 2)}</Formula></Audit></MetricCard>
         </div>
+        <AdultCreditAuditPanel result={result} settings={settings} />
         <Flow result={result} />
         <section className="concept-note"><span className="eyebrow">Canonical implementation</span><h2>{settings.wageTaxMode === 'flat' ? 'Flat-rate' : 'Progressive'} X tax / DBCFT presentation</h2><p>Businesses pay the headline rate on destination-based cash flow after wages and new investment. Households pay either that same flat rate or the selected progressive wage schedule, then receive refundable adult and child credits. This is economically related to a broad VAT, but the statutory collection and household presentation are not treated as interchangeable.</p></section>
       </main>
     </div>
   );
+}
+
+function AdultCreditAuditPanel({ result, settings }: { result: MacroResult; settings: ReformSettings }) {
+  const audit = result.adultCreditAudit;
+  const controls = microdata2025.compensationControlsBillions;
+  const rows = audit.buckets.filter((row) => row.taxUnitsMillions > 0
+    || (row.id === 'phaseInPhaseOutOverlap' && audit.phaseInPhaseOutOverlap));
+  const scheduleSummary = settings.adultCreditMode === 'universal'
+    ? `Every credit-eligible adult receives ${dollars(settings.adultCredit)} regardless of compensation.`
+    : `Maximum phase-in at ${audit.fullPhaseInCompensationPerAdult === null ? 'not reached' : `${dollars(audit.fullPhaseInCompensationPerAdult)} per adult`}; phaseout starts at ${dollars(audit.phaseOutStartCompensationPerAdult)} per adult; ${audit.zeroCreditCompensationPerAdult === null ? 'the selected schedule has no finite phaseout endpoint' : `credit reaches zero at ${dollars(audit.zeroCreditCompensationPerAdult)} per adult`}.`;
+
+  return <section className="table-card compact adult-credit-audit">
+    <div className="section-heading"><div><span className="eyebrow">Live CPS rescore</span><h2>Adult-credit cost audit</h2><p>Every slider change reruns the selected schedule over all aggregated CPS tax-unit cells.</p></div><strong>{billions(result.adultCreditCost)} budget cost</strong></div>
+    <div className="credit-audit-summary">
+      <div><span>Statutory eligibility</span><strong>{billions(result.adultCreditStatutoryCost)}</strong><small>Before take-up</small></div>
+      <div><span>Universal maximum</span><strong>{billions(audit.universalMaximumCostBillions)}</strong><small>{percent(audit.statutoryCostShareOfUniversalMaximum, 1)} realized</small></div>
+      <div><span>Average per adult</span><strong>{dollars(audit.averageStatutoryCreditPerAdult)}</strong><small>Across all Census adults</small></div>
+      <div><span>Adults in positive-credit units</span><strong>{countMillions(audit.adultsInPositiveCreditUnitsMillions)}</strong><small>Statutory · {percent(audit.adultsInPositiveCreditUnitsShare, 1)} of adults</small></div>
+    </div>
+    <p className="schedule-summary">{scheduleSummary}</p>
+    {settings.adultCreditMode === 'earned' && audit.phaseInPhaseOutOverlap && <p className="callout">The selected phaseout begins before the credit can fully phase in. Some tax units are therefore simultaneously phasing in and phasing out; the overlap appears as its own row below.</p>}
+    <div className="responsive-table"><table><thead><tr><th>Schedule position</th><th>Tax units</th><th>Adults</th><th>Share of adults</th><th>Statutory cost</th><th>After take-up</th><th>Average / adult</th><th>Share of cost</th></tr></thead><tbody>
+      {rows.map((row) => <tr key={row.id}><td>{adultCreditBucketLabels[row.id]}</td><td>{countMillions(row.taxUnitsMillions)}</td><td>{countMillions(row.adultsMillions)}</td><td>{percent(row.adultPopulationShare, 1)}</td><td>{billions(row.statutoryCostBillions)}</td><td>{billions(row.budgetCostBillions)}</td><td>{row.adultsMillions > 0 ? dollars(row.averageStatutoryCreditPerAdult) : '—'}</td><td>{percent(row.statutoryCostShare, 1)}</td></tr>)}
+      <tr className="total"><td>Total</td><td>{countMillions(audit.totalTaxUnitsMillions)}</td><td>{countMillions(audit.totalAdultsMillions)}</td><td>100.0%</td><td>{billions(result.adultCreditStatutoryCost)}</td><td>{billions(result.adultCreditCost)}</td><td>{dollars(audit.averageStatutoryCreditPerAdult)}</td><td>{result.adultCreditStatutoryCost > 0 ? '100.0%' : '0.0%'}</td></tr>
+    </tbody></table></div>
+    <div className="two-column credit-audit-notes">
+      <div className="content-card"><h3>Eligibility-income definition</h3><p><strong>{moneyB(controls.cashWagesAndSalaries)}</strong> BEA-raked cash wages + <strong>{moneyB(controls.employerGovernmentSocialInsurance)}</strong> employer government social insurance + <strong>{moneyB(controls.employerPensionAndInsurance)}</strong> employer pension and insurance supplements = <strong>{moneyB(controls.totalCompensation)}</strong> gross employee compensation.</p><p>Employer supplements are allocated to tax units in proportion to cash wages. Self-employment income is not included. Tax-base exemptions, broad exemptions, and noncompliance do not reduce credit-eligibility income.</p></div>
+      <div className="content-card"><h3>Population, weights, and uncertainty</h3><p>Credit adults are all people age 18 or older assigned to the Census <code>TAX_ID</code>. Adult counts and credit dollars are calibrated to the 2025 Census adult population; tax-unit counts retain CPS survey weights.</p><p>The published <strong>{billions(microdata2025.uncertainty.earnedAdultCreditCostStandardErrorBillions)}</strong> sampling standard error applies only to the default schedule. It does not update with the sliders and excludes policy-definition, tax-unit, top-tail, take-up, and employer-benefit-allocation uncertainty.</p></div>
+    </div>
+    <Audit title="Audit the live calculation identity"><Formula>For each CPS tax unit:<br />maximum = eligible adults × {dollars(settings.adultCredit)}<br />phase-in = min(maximum, gross employee compensation × {percent(settings.adultCreditPhaseInRate)})<br />phaseout = max(0, gross employee compensation − eligible adults × {dollars(settings.adultCreditPhaseOutStartPerAdult)}) × {percent(settings.adultCreditPhaseOutRate)}<br />statutory credit = {settings.adultCreditMode === 'universal' ? 'maximum' : 'max(0, phase-in − phaseout)'}<br /><br />Weighted statutory credits = {billions(result.adultCreditStatutoryCost)}<br />× {percent(settings.adultCreditTakeUpRate)} take-up<br />= {billions(result.adultCreditCost)} budget cost.</Formula></Audit>
+  </section>;
 }
 
 function MacroBaseAudit({ result }: { result: MacroResult }) {
