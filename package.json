@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -b",
-    "microdata:verify": "python3 scripts/build_microdata.py --verify-only"
+    "microdata:verify": "python3 scripts/build_microdata.py --verify-only && python3 scripts/build_health_microdata.py --verify-only"
   },
   "dependencies": {
     "@vitejs/plugin-react": "6.0.5",

@@ -1,6 +1,6 @@
 # Consumption Tax Reform Simulator
 
-A transparent, static simulator for a broad U.S. destination-based consumption tax. It combines an auditable national revenue model, a 2025 federal household comparator, configurable flat or progressive X-tax schedules, a transfer-replacement analyzer, and stylized business examples.
+A transparent, static simulator for a broad U.S. destination-based consumption tax. It combines an auditable national revenue model, a 2025 federal household comparator, configurable flat or progressive X-tax schedules, transfer and employer-health transition analyzers, and stylized business examples.
 
 ## Default 2025 result
 
@@ -19,11 +19,12 @@ Replacing FY2025 individual income, payroll, corporate income, and customs recei
 ```text
 src/model/                 Pure TypeScript calculation engine
 src/data/                  Versioned browser-ready assumptions
-src/views/                 Five simulator views
+src/views/                 Six simulator views
 src/components/            Audits, controls, and interactive SVG charts
 data/fred_series.json      Central FRED/BEA series catalog
 scripts/build_baseline.py  Offline data-build/reference step
 scripts/build_microdata.py CPS ASEC tax-unit ETL and replicate-weight score
+scripts/build_health_microdata.py Linked CPS/HIPM ESI transition ETL
 tests/                     Unit and end-to-end regression tests
 MODEL_SPEC.md              Authoritative economic specification
 MODEL_AUDIT.md             Historical inconsistencies and validation
@@ -69,6 +70,16 @@ npm test
 
 The generated `src/data/microdata_2025.json` contains aggregated tax-unit cells, not respondent-level records. The builder records the source URL and SHA-256 digest and uses all 160 Census replicate weights for sampling standard errors.
 
+Rebuild the linked health transition distribution from the official CPS ASEC and Census HIPM archives:
+
+```bash
+python3 scripts/build_health_microdata.py
+npm run microdata:verify
+npm test
+```
+
+The generated `src/data/health_esi_2025.json` contains 35,641 anonymous, rounded analytical cells rather than respondent identifiers. The builder pins both Census downloads by SHA-256 digest, imputes employer contribution dollars from MEPS-IC, and reconciles them to BEA group-health compensation.
+
 ## GitHub Pages
 
 Vite uses `/tax_reform/` as its production base. `.github/workflows/deploy-pages.yml` tests, builds, uploads `dist/`, and deploys pushes from `main` and the active preview branch. Repository **Pages → Source** must be **GitHub Actions**, and the `github-pages` environment must allow the preview branch. Restrict the workflow back to `main` when branch previews are no longer needed.
@@ -88,7 +99,7 @@ The current-law wage-only comparator uses enacted tax year 2025 brackets and ded
 
 ## Social-spending replacement view
 
-The fifth view separates two questions that are often conflated:
+The Social spending view separates two questions that are often conflated:
 
 1. **Household replacement:** current disposable resources plus current transfer value versus reform disposable resources with transfers retained or selected programs eliminated.
 2. **Fiscal replacement:** FY2025 federal program amounts removed from the tax-replacement revenue target, with an algebraically adjusted revenue-neutral rate.
@@ -101,10 +112,18 @@ The Social spending household table uses a cash-resource convention. Current law
 
 The default is no external-program repeal, so external selections do not change household results. The automatic refundable-credit outlay adjustment still follows the individual-income-tax replacement switch. When payroll taxes are replaced, the view defaults to passing 100% of repealed employer Social Security and Medicare contributions into reform wages and lets the user vary that incidence assumption from 0% to 100%. The selected share changes reform gross resources, the wage-tax base, and the earned adult-credit calculation; it is disabled when payroll taxes remain in place. The view also includes seven illustrative programs, 2025 contiguous-state FPL context, three-scenario decomposition, interactive earnings traces, and a centered-$1,000 effective marginal resource-withdrawal measure. See the authoritative identities and timing notes in [MODEL_SPEC.md](MODEL_SPEC.md).
 
+## Employer-health transition view
+
+The Employer health view implements a static ESI cash-out experiment for people under 65. It ends the employer-health exclusion in the household calculation, redistributes the imputed employer contribution as taxable wages, charges each covered person the local ACA second-lowest-cost Silver benchmark premium after tax, and applies a refundable fixed credit from $0 to $2,000 per covered person. The default spreads the employer pool equally across wage-positive employees enrolled in an employer plan, so wage conversion does not rise with self-only, plus-one, or family enrollment. The policyholder's cash is included in the whole tax unit's resources, including a spouse covered through that worker. The all-covered-worker sensitivity instead gives a separate allocation to each wage-earning spouse or other worker with dependent ESI. Other controls permit sector/firm-size-cell allocation, own-contribution conversion, incomplete wage pass-through, current premium tax treatment, and benchmark-premium scaling.
+
+ASEC supplies employee-paid premium variation and a categorical employer-payment indicator, but not employer contribution dollars. The builder therefore imputes the employer side from MEPS-IC by plan tier, private firm size, and sector and reconciles it to projected 2025 BEA group-health compensation. Census HIPM supplies person-level 2024 benchmark premiums linked to ASEC. In the checked-in sample, current premium resources are **$956.0B employer (67.9%)** and **$452.5B employee (32.1%)** for 165.4M nonelderly ESI lives. The default 2025 benchmark pool is **$1.070T**.
+
+Under the default overall tax reform and a $2,000 fixed credit, **64.8% of covered people** are modeled as no worse off, with a median annual tax-unit resource change of about **+$3,428**. A roughly **$2,213 per-person** credit reaches 67%; the model estimates that 80% would require about **$3,856**, outside the requested slider range. The $2,000 credit costs **$330.8B** and would require a static **1.48 percentage-point** addition to the selected reform rate if financed from the model's rate-adjusted base. These are combined-reform incidence results, not the isolated effect of the health change.
+
 ## Historical notebooks
 
 `Tax_Reform_Modeling.ipynb` and `VAT_Base_Updater.ipynb` are preserved unchanged as research provenance. Their former patch scripts are archival and are not sources of truth.
 
 ## Iteration 1 limitations
 
-The model intentionally excludes dynamic GDP and capital effects, behavioral scoring, intergenerational transition incidence, existing-asset windfalls, household consumption microsimulation, Tax-Calculator, OG-USA, state/local taxes, and healthcare reform. Transfer results do not model assets, immigration/work rules, detailed state variation, local housing availability, or health-insurance value. Medicaid, Medicare, ACA subsidies, Social Security retirement, SSDI, and SSI are outside this module. The model pairs fiscal-year targets with a calendar-year base; the CPS distribution reports prior-year income; no administrative-data top-tail match is available; employer supplements are allocated pro rata to cash wages; adult-credit take-up is a policy assumption; and the score remains static. The household comparator also excludes employer pension and insurance benefits and the 2025 special deductions for tips, overtime, car-loan interest, and seniors. Negative business liabilities are treated symmetrically.
+The model intentionally excludes dynamic GDP and capital effects, behavioral scoring, intergenerational transition incidence, existing-asset windfalls, household consumption microsimulation, Tax-Calculator, OG-USA, and state/local taxes. Transfer results do not model assets, immigration/work rules, detailed state variation, or local housing availability. The health experiment does not model plan actuarial value or cost sharing, network differences, adverse selection, employer identifiers, individual-market premium equilibrium, ACA income-based subsidies, Medicaid, or Medicare. Social Security retirement, SSDI, and SSI remain outside the working-age transfer module. The model pairs fiscal-year targets with a calendar-year base; the CPS distribution reports prior-year income; no administrative-data top-tail match is available; adult-credit take-up is a policy assumption; and the score remains static. The core household comparator still excludes employer pension and insurance benefits outside the dedicated health view and the 2025 special deductions for tips, overtime, car-loan interest, and seniors. Negative business liabilities are treated symmetrically.

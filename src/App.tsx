@@ -3,13 +3,14 @@ import './styles.css';
 import { defaultSettings, defaultTransferReplacementSettings, type ReformSettings, type TransferReplacementSettings } from './model';
 import { Business } from './views/Business';
 import { Household } from './views/Household';
+import { Health } from './views/Health';
 import { National } from './views/National';
 import { Overview } from './views/Overview';
 import { Transfers } from './views/Transfers';
 
-type View = 'designer' | 'national' | 'household' | 'transfers' | 'business';
+type View = 'designer' | 'national' | 'household' | 'transfers' | 'health' | 'business';
 const views: Array<[View, string, string]> = [
-  ['designer', 'Reform designer', '01'], ['national', 'National base', '02'], ['household', 'Households', '03'], ['transfers', 'Social spending', '04'], ['business', 'Businesses', '05'],
+  ['designer', 'Reform designer', '01'], ['national', 'National base', '02'], ['household', 'Households', '03'], ['transfers', 'Social spending', '04'], ['health', 'Employer health', '05'], ['business', 'Businesses', '06'],
 ];
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
     {view === 'national' && <National settings={settings} transferSettings={transferSettings} />}
     {view === 'household' && <Household settings={settings} />}
     {view === 'transfers' && <Transfers settings={settings} replacements={transferSettings} setReplacements={setTransferSettings} />}
+    {view === 'health' && <Health settings={settings} />}
     {view === 'business' && <Business settings={settings} />}
     <footer><p>Static accounting model · Tax year / data year 2025 · One provisional housing input · No growth, transition, or behavioral effects</p><a href="https://github.com/pcarlsgaard/tax_reform" target="_blank" rel="noreferrer">Methodology & source</a></footer>
   </div>;

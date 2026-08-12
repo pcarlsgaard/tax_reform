@@ -20,7 +20,7 @@ The original repository was a notebook research prototype. Calculations were spr
 | CTC/ACTC | Refund formula misordered; no phaseout | Nonrefundable CTC, earnings-limited ACTC, statutory phaseout |
 | Marginal rate | $10 difference and inconsistent arguments | Centered $1,000 local difference on the pure engine |
 | Compensation | Benefits and employer payroll costs mixed differently across systems | Core tax-wedge view uses employer compensation; Social spending uses current cash wages and adds employer FICA only as a visible 0%–100% reform-side pass-through |
-| Healthcare | Optional subsidy changed reform results | Excluded from Iteration 1 |
+| Healthcare | Optional subsidy changed reform results without an auditable coverage model | Dedicated linked-CPS ESI transition with explicit premium, wage-allocation, credit, and limitation identities |
 | Progressive reform | Flat tax only | Flat or progressive X tax scored over the CPS wage distribution |
 | Compensation exemptions | Compensation treated as one undifferentiated aggregate | Cash wages, employer social insurance, and pension/insurance supplements separately controlled; all taxable by default |
 | Transfer replacement | No distinction between household value and national savings | Separate resource and federal fiscal identities |
@@ -120,6 +120,26 @@ At the default flat settings, automatic refundable-credit savings reduce the rat
 
 Fiscal amounts do not derive from household benefits or recipient averages. Conversely, household values do not derive from dividing fiscal amounts by caseloads. School meals and Summer EBT are actual obligations rather than outlays; the UI labels the measure. State TANF maintenance-of-effort and other nonfederal financing are excluded from federal savings.
 
+## Employer-health microdata reconciliation
+
+The official 2025 CPS ASEC and Census HIPM files link on `H_SEQ` and `PPPOS` for all 142,125 sample people. The browser snapshot retains 35,641 rounded analytical cells representing 90.9M tax units and 165.4M nonelderly ESI-covered people. It does not retain respondent or household identifiers.
+
+ASEC reveals employee-paid premium variation and whether an employer paid all, some, or none, but no dollar employer contribution. The employer side is therefore imputed from MEPS-IC plan-tier, firm-size, and sector means and raked to projected 2025 BEA group-health compensation. The resulting transition pools reconcile as follows:
+
+```text
+$  956.0B employer ESI contributions (67.9% of combined premium resources)
++   452.5B employee ESI contributions (32.1%)
+= 1,408.5B current combined premium resources
+
+$1,038.7B linked 2024 HIPM SLCSP benchmarks
+×    1.03  default 2025 premium factor
+= 1,069.8B replacement benchmark premiums
+```
+
+The default national equal-policyholder-worker rule allocates $957.4B after browser-cell rounding versus a $956.0B employer pool, a 0.14% difference within the 0.5% ETL guardrail. It covers 81.4M wage-positive ESI policyholder workers, about $11,755 each. The policyholder's cash counts in the entire tax unit's resources. The broader all-covered-worker sensitivity covers 109.9M workers at about $8,712 each and gives a separate allocation to wage-earning spouses or other workers with dependent ESI; that additional within-unit allocation, not a failure to share the policyholder wage, explains its different result.
+
+At the default overall reform and a $2,000 fixed credit, the policyholder-worker rule gives a 64.8% covered-person no-worse-off share, a median annual tax-unit change of +$3,428, and a $330.8B credit cost. The covered-person weighted credit thresholds are about $560 for 50%, $2,213 for 67%, $3,856 for 80%, and $6,366 for 90%; the last three exceed the implemented $0–$2,000 range. Financing the $2,000 credit from the default rate-adjusted base adds 1.48 percentage points. These figures include the selected overall tax reform and must not be read as the health policy's isolated effect.
+
 ## Regression examples at default settings
 
 ### Households
@@ -160,18 +180,19 @@ The largest displayed marginal interactions occur at rule thresholds, not manual
 
 ## Automated validation
 
-The test suite preserves all prior checks and adds microdata snapshot reconciliation, independent compensation-exemption controls, statutory-versus-take-up adult-credit scoring, and household exemption consistency. It also covers no-selection macro/household regressions; explicit `gross resources − pre-credit liability + credits` identities; employer-FICA resource treatment; pass-through sensitivities; fiscal savings; program receipt gating and thresholds; FPL sizes; and rule-based versus fixed-manual marginal behavior.
+The test suite preserves all prior checks and adds microdata snapshot reconciliation, independent compensation-exemption controls, statutory-versus-take-up adult-credit scoring, household exemption consistency, employer-health pool allocation, premium-credit caps, pass-through sensitivity, credit monotonicity, premium shares, and financing-rate accounting. It also covers no-selection macro/household regressions; explicit `gross resources − pre-credit liability + credits` identities; employer-FICA resource treatment; pass-through sensitivities; fiscal savings; program receipt gating and thresholds; FPL sizes; and rule-based versus fixed-manual marginal behavior.
 
 Validation commands:
 
 ```text
 npm run typecheck  → passed
-npm test           → 56 passed
+npm test           → 62 passed
 npm run build      → passed
 python3 scripts/build_baseline.py --verify-only
                    → $30.7621T GDP; $22.3119T default base (72.5% GDP)
 npm run microdata:verify
-                   → 76,652 tax units; $542.0B adult credit; 47.87% progressive factor
+                   → 76,652 tax units; $542.0B adult credit; 47.87% progressive factor;
+                     35,641 health cells; 165.4M ESI lives; $956.0B employer pool
 ```
 
 ## Remaining audit risks
@@ -190,4 +211,8 @@ npm run microdata:verify
 12. WIC, TANF, LIHEAP, and housing household amounts are explicit user/preset assumptions; state and local variation is not simulated.
 13. School meal household values use reimbursement rates and assumed meal days, not observed meal consumption; the in-kind factor is a sensitivity, not welfare evidence.
 14. Full federal account repeal may not generate immediate cash savings equal to one year's outlays because administration, contracts, and transition timing are not modeled.
-15. Health, retirement, disability, SSI, and detailed benefit interactions remain deliberately outside the working-age resource model.
+15. The health transition does not compare actuarial value, deductibles, cost sharing, provider networks, employer versus individual risk pools, adverse selection, or individual-market capacity; equal nominal premiums are not equal welfare.
+16. ASEC has no employer identifier. Sector/firm-size allocation is only a proxy for equal redistribution within actual employers.
+17. Public-sector 2025 MEPS-IC costs are unavailable and use 2024 public means grown by the same-tier private-sector change. BEA's group-health detail also ends in 2024 and is projected with total employer pension/insurance growth.
+18. Under nondefault Designer pension/insurance exemptions, the health household engine taxes reclassified ESI wages but the National view does not add that health component back separately.
+19. Retirement, disability, SSI, and detailed benefit interactions remain deliberately outside the working-age resource model.

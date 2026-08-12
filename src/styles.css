@@ -194,6 +194,19 @@ tr.total td { background:var(--ink); color:white; font-weight:800; border-color:
 .manual-benefit input { width:100%; min-width:0; border:0; padding:8px 8px 8px 3px; text-align:right; outline:none; color:var(--ink); }
 .decomposition-table table { min-width:920px; }
 .transfer-notes { margin-top:14px; }
+.health-layout { display:grid; grid-template-columns:330px minmax(0,1fr); gap:28px; align-items:start; }
+.health-controls { position:sticky; top:128px; }
+.health-results { min-width:0; }
+.health-metrics { margin-bottom:14px; }
+.health-identity .two-column { margin-top:0; }
+.health-identity .formula { min-height:150px; }
+.health-breakdowns { align-items:start; }
+.health-breakdowns>.table-card { margin-top:0; min-width:0; }
+.health-distribution table { min-width:980px; }
+.health-breakdowns .health-distribution table { min-width:880px; }
+.health-distribution td:first-child { text-align:left; min-width:170px; }
+.health-limitations { margin-top:14px; }
+.health-limitations a { color:var(--teal-dark); font-weight:800; }
 .business-layout { display:grid; grid-template-columns:300px minmax(0,1fr); gap:18px; align-items:start; }
 .business-controls { position:sticky; top:128px; }
 .number-field { display:block; margin-bottom:15px; }
@@ -216,5 +229,5 @@ tr.total td { background:var(--ink); color:white; font-weight:800; border-color:
 footer { border-top:1px solid var(--line); padding:22px 4vw; display:flex; justify-content:space-between; color:var(--muted); font-size:10px; max-width:1500px; margin:auto; }
 footer p { margin:0; }
 
-@media (max-width:1100px) { .overview-view, .business-layout { grid-template-columns:1fr; } .control-panel, .business-controls { position:relative; top:auto; } .control-panel { display:grid; grid-template-columns:1fr 1fr; gap:0 24px; } .control-panel>h2,.control-panel>.eyebrow,.tax-checks { grid-column:1/-1; } .control-group { min-width:0; } .metric-grid { grid-template-columns:repeat(2,1fr); } .credit-audit-summary { grid-template-columns:repeat(2,1fr); } .flow-row { grid-template-columns:repeat(3,1fr); } .flow-item:nth-child(4) { border-left:0; } .business-equation { grid-template-columns:1fr auto 1fr; } .business-equation>div:last-child { grid-column:1/4; } .household-inputs.four-up { grid-template-columns:1fr 1fr; } .transfer-inputs { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:1100px) { .overview-view, .business-layout, .health-layout { grid-template-columns:1fr; } .control-panel, .business-controls, .health-controls { position:relative; top:auto; } .control-panel { display:grid; grid-template-columns:1fr 1fr; gap:0 24px; } .control-panel>h2,.control-panel>.eyebrow,.tax-checks { grid-column:1/-1; } .control-group { min-width:0; } .metric-grid { grid-template-columns:repeat(2,1fr); } .credit-audit-summary { grid-template-columns:repeat(2,1fr); } .flow-row { grid-template-columns:repeat(3,1fr); } .flow-item:nth-child(4) { border-left:0; } .business-equation { grid-template-columns:1fr auto 1fr; } .business-equation>div:last-child { grid-column:1/4; } .household-inputs.four-up { grid-template-columns:1fr 1fr; } .transfer-inputs { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media (max-width:760px) { .site-header { height:68px; } .brand small,.status-pill { display:none; } .view-nav { padding-top:12px; } .view-nav button { padding:9px 11px; font-size:12px; } .view-grid,.page-shell { padding-top:20px; } .view-intro { display:block; } .view-intro>p { margin-top:16px; } .metric-grid,.two-column,.credit-audit-summary,.chart-stack,.household-inputs,.household-inputs.four-up,.business-headlines,.transfer-inputs { grid-template-columns:1fr; } .transfer-inputs label.wide { grid-column:auto; } .metric-card { min-height:0; } .control-panel { display:block; } .flow-row { grid-template-columns:1fr 1fr; } .flow-item:nth-child(odd) { border-left:0; } .comparison-column strong { font-size:21px; } .chart-toolbar,.section-heading { display:block; } .chart-scale-controls { grid-template-columns:1fr; min-width:0; margin-top:14px; } .chart-toolbar label,.reference-wage { display:block; margin-top:14px; } .chart-legend { flex-wrap:wrap; } .chart-legend small { display:none; } .business-equation { display:flex; flex-direction:column; } .business-equation>i { transform:rotate(90deg); } footer { display:block; line-height:1.8; } }

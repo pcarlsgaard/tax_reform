@@ -4,7 +4,7 @@ This file is authoritative for the active simulator. Historical notebooks, old P
 
 ## 1. Purpose and scope
 
-Iteration 1 is a static accounting model of a broad U.S. destination-based consumption tax. It answers what is taxed, how the national base is constructed, what a rate raises, how credits affect revenue and household marginal rates, what rate balances a selected target, and how stylized households and businesses are treated.
+Iteration 1 is a static accounting model of a broad U.S. destination-based consumption tax. It answers what is taxed, how the national base is constructed, what a rate raises, how credits affect revenue and household marginal rates, what rate balances a selected target, how stylized households and businesses are treated, and how one specified employer-health transition distributes across linked CPS tax units.
 
 It does **not** estimate behavior, growth, capital accumulation, transition incidence, price-level changes, existing-asset windfalls, evasion responses, or general-equilibrium effects.
 
@@ -162,7 +162,7 @@ The refundable amounts and account identifiers are versioned in `src/data/refund
 
 ### Input and resource convention
 
-The user enters primary and, for joint filers, secondary annual cash wages. Current employer compensation equals cash wages plus actual employer Social Security and Medicare contributions calculated per worker. Employer health and pension benefits are excluded from both systems.
+The user enters primary and, for joint filers, secondary annual cash wages. Current employer compensation equals cash wages plus actual employer Social Security and Medicare contributions calculated per worker. Employer health and pension benefits are excluded from the core stylized-household comparison. Employer health is modeled separately in the linked-microdata transition described in section 8.
 
 If payroll taxes are replaced, the core household comparator defaults to assuming that repealed employer contributions convert dollar-for-dollar to reform wage compensation. The Social spending view exposes this incidence assumption as an employer-FICA pass-through rate from 0% to 100%, defaulting to 100%:
 
@@ -305,9 +305,51 @@ The marginal measure uses the same centered $1,000 window as the tax engine. Rul
 
 ### Exclusions
 
-Medicaid, Medicare, ACA premium/cost-sharing subsidies, employer-sponsored health-insurance exclusions, and other major health subsidies are excluded because their heterogeneous actuarial value cannot be represented as ordinary consumption resources. Social Security retirement and SSDI are excluded. SSI is deferred because age/disability circumstances are absent from the working-age tax model. These exclusions prevent a precise-looking but conceptually invalid comparison.
+Medicaid, Medicare, ACA premium/cost-sharing subsidies, employer-sponsored health-insurance exclusions, and other major health subsidies remain excluded from the **transfer-replacement** calculation because their heterogeneous actuarial value cannot be represented as ordinary consumption resources. The separate employer-health experiment in section 8 compares premium cash flows while holding coverage conceptually constant; it does not treat insurance as an ordinary transfer. Social Security retirement and SSDI are excluded. SSI is deferred because age/disability circumstances are absent from the working-age tax model.
 
-## 8. Business model
+## 8. Employer-health transition model
+
+### Scope and linked observations
+
+The transition sample contains CPS ASEC tax units with at least one person under 65 whose Census HIPM coverage type is own-household or outside-household ESI. `H_SEQ` and `PPPOS` link all 142,125 ASEC people to the HIPM extract. The checked-in browser asset aggregates 35,641 anonymous cells representing 90.9M affected tax units and 165.4M covered people; money fields are rounded to $50 and no CPS identifiers are retained.
+
+ASEC directly supplies cash wages, age, tax-unit/family structure, ESI policyholder status, plan tier, firm-size category, public/private sector, household-paid premium variation, and whether the employer pays all, some, or none of the premium. It does **not** report the employer contribution in dollars. Employer contributions are imputed using MEPS-IC means by self-only / plus-one / family tier, private firm size, and public/private sector. A no-contribution ASEC response is assigned zero. The total is raked to projected 2025 BEA group-health compensation; the nonelderly transition pool is $956.0B.
+
+Employee contributions preserve ASEC variation, set zero when the employer-paid-all response applies, and are raked to MEPS-IC tier/sector means. They total $452.5B. Thus the analytical premium split is 67.9% employer and 32.1% employee. These are calibrated model amounts, not two dollar fields revealed directly by the microdata.
+
+HIPM `ind_need` supplies each person's 2024 age- and location-specific second-lowest-cost Silver benchmark. A missing or zero value uses the national median at the same age. The policy factor defaults to 1.03, producing a $1.070T benchmark pool for 2025.
+
+### Wage allocation and resource identities
+
+The default allocates the entire employer pool equally among 81.4M wage-positive ESI policyholder workers under 65—the employees an employer would seek to compensate when ending its plan. It produces about $11,755 per recipient and does not vary with current plan tier or number of dependents. That cash enters the policyholder's full tax-unit resource identity, so a spouse covered through the policyholder already shares it. The all-covered-worker sensitivity changes the result because it gives a second allocation to each wage-earning spouse or other worker with dependent ESI, then reduces the per-worker amount to hold the national employer pool fixed; it is not an alternative household-sharing assumption. Other sensitivities allocate within private firm-size / public-sector cells, convert each unit's own imputed contribution, or pass through less than 100%.
+
+For tax unit `i`, let `P_i` be current employee premium, `B_i` the scaled benchmark premium, `W_i^H` the selected employer-health wage, and `C_i^H = min(B_i, c × covered people_i)` the refundable health credit. Current premium tax exclusion is a 0%–100% sensitivity and defaults to 100%.
+
+```text
+current disposable resources
+= cash wages
+− current income tax before credits on wages net of pre-tax employee premium
+− employee payroll tax
++ current EITC / CTC
+− employee ESI premium
+
+reform disposable resources
+= cash wages + employer-FICA pass-through + employer-health wage
+− reform wage tax and any retained pre-credit tax
++ reform adult / child credits and any retained current credits
++ fixed refundable health credit
+− ACA benchmark premium
+```
+
+The employer-health wage is always included in the household reform wage-tax base. Under the default zero compensation exemptions, this is a reclassification rather than an enlargement of the national base because group health is already in BEA employer pension-and-insurance compensation. The health credit is new: its static financing-rate increment is `credit cost / selected reform rate-adjusted base`. The default $2,000 credit costs $330.8B and implies a 1.48 percentage-point increment. If the Designer exempts employer pension/insurance, the ESI household view still taxes the reclassified wage, but the National view does not separately add it back; that cross-view exemption case is a disclosed limitation.
+
+### Interpretation
+
+A covered person is counted as better off when their tax unit's reform disposable resources are at least current resources. Credit-threshold results are weighted by covered people and show the fixed per-person credit needed to reach 50%, 67%, 80%, and 90% no-worse-off shares. Under the default overall reform and equal-policyholder-worker allocation, $2,000 reaches 64.8%; about $2,213 reaches 67%, while about $3,856 would be needed for 80%.
+
+This is a static cash-incidence test, not an insurance-market simulation. It holds coverage conceptually constant but does not adjust for deductibles, cost sharing, provider networks, actuarial value, employer risk pooling, adverse selection, individual-market capacity, induced benchmark-premium changes, ACA income-based subsidies, or Medicaid transitions. CPS has no employer identifier, so the sector/firm-size rule is not literal within-employer redistribution.
+
+## 9. Business model
 
 Inputs are total sales including exports, domestic purchased inputs, imported inputs, wages, new investment, and exports.
 
@@ -324,14 +366,14 @@ wage-side tax before household credits = wages × applicable household schedule
 
 New investment is fully expensed. Imports are added back because they are not deductible. Exports are removed from the destination base. A negative business liability is displayed as refundable; loss administration is deferred.
 
-## 9. Incidence assumptions
+## 10. Incidence assumptions
 
 The statutory mechanism is not an incidence estimate. The household comparison defaults to full conversion of repealed employer payroll taxes to compensation, while the Social spending view permits a 0%–100% sensitivity. It assumes no other wage, price, profit, or exchange-rate adjustment. The national model does not allocate the business tax to workers, owners, or consumers.
 
-## 10. Data versioning
+## 11. Data versioning
 
-`src/data/baseline_2025.json` is the active browser snapshot. `data/fred_series.json` centralizes series identifiers. `scripts/build_baseline.py` rebuilds the snapshot and fails on missing data unless the specific provisional housing flag is supplied. `src/data/current_law_2025.json` is the sole active source of household tax parameters. `src/data/transfers_2025.json` versions transfer rules, fiscal measures, methods, source links, and limitations. The deployed app makes no live data requests.
+`src/data/baseline_2025.json` is the active browser snapshot. `data/fred_series.json` centralizes series identifiers. `scripts/build_baseline.py` rebuilds the snapshot and fails on missing data unless the specific provisional housing flag is supplied. `src/data/current_law_2025.json` is the sole active source of household tax parameters. `src/data/transfers_2025.json` versions transfer rules, fiscal measures, methods, source links, and limitations. `src/data/health_esi_2025.json` versions the linked ASEC/HIPM health cells, source digests, MEPS/BEA calibrations, allocation fields, and reconciliation totals; `scripts/build_health_microdata.py` rebuilds it. The deployed app makes no live data requests.
 
-## 11. Deferred work
+## 12. Deferred work
 
-Dynamic scoring, capital and GDP effects, transition rules, existing-asset effects, household consumption microsimulation, income-decile distribution, Tax-Calculator, OG-USA, state/local taxes, healthcare reform, detailed transfer take-up/state rules, benefit-unit nuance, health and retirement transfers, detailed exemptions, and business-loss administration are outside Iteration 1.
+Dynamic scoring, capital and GDP effects, transition rules, existing-asset effects, household consumption microsimulation, Tax-Calculator, OG-USA, state/local taxes, detailed transfer take-up/state rules, benefit-unit nuance, Medicaid/Medicare/ACA subsidy integration, health-plan value and individual-market equilibrium, retirement transfers, detailed exemptions, and business-loss administration are outside Iteration 1.

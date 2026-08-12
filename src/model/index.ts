@@ -4,3 +4,4 @@ export * from './microdata';
 export * from './household';
 export * from './business';
 export * from './transfers';
+export * from './health';
