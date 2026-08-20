@@ -34,6 +34,7 @@ DEFAULT_OUTPUT = ROOT / "src" / "data" / "health_esi_2025.json"
 ASEC_URL = "https://www2.census.gov/programs-surveys/cps/datasets/2025/march/asecpub25csv.zip"
 ASEC_SHA256 = "318845a2b5e0034eb2973898de1738f4df0025727de38499e7669cb9c0deef0b"
 ASEC_PERSON_MEMBER = "pppub25.csv"
+ASEC_DICTIONARY_URL = "https://www2.census.gov/programs-surveys/cps/techdocs/cpsmar25.pdf"
 HIPM_URL = "https://www2.census.gov/library/working-papers/2025/demo/hipm-2024.csv"
 HIPM_SHA256 = "2aa0d58ae7c48a04e359c0f97995f6160ed63d5666ed91097ff27209061f922f"
 
@@ -76,6 +77,15 @@ def as_int(value: str) -> int:
 
 def as_float(value: str) -> float:
     return 0.0 if value == "" else float(value)
+
+
+def normalize_asec_plan_tier(asec_tier: int) -> int:
+    """Map CPS GRPFTYP2 codes to the MEPS self/plus-one/family order.
+
+    CPS uses 1=family, 2=self plus one, and 3=self-only.  The checked-in
+    MEPS tables use 1=self-only, 2=employee plus one, and 3=family.
+    """
+    return {1: 3, 2: 2, 3: 1}.get(asec_tier, 0)
 
 
 def sha256(path: Path) -> str:
@@ -196,7 +206,7 @@ def read_people(asec_path: Path, hipm: dict[tuple[int, int], dict]) -> tuple[lis
                 "weight": as_int(row[index["MARSUPWT"]]) / 100,
                 "grp": as_int(row[index["GRP"]]),
                 "ownGrp": as_int(row[index["OWNGRP"]]),
-                "tier": as_int(row[index["GRPFTYP2"]]),
+                "tier": normalize_asec_plan_tier(as_int(row[index["GRPFTYP2"]])),
                 "employerPays": as_int(row[index["HIPAID"]]),
                 "employeePremium": max(0.0, as_float(row[index["PHIP_VAL2"]])),
                 "employerSize": as_int(row[index["NOEMP"]]),
@@ -472,7 +482,17 @@ def build(asec_path: Path, hipm_path: Path, baseline: dict) -> dict:
         "schemaVersion": 1,
         "snapshot": "cps-asec-2025-hipm-2024-meps-bea-esi-transition-v1",
         "source": {
-            "asec": {"url": ASEC_URL, "sha256": ASEC_SHA256, "personFile": ASEC_PERSON_MEMBER},
+            "asec": {
+                "url": ASEC_URL,
+                "sha256": ASEC_SHA256,
+                "personFile": ASEC_PERSON_MEMBER,
+                "dictionaryUrl": ASEC_DICTIONARY_URL,
+                "planTierCrosswalk": {
+                    "asecFamily1": "mepsFamily3",
+                    "asecSelfPlusOne2": "mepsEmployeePlusOne2",
+                    "asecSelfOnly3": "mepsSelfOnly1",
+                },
+            },
             "hipm": {"url": HIPM_URL, "sha256": HIPM_SHA256, "dictionaryUrl": HIPM_DICTIONARY_URL},
             "mepsPrivate": {"year": 2025, "url": MEPS_PRIVATE_URL},
             "mepsPublic": {"year": 2024, "url": MEPS_PUBLIC_URL},

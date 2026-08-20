@@ -1,4 +1,5 @@
 import healthData from '../data/health_esi_2025.json';
+import nongroupHealthData from '../data/health_nongroup_2025.json';
 import { calculateAdultCredit, calculateCurrentLaw, calculateReformWageTax } from './household';
 import { calculateMacro } from './macro';
 import type { FilingStatus, HouseholdInput, ReformSettings, TaxBreakdown } from './types';
@@ -7,7 +8,9 @@ export type HealthRedistributionRule = 'nationalEqual' | 'employerCellEqual' | '
 export type HealthRecipientScope = 'policyholders' | 'coveredWorkers';
 
 export interface HealthPolicySettings {
-  healthCreditPerPerson: number;
+  adultHealthCredit: number;
+  childHealthCredit: number;
+  uninsuredTakeUpRate: number;
   employerHealthPassThroughRate: number;
   employerFicaPassThroughRate: number;
   employeePremiumPreTaxShare: number;
@@ -26,7 +29,15 @@ export interface HealthSnapshot {
   schemaVersion: number;
   snapshot: string;
   source: {
-    asec: HealthSourceLink & { sha256: string; personFile: string };
+    asec: HealthSourceLink & {
+      sha256: string;
+      personFile: string;
+      planTierCrosswalk: {
+        asecFamily1: string;
+        asecSelfPlusOne2: string;
+        asecSelfOnly3: string;
+      };
+    };
     hipm: HealthSourceLink & { sha256: string; dictionaryUrl: string };
     mepsPrivate: HealthSourceLink & { year: number };
     mepsPublic: HealthSourceLink & { year: number };
@@ -77,6 +88,12 @@ export interface HealthSnapshot {
   distribution: number[][];
 }
 
+interface NongroupHealthSnapshot {
+  statusCodes: Record<string, string>;
+  statusWeightScales: Record<string, number>;
+  distribution: number[][];
+}
+
 interface HealthCell {
   primaryCashWage: number;
   secondaryCashWage: number;
@@ -114,12 +131,6 @@ export interface HealthDistributionSummary {
   averageDollarChange: number;
 }
 
-export interface HealthCreditTarget {
-  targetShare: number;
-  requiredCreditPerPerson: number | null;
-  attainableWithinSlider: boolean;
-}
-
 export interface HealthAnalysis {
   affectedTaxUnitsMillions: number;
   coveredPeopleMillions: number;
@@ -133,7 +144,14 @@ export interface HealthAnalysis {
   averageHealthWagePerRecipient: number;
   employeePremiumBillions: number;
   benchmarkPremiumBillions: number;
+  /** Refundable credits for people transitioning from ESI. */
   healthCreditCostBillions: number;
+  nongroupNoAptcCostBillions: number;
+  nongroupAptcFloorTopUpCostBillions: number;
+  uninsuredFullTakeUpCostBillions: number;
+  uninsuredInducedEnrollmentCostBillions: number;
+  nongroupExtensionCostBillions: number;
+  totalHealthCreditCostBillions: number;
   healthCreditFinancingRateIncrease: number;
   healthTransferWageTaxBillions: number;
   currentDisposableResourcesBillions: number;
@@ -145,7 +163,11 @@ export interface HealthAnalysis {
   medianDollarChange: number;
   p10DollarChange: number;
   p90DollarChange: number;
-  creditTargets: HealthCreditTarget[];
+  meanCurrentMtr: number;
+  meanReformMtr: number;
+  meanMtrMovement: number;
+  meanAbsoluteMtrChange: number;
+  mtrWithinTwoPointsShare: number;
   byIncomeDecile: HealthDistributionSummary[];
   byPlanTier: HealthDistributionSummary[];
   byAgeBand: HealthDistributionSummary[];
@@ -162,12 +184,18 @@ interface CellResult {
   healthWage: number;
   healthTransferWageTax: number;
   requiredCreditPerPerson: number;
+  currentTaxWedge: number;
+  reformTaxWedge: number;
+  employerCompensation: number;
 }
 
 export const healthSnapshot = healthData as unknown as HealthSnapshot;
+export const nongroupHealthSnapshot = nongroupHealthData as unknown as NongroupHealthSnapshot;
 
 export const defaultHealthPolicySettings: HealthPolicySettings = {
-  healthCreditPerPerson: 2000,
+  adultHealthCredit: 3250,
+  childHealthCredit: 750,
+  uninsuredTakeUpRate: 0.15,
   employerHealthPassThroughRate: 1,
   employerFicaPassThroughRate: 1,
   employeePremiumPreTaxShare: 1,
@@ -248,17 +276,17 @@ function taxableReformWage(
 ): number {
   return cashWage * (1 - clampShare(settings.cashWageExemptionShare))
     + employerFicaPassThrough * (1 - clampShare(settings.employerSocialInsuranceExemptionShare))
-    // The experiment explicitly ends the employer-health exclusion.
-    + employerHealthWage;
+    + employerHealthWage * (1 - clampShare(settings.employerHealthInsuranceExemptionShare));
 }
 
 function calculateCell(
   cell: HealthCell,
   settings: ReformSettings,
   policy: HealthPolicySettings,
+  primaryWageDelta = 0,
 ): CellResult {
   const wageScale = healthSnapshot.calibration.cashWageScaleToBea2025;
-  const primaryWage = cell.primaryCashWage * wageScale;
+  const primaryWage = Math.max(0, cell.primaryCashWage * wageScale + primaryWageDelta);
   const secondaryWage = cell.secondaryCashWage * wageScale;
   const cashWage = primaryWage + secondaryWage;
   const employeePremium = cell.employeePremium;
@@ -295,7 +323,8 @@ function calculateCell(
   const benchmarkPremium = cell.benchmarkPremium2024 * Math.max(0, policy.benchmarkPremiumScale);
   const healthCredit = Math.min(
     benchmarkPremium,
-    Math.max(0, policy.healthCreditPerPerson) * cell.coveredPeople,
+    Math.max(0, policy.adultHealthCredit) * cell.coveredAdults
+      + Math.max(0, policy.childHealthCredit) * Math.max(0, cell.coveredPeople - cell.coveredAdults),
   );
   const reformDisposableBeforeHealthCredit = reformGrossResources
     - reformWageTax
@@ -310,6 +339,12 @@ function calculateCell(
   const requiredCreditPerPerson = cell.coveredPeople <= 0 || requiredHealthCredit > benchmarkPremium
     ? Number.POSITIVE_INFINITY
     : requiredHealthCredit / cell.coveredPeople;
+  const currentTaxWedge = currentTax.incomeTaxBeforeCredits
+    + currentTax.employeePayrollTax + currentTax.employerPayrollTax - currentCredits(currentTax);
+  const retainedTaxWedge = (settings.replacedTaxes.individualIncome ? 0 : reformCurrentTax.incomeTaxBeforeCredits)
+    + (payrollIsReplaced ? 0 : reformCurrentTax.employeePayrollTax + reformCurrentTax.employerPayrollTax)
+    - retainedCredits;
+  const reformTaxWedge = reformWageTax + retainedTaxWedge - adultCredit - childCredit - healthCredit;
 
   return {
     cell,
@@ -322,6 +357,47 @@ function calculateCell(
     healthWage,
     healthTransferWageTax: reformWageTax - reformWageTaxWithoutHealth,
     requiredCreditPerPerson,
+    currentTaxWedge,
+    reformTaxWedge,
+    employerCompensation: cashWage + currentTax.employerPayrollTax,
+  };
+}
+
+interface NongroupCreditCosts {
+  noAptc: number;
+  aptcFloorTopUp: number;
+  uninsuredFullTakeUp: number;
+  uninsuredInducedEnrollment: number;
+}
+
+function calculateNongroupCreditCosts(policy: HealthPolicySettings): NongroupCreditCosts {
+  let noAptc = 0;
+  let aptcFloorTopUp = 0;
+  let uninsuredFullTakeUp = 0;
+  for (const row of nongroupHealthSnapshot.distribution) {
+    const [status, adults, children, benchmark2024, currentAptc2024, weight] = row;
+    const benchmark = benchmark2024 * Math.max(0, policy.benchmarkPremiumScale);
+    const proposed = Math.min(
+      benchmark,
+      adults * Math.max(0, policy.adultHealthCredit)
+        + children * Math.max(0, policy.childHealthCredit),
+    );
+    const statusScale = nongroupHealthSnapshot.statusWeightScales[String(status)] ?? 1;
+    if (status === 1) noAptc += proposed * weight * statusScale;
+    if (status === 2) {
+      aptcFloorTopUp += Math.max(
+        0,
+        proposed - currentAptc2024 * Math.max(0, policy.benchmarkPremiumScale),
+      ) * weight * statusScale;
+    }
+    if (status === 3) uninsuredFullTakeUp += proposed * weight;
+  }
+  const uninsuredInducedEnrollment = uninsuredFullTakeUp * clampShare(policy.uninsuredTakeUpRate);
+  return {
+    noAptc: noAptc / 1e9,
+    aptcFloorTopUp: aptcFloorTopUp / 1e9,
+    uninsuredFullTakeUp: uninsuredFullTakeUp / 1e9,
+    uninsuredInducedEnrollment: uninsuredInducedEnrollment / 1e9,
   };
 }
 
@@ -413,6 +489,8 @@ export function calculateHealthAnalysis(
   policy: HealthPolicySettings,
 ): HealthAnalysis {
   const rows = cells.map((cell) => calculateCell(cell, settings, policy));
+  const downRows = cells.map((cell) => calculateCell(cell, settings, policy, -500));
+  const upRows = cells.map((cell) => calculateCell(cell, settings, policy, 500));
   const macro = calculateMacro(settings);
   let taxUnits = 0;
   let coveredPeople = 0;
@@ -425,7 +503,12 @@ export function calculateHealthAnalysis(
   let healthTransferWageTax = 0;
   let currentResources = 0;
   let reformResources = 0;
-  for (const row of rows) {
+  let currentMtrWeighted = 0;
+  let reformMtrWeighted = 0;
+  let mtrMovementWeighted = 0;
+  let absoluteMtrMovementWeighted = 0;
+  let mtrPreservedCoveredPeople = 0;
+  for (const [index, row] of rows.entries()) {
     const weight = row.cell.weight;
     const coveredWeight = weight * row.cell.coveredPeople;
     taxUnits += weight;
@@ -439,6 +522,17 @@ export function calculateHealthAnalysis(
     healthTransferWageTax += weight * row.healthTransferWageTax;
     currentResources += weight * row.currentDisposable;
     reformResources += weight * row.reformDisposable;
+    const down = downRows[index];
+    const up = upRows[index];
+    const denominator = up.employerCompensation - down.employerCompensation;
+    const currentMtr = denominator > 0 ? (up.currentTaxWedge - down.currentTaxWedge) / denominator : 0;
+    const reformMtr = denominator > 0 ? (up.reformTaxWedge - down.reformTaxWedge) / denominator : 0;
+    const movement = reformMtr - currentMtr;
+    currentMtrWeighted += currentMtr * coveredWeight;
+    reformMtrWeighted += reformMtr * coveredWeight;
+    mtrMovementWeighted += movement * coveredWeight;
+    absoluteMtrMovementWeighted += Math.abs(movement) * coveredWeight;
+    mtrPreservedCoveredPeople += Math.abs(movement) <= 0.02 ? coveredWeight : 0;
   }
   const recipientCountMillions = policy.redistributionRule === 'ownContribution'
     ? healthSnapshot.calibration.weightedPolicyholderWorkersMillions
@@ -450,19 +544,10 @@ export function calculateHealthAnalysis(
   const employeePremiumBillions = employeePremiums / 1e9;
   const totalCurrentPremiumBillions = employerContributionPoolBillions + employeePremiumBillions;
   const healthCreditCostBillions = healthCredits / 1e9;
-  const creditTargets = [0.5, 0.67, 0.8, 0.9].map((targetShare) => {
-    const required = weightedQuantile(
-      rows,
-      (row) => row.requiredCreditPerPerson,
-      (row) => row.cell.weight * row.cell.coveredPeople,
-      targetShare,
-    );
-    return {
-      targetShare,
-      requiredCreditPerPerson: Number.isFinite(required) ? required : null,
-      attainableWithinSlider: Number.isFinite(required) && required <= 2000,
-    };
-  });
+  const nongroup = calculateNongroupCreditCosts(policy);
+  const nongroupExtensionCostBillions = nongroup.noAptc
+    + nongroup.aptcFloorTopUp + nongroup.uninsuredInducedEnrollment;
+  const totalHealthCreditCostBillions = healthCreditCostBillions + nongroupExtensionCostBillions;
 
   return {
     affectedTaxUnitsMillions: taxUnits / 1e6,
@@ -483,8 +568,14 @@ export function calculateHealthAnalysis(
     employeePremiumBillions,
     benchmarkPremiumBillions: benchmarkPremiums / 1e9,
     healthCreditCostBillions,
+    nongroupNoAptcCostBillions: nongroup.noAptc,
+    nongroupAptcFloorTopUpCostBillions: nongroup.aptcFloorTopUp,
+    uninsuredFullTakeUpCostBillions: nongroup.uninsuredFullTakeUp,
+    uninsuredInducedEnrollmentCostBillions: nongroup.uninsuredInducedEnrollment,
+    nongroupExtensionCostBillions,
+    totalHealthCreditCostBillions,
     healthCreditFinancingRateIncrease: macro.rateAdjustedBase > 0
-      ? healthCreditCostBillions / macro.rateAdjustedBase : 0,
+      ? totalHealthCreditCostBillions / macro.rateAdjustedBase : 0,
     healthTransferWageTaxBillions: healthTransferWageTax / 1e9,
     currentDisposableResourcesBillions: currentResources / 1e9,
     reformDisposableResourcesBillions: reformResources / 1e9,
@@ -495,7 +586,11 @@ export function calculateHealthAnalysis(
     medianDollarChange: weightedQuantile(rows, (row) => row.dollarChange, (row) => row.cell.weight * row.cell.coveredPeople, 0.5),
     p10DollarChange: weightedQuantile(rows, (row) => row.dollarChange, (row) => row.cell.weight * row.cell.coveredPeople, 0.1),
     p90DollarChange: weightedQuantile(rows, (row) => row.dollarChange, (row) => row.cell.weight * row.cell.coveredPeople, 0.9),
-    creditTargets,
+    meanCurrentMtr: coveredPeople > 0 ? currentMtrWeighted / coveredPeople : 0,
+    meanReformMtr: coveredPeople > 0 ? reformMtrWeighted / coveredPeople : 0,
+    meanMtrMovement: coveredPeople > 0 ? mtrMovementWeighted / coveredPeople : 0,
+    meanAbsoluteMtrChange: coveredPeople > 0 ? absoluteMtrMovementWeighted / coveredPeople : 0,
+    mtrWithinTwoPointsShare: coveredPeople > 0 ? mtrPreservedCoveredPeople / coveredPeople : 0,
     byIncomeDecile: grouped(rows, (cell) => [String(cell.incomeDecile), `ESI cash-wage decile ${cell.incomeDecile}`])
       .sort((a, b) => Number(a.id) - Number(b.id)),
     byPlanTier: grouped(rows, (cell) => [String(cell.planTier), planTierLabels[cell.planTier] ?? 'Other ESI'])

@@ -49,12 +49,13 @@ taxable business base
 taxable wage base
 = [cash wages × (1 − cash-wage exemption)
    + employer social insurance × (1 − social-insurance exemption)
-   + employer pension/insurance × (1 − pension/insurance exemption)] × r
+   + employer health insurance × (1 − health-insurance exemption)
+   + employer pension/other insurance × (1 − pension/other-insurance exemption)] × r
 
 final taxable base = taxable business base + taxable wage base
 ```
 
-All three compensation exemptions are zero by default, so all compensation is taxed. The residual broad exemption remains an aggregate policy reduction, not a claim that a named sector is exempt. Named compensation exemptions are shown separately and do not reduce the non-compensation business base.
+All four compensation exemptions are zero by default, so all compensation is taxed. Employer health is projected from the BEA group-health detail and subtracted from BEA's combined pension-and-insurance supplement; this changes classification, not total compensation. The residual broad exemption remains an aggregate policy reduction, not a claim that a named sector is exempt. Named compensation exemptions are shown separately and do not reduce the non-compensation business base.
 
 ## 4. National revenue identity
 
@@ -94,17 +95,17 @@ The browser reruns this microdata score whenever the maximum credit, phase-in ra
 
 ### CPS ASEC distribution and calibration
 
-The active distribution comes from the Census Bureau's 2025 CPS Annual Social and Economic Supplement public-use CSV files, covering 2024 income. It uses Census `TAX_ID`, a reference-person `MARSUPWT`, `FILESTAT` for one- versus two-adult filing thresholds, `WSAL_VAL` for cash wages, and age for adult-credit units. Cash wages are raked to the 2025 BEA wages-and-salaries control. Census adult and child population controls reconcile people counts. Employer social-insurance and pension/insurance supplements are allocated to tax units in proportion to cash wages.
+The active distribution comes from the Census Bureau's 2025 CPS Annual Social and Economic Supplement public-use CSV files, covering 2024 income. It uses Census `TAX_ID`, a reference-person `MARSUPWT`, `FILESTAT` for one- versus two-adult filing thresholds, `WSAL_VAL` for cash wages, and age for adult-credit units. Cash wages are raked to the 2025 BEA wages-and-salaries control. Census adult and child population controls reconcile people counts. Employer social insurance, employer health, and pension/other insurance supplements are allocated to tax units in proportion to cash wages.
 
 The checked-in browser asset aggregates identical `[cash wages, schedule adults, credit adults]` cells rather than retaining respondent records. The ETL records the official archive digest and uses the 160 ASEC replicate weights with `variance = (4/160) × Σ(replicate − full sample)²`.
 
-National adult-credit eligibility currently uses gross employee compensation: BEA-raked CPS cash wages plus employer government social-insurance and employer pension/insurance supplements allocated in proportion to cash wages. Self-employment income is excluded. Named compensation exemptions, the broad exemption, and noncompliance affect the tax base but not this credit-income measure. These are explicit policy-definition choices, not data necessities. The replicate-weight standard error stored in the snapshot applies only to the default credit schedule and is not recomputed for arbitrary browser settings.
+National adult-credit eligibility currently uses gross employee compensation: BEA-raked CPS cash wages plus employer government social insurance, employer health, and pension/other insurance supplements allocated in proportion to cash wages. Self-employment income is excluded. Named compensation exemptions, the broad exemption, and noncompliance affect the tax base but not this credit-income measure. These are explicit policy-definition choices, not data necessities. The replicate-weight standard error stored in the snapshot applies only to the default credit schedule and is not recomputed for arbitrary browser settings.
 
 The algebraic revenue-neutral headline rate is:
 
 ```text
 required rate
-= (target + adult credits + child credits + other rebates)
+= (target + adult credits + child credits + insurance credits)
   / rate-adjusted base
 ```
 
@@ -125,9 +126,11 @@ adjusted required federal revenue
 − FY2025 federal fiscal amounts for selected external programs
 
 adjusted required rate
-= (adjusted target + adult credits + child credits + other rebates)
+= (adjusted target + adult credits + child credits + insurance credits)
   / rate-adjusted base
 ```
+
+For a progressive schedule with a directly specified middle wage rate, the solver is piecewise rather than treating the middle rate as a fixed share of the headline rate. Below the selected middle rate, all positive wage brackets move with the headline rate; above it, middle-bracket revenue is held fixed while the business and top-wage portions determine the required headline rate.
 
 Only federal amounts enter this subtraction. State maintenance-of-effort, local contributions, and household resource values do not. With no external program selected, the external adjustment is zero; the automatic refundable-credit adjustment still applies when individual income taxation is replaced.
 
@@ -311,19 +314,19 @@ Medicaid, Medicare, ACA premium/cost-sharing subsidies, employer-sponsored healt
 
 ### Scope and linked observations
 
-The transition sample contains CPS ASEC tax units with at least one person under 65 whose Census HIPM coverage type is own-household or outside-household ESI. `H_SEQ` and `PPPOS` link all 142,125 ASEC people to the HIPM extract. The checked-in browser asset aggregates 35,641 anonymous cells representing 90.9M affected tax units and 165.4M covered people; money fields are rounded to $50 and no CPS identifiers are retained.
+The transition sample contains CPS ASEC tax units with at least one person under 65 whose Census HIPM coverage type is own-household or outside-household ESI. `H_SEQ` and `PPPOS` link all 142,125 ASEC people to the HIPM extract. The checked-in browser asset aggregates 35,639 anonymous cells representing 90.9M affected tax units and 165.4M covered people; money fields are rounded to $50 and no CPS identifiers are retained.
 
-ASEC directly supplies cash wages, age, tax-unit/family structure, ESI policyholder status, plan tier, firm-size category, public/private sector, household-paid premium variation, and whether the employer pays all, some, or none of the premium. It does **not** report the employer contribution in dollars. Employer contributions are imputed using MEPS-IC means by self-only / plus-one / family tier, private firm size, and public/private sector. A no-contribution ASEC response is assigned zero. The total is raked to projected 2025 BEA group-health compensation; the nonelderly transition pool is $956.0B.
+ASEC directly supplies cash wages, age, tax-unit/family structure, ESI policyholder status, plan tier, firm-size category, public/private sector, household-paid premium variation, and whether the employer pays all, some, or none of the premium. It does **not** report the employer contribution in dollars. Employer contributions are imputed using MEPS-IC means by self-only / plus-one / family tier, private firm size, and public/private sector. A no-contribution ASEC response is assigned zero. The total is raked to projected 2025 BEA group-health compensation; the nonelderly transition pool is $978.0B.
 
-Employee contributions preserve ASEC variation, set zero when the employer-paid-all response applies, and are raked to MEPS-IC tier/sector means. They total $452.5B. Thus the analytical premium split is 67.9% employer and 32.1% employee. These are calibrated model amounts, not two dollar fields revealed directly by the microdata.
+Employee contributions preserve ASEC variation, set zero when the employer-paid-all response applies, and are raked to MEPS-IC tier/sector means. They total $298.8B against a $978.0B nonelderly employer transition pool. Thus the analytical premium split is 76.6% employer and 23.4% employee. These are calibrated model amounts, not two dollar fields revealed directly by the microdata.
 
 HIPM `ind_need` supplies each person's 2024 age- and location-specific second-lowest-cost Silver benchmark. A missing or zero value uses the national median at the same age. The policy factor defaults to 1.03, producing a $1.070T benchmark pool for 2025.
 
 ### Wage allocation and resource identities
 
-The default allocates the entire employer pool equally among 81.4M wage-positive ESI policyholder workers under 65—the employees an employer would seek to compensate when ending its plan. It produces about $11,755 per recipient and does not vary with current plan tier or number of dependents. That cash enters the policyholder's full tax-unit resource identity, so a spouse covered through the policyholder already shares it. The all-covered-worker sensitivity changes the result because it gives a second allocation to each wage-earning spouse or other worker with dependent ESI, then reduces the per-worker amount to hold the national employer pool fixed; it is not an alternative household-sharing assumption. Other sensitivities allocate within private firm-size / public-sector cells, convert each unit's own imputed contribution, or pass through less than 100%.
+The default allocates the entire employer pool equally among 81.4M wage-positive ESI policyholder workers under 65—the employees an employer would seek to compensate when ending its plan. It produces about $12,022 per recipient and does not vary with current plan tier or number of dependents. That cash enters the policyholder's full tax-unit resource identity, so a spouse covered through the policyholder already shares it. The all-covered-worker sensitivity changes the result because it gives a second allocation to each wage-earning spouse or other worker with dependent ESI, then reduces the per-worker amount to hold the national employer pool fixed; it is not an alternative household-sharing assumption. Other sensitivities allocate within private firm-size / public-sector cells, convert each unit's own imputed contribution, or pass through less than 100%.
 
-For tax unit `i`, let `P_i` be current employee premium, `B_i` the scaled benchmark premium, `W_i^H` the selected employer-health wage, and `C_i^H = min(B_i, c × covered people_i)` the refundable health credit. Current premium tax exclusion is a 0%–100% sensitivity and defaults to 100%.
+For tax unit `i`, let `P_i` be current employee premium, `B_i` the scaled benchmark premium, `W_i^H` the selected employer-health wage, `A_i` covered adults, and `K_i` covered children. The refundable health credit is `C_i^H = min(B_i, adult credit × A_i + child credit × K_i)`. Current premium tax exclusion is a 0%–100% sensitivity and defaults to 100%.
 
 ```text
 current disposable resources
@@ -337,15 +340,15 @@ reform disposable resources
 = cash wages + employer-FICA pass-through + employer-health wage
 − reform wage tax and any retained pre-credit tax
 + reform adult / child credits and any retained current credits
-+ fixed refundable health credit
++ refundable adult / child health credit
 − ACA benchmark premium
 ```
 
-The employer-health wage is always included in the household reform wage-tax base. Under the default zero compensation exemptions, this is a reclassification rather than an enlargement of the national base because group health is already in BEA employer pension-and-insurance compensation. The health credit is new: its static financing-rate increment is `credit cost / selected reform rate-adjusted base`. The default $2,000 credit costs $330.8B and implies a 1.48 percentage-point increment. If the Designer exempts employer pension/insurance, the ESI household view still taxes the reclassified wage, but the National view does not separately add it back; that cross-view exemption case is a disclosed limitation.
+The selected employer-health exemption share applies to reclassified health compensation in the household wage-tax calculation and to the separately identified employer-health component in the national base. Under the default zero exemption, cash-out is a reclassification rather than an enlargement of the base. The national fiscal score adds the ESI credit, credits for nongroup enrollees without positive APTC, top-ups where current APTC is below the proposed floor, and the selected take-up share of credits for currently uninsured people.
 
 ### Interpretation
 
-A covered person is counted as better off when their tax unit's reform disposable resources are at least current resources. Credit-threshold results are weighted by covered people and show the fixed per-person credit needed to reach 50%, 67%, 80%, and 90% no-worse-off shares. Under the default overall reform and equal-policyholder-worker allocation, $2,000 reaches 64.8%; about $2,213 reaches 67%, while about $3,856 would be needed for 80%.
+A covered person is counted as better off when their tax unit's reform disposable resources are at least current resources. The view also computes current and reform marginal tax/subsidy rates over a centered $1,000 primary-wage window, weighted by ESI-covered people. The live marker can be compared with the checked-in near-term Pareto frontier along selectable winner, MTR, rate, cost, fiscal-gap, and median-change axes.
 
 This is a static cash-incidence test, not an insurance-market simulation. It holds coverage conceptually constant but does not adjust for deductibles, cost sharing, provider networks, actuarial value, employer risk pooling, adverse selection, individual-market capacity, induced benchmark-premium changes, ACA income-based subsidies, or Medicaid transitions. CPS has no employer identifier, so the sector/firm-size rule is not literal within-employer redistribution.
 

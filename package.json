@@ -10,6 +10,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -b",
+    "pareto:search": "python3 scripts/run_pareto_search.py",
+    "pareto:browser": "python3 scripts/build_pareto_browser_data.py",
+    "wedge:plan2146": "python3 scripts/build_plan_2146_oecd_wedge.py",
     "microdata:verify": "python3 scripts/build_microdata.py --verify-only && python3 scripts/build_health_microdata.py --verify-only"
   },
   "dependencies": {

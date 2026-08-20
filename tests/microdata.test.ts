@@ -25,12 +25,14 @@ describe('CPS ASEC microdata score', () => {
       ...defaultSettings,
       cashWageExemptionShare: 0.10,
       employerSocialInsuranceExemptionShare: 0.25,
-      employerPensionInsuranceExemptionShare: 0.50,
+      employerHealthInsuranceExemptionShare: 0.50,
+      employerPensionOtherInsuranceExemptionShare: 0.25,
     });
     const controls = microdata2025.compensationControlsBillions;
     const expected = controls.cashWagesAndSalaries * 0.90
       + controls.employerGovernmentSocialInsurance * 0.75
-      + controls.employerPensionAndInsurance * 0.50;
+      + 1068.118 * 0.50
+      + 791.157 * 0.75;
     expect(score.taxableCompensationBase).toBeCloseTo(expected, 8);
     expect(score.exemptCompensationBase).toBeCloseTo(score.grossCompensationBase - expected, 8);
     expect(score.adultCreditStatutoryCost).toBeCloseTo(

@@ -5,7 +5,6 @@ import { MetricCard } from '../components/MetricCard';
 import { dollars, moneyB, percent } from '../components/format';
 import {
   calculateFederalProgramSavings,
-  calculateMacro,
   calculateMarginalResourceWithdrawalRate,
   calculateTransferAnalysis,
   cloneTransferPreset,
@@ -13,6 +12,7 @@ import {
   transferData,
   transferPresets,
   type FilingStatus,
+  type MacroResult,
   type ReformSettings,
   type TransferHouseholdInput,
   type TransferProgramId,
@@ -27,17 +27,18 @@ export function Transfers({
   settings,
   replacements,
   setReplacements,
+  macro,
 }: {
   settings: ReformSettings;
   replacements: TransferReplacementSettings;
   setReplacements: (value: TransferReplacementSettings) => void;
+  macro: MacroResult;
 }) {
   const [presetId, setPresetId] = useState('parent-two');
   const [input, setInput] = useState<TransferHouseholdInput>(() => cloneTransferPreset(transferPresets.find((row) => row.id === 'parent-two')!));
   const [chartMax, setChartMax] = useState(100000);
   const analysis = calculateTransferAnalysis(input, settings, replacements);
   const federalSavings = calculateFederalProgramSavings(replacements);
-  const macro = calculateMacro(settings, { federalTransferSavings: federalSavings });
 
   const choosePreset = (id: string) => {
     const selected = transferPresets.find((row) => row.id === id)!;

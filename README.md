@@ -8,7 +8,7 @@ The provisional 2025 snapshot has GDP of **$30.762T** and a theoretical broad ca
 
 Eleven of the twelve national inputs are observed for 2025. BEA/FRED housing-sector value added still ends in 2024, so the builder carries its 2024 share of GDP into 2025. The app labels the baseline provisional and exposes the estimate and formula in its audit panel.
 
-The default flat reform uses a 30% tax-exclusive rate, a maximum $4,800 EITC-like adult credit, and a flat fully refundable $4,800 child credit. A tax-unit score built from the 2025 CPS ASEC estimates **$542.013B** of statutory adult-credit eligibility at 100% take-up; it also replaces the former hand-set progressive wage-rate factor. All $15.727T of BEA employee compensation is taxable by default, with separate controls for exemptions of cash wages, employer social-insurance contributions, and employer pension/insurance supplements.
+The default flat reform uses a 30% tax-exclusive rate, a maximum $4,800 EITC-like adult credit, and a flat fully refundable $4,800 child credit. A tax-unit score built from the 2025 CPS ASEC estimates **$542.013B** of statutory adult-credit eligibility at 100% take-up. All $15.727T of BEA employee compensation is taxable by default. The former combined pension/insurance control is now split into **$1.068T of employer health insurance** and **$791.157B of pension and other insurance**, with independent exemption controls.
 
 The Reform Designer includes a live adult-credit audit. Every credit-slider change rescans the aggregated CPS distribution and displays the weighted tax units, calibrated adults, statutory cost, take-up-adjusted cost, average benefit, and cost share in each phase of the schedule. It also exposes the universal-credit maximum benchmark, schedule landmarks, overlap warnings, compensation-income definition, population calibration, and the limits of the default-only sampling error.
 
@@ -25,6 +25,10 @@ data/fred_series.json      Central FRED/BEA series catalog
 scripts/build_baseline.py  Offline data-build/reference step
 scripts/build_microdata.py CPS ASEC tax-unit ETL and replicate-weight score
 scripts/build_health_microdata.py Linked CPS/HIPM ESI transition ETL
+scripts/build_nongroup_health_microdata.py Nongroup/APTC/uninsured scoring ETL
+scripts/run_pareto_search.py Offline X-tax/credit policy search (NumPy)
+scripts/build_pareto_browser_data.py Trim the checked-in frontier for the interactive app chart
+scripts/build_plan_2146_oecd_wedge.py Plan 2146 OECD-style wedge report
 tests/                     Unit and end-to-end regression tests
 MODEL_SPEC.md              Authoritative economic specification
 MODEL_AUDIT.md             Historical inconsistencies and validation
@@ -78,7 +82,34 @@ npm run microdata:verify
 npm test
 ```
 
-The generated `src/data/health_esi_2025.json` contains 35,641 anonymous, rounded analytical cells rather than respondent identifiers. The builder pins both Census downloads by SHA-256 digest, imputes employer contribution dollars from MEPS-IC, and reconciles them to BEA group-health compensation.
+The generated `src/data/health_esi_2025.json` contains 35,639 anonymous, rounded analytical cells rather than respondent identifiers. The builder pins both Census downloads by SHA-256 digest, crosswalks ASEC's family/plus-one/self-only codes to MEPS's self-only/plus-one/family order, imputes employer contribution dollars from MEPS-IC, and reconciles them to BEA group-health compensation.
+
+Build the separate nongroup and uninsured scoring cells from the same pinned Census files:
+
+```bash
+python3 scripts/build_nongroup_health_microdata.py
+```
+
+The generated `src/data/health_nongroup_2025.json` deduplicates HIPM APTC amounts at the health-insurance-unit level, aggregates them to CPS tax units, and reconciles subsidized and unsubsidized nongroup enrollment to CBO's February 2026 average-month estimates for 2025.
+
+Run the seeded expanded policy search with NumPy installed:
+
+```bash
+npm run pareto:search
+npm run pareto:browser
+```
+
+For each flat or progressive X-tax/credit design, the search chooses the lowest headline/business/top rate in 0.5-percentage-point increments that meets the selected fiscal target; progressive statutory middle wage rates use the same 0.5-point grid. The default near-term mode adds 1.6% of GDP to the adjusted FY2025 tax-replacement target, matching the rounded one-year increase in CBO's February 2026 debt-to-GDP projection; `--target-mode replacement` and `--target-mode long_run_debt` remain available as sensitivities. Adult and child health credits are optimized separately within ranges calibrated around the modeled federal tax value of current ESI exclusions; they are true refundable credits rather than income exclusions. The fiscal score extends the credit as a floor to nongroup enrollees and includes a configurable uninsured take-up assumption (`--uninsured-takeup`, 15% by default). Progressive designs use either a statutory zero bracket or a nonrefundable adult credit so economically redundant parameterizations do not enter the search as distinct policies. The output reports the discrete-rate fiscal surplus, any refundable wage-credit phase-in rate, full-credit earnings point, effective zero-tax threshold, and implied net MTR during phase-in.
+
+The national CPS cells determine revenue, linked ESI cells determine employer-health incidence and marginal-rate comparisons, and separately calibrated nongroup cells determine the extension's fiscal cost. Generated summaries, complete feasible-candidate CSVs, and detailed JSON frontiers are written to `analysis/pareto_search_<target-mode>_2025.*`.
+
+Build the component-level current-law versus Plan 2146 OECD-style wedge report:
+
+```bash
+npm run wedge:plan2146
+```
+
+The report writes a human-readable Markdown table and long-form CSV to `analysis/plan_2146_oecd_tax_wedge_2025.*`. It reports both the standard OECD labour-cost denominator and a comprehensive denominator that includes current employer ESI.
 
 ## GitHub Pages
 
@@ -91,7 +122,7 @@ The user can select either:
 - a flat X tax / DBCFT plus wage-side tax at the same rate; or
 - a progressive X tax with a flat business rate and a zero/middle/top household wage schedule.
 
-Business wages and new investment are deductible, imports are not deductible, and exports are excluded. The progressive national score applies the selected wage schedule to CPS ASEC tax units after raking their cash wages to the 2025 BEA control. Employer social-insurance and pension/insurance supplements are allocated in proportion to cash wages, and each compensation component has a separate exemption control. Adult credits can be EITC-like or universal; the default earned-credit schedule has editable phase-in, maximum, phaseout threshold, phaseout rate, and aggregate take-up. Child credits remain flat and fully refundable.
+Business wages and new investment are deductible, imports are not deductible, and exports are excluded. The progressive national score applies the selected wage schedule to CPS ASEC tax units after raking their cash wages to the 2025 BEA control. Employer social insurance, health insurance, and pension/other insurance are allocated in proportion to cash wages, and each compensation component has a separate exemption control. Headline and statutory middle wage rates move in 0.5-percentage-point increments. Adult credits can be EITC-like or universal; the default earned-credit schedule has editable phase-in, maximum, phaseout threshold, phaseout rate, and aggregate take-up. Child credits remain flat and fully refundable.
 
 An invoice-credit VAT can reach a closely related economic consumption base, but it is a legally different collection mechanism. The simulator distinguishes economic base, statutory mechanism, incidence assumptions, and household disposable resources. See [MODEL_SPEC.md](MODEL_SPEC.md) and [MODEL_AUDIT.md](MODEL_AUDIT.md).
 
@@ -114,11 +145,13 @@ The default is no external-program repeal, so external selections do not change 
 
 ## Employer-health transition view
 
-The Employer health view implements a static ESI cash-out experiment for people under 65. It ends the employer-health exclusion in the household calculation, redistributes the imputed employer contribution as taxable wages, charges each covered person the local ACA second-lowest-cost Silver benchmark premium after tax, and applies a refundable fixed credit from $0 to $2,000 per covered person. The default spreads the employer pool equally across wage-positive employees enrolled in an employer plan, so wage conversion does not rise with self-only, plus-one, or family enrollment. The policyholder's cash is included in the whole tax unit's resources, including a spouse covered through that worker. The all-covered-worker sensitivity instead gives a separate allocation to each wage-earning spouse or other worker with dependent ESI. Other controls permit sector/firm-size-cell allocation, own-contribution conversion, incomplete wage pass-through, current premium tax treatment, and benchmark-premium scaling.
+The Employer health view implements a static ESI cash-out experiment for people under 65. It redistributes the imputed employer contribution as wages, charges the tax unit its local ACA second-lowest-cost Silver benchmark premium after tax, and applies separate refundable credits from $0–$3,500 per covered adult and $0–$1,500 per covered child, capped at the aggregate benchmark. The default **$3,250 adult / $750 child** schedule is the balanced split-credit result from the near-term search. The national revenue identity also extends the same credit as a floor to unsubsidized nongroup enrollees, tops up current APTC below that floor, and scores induced uninsured enrollment with one take-up slider (15% by default).
 
-ASEC supplies employee-paid premium variation and a categorical employer-payment indicator, but not employer contribution dollars. The builder therefore imputes the employer side from MEPS-IC by plan tier, private firm size, and sector and reconciles it to projected 2025 BEA group-health compensation. Census HIPM supplies person-level 2024 benchmark premiums linked to ASEC. In the checked-in sample, current premium resources are **$956.0B employer (67.9%)** and **$452.5B employee (32.1%)** for 165.4M nonelderly ESI lives. The default 2025 benchmark pool is **$1.070T**.
+The default spreads the employer pool equally across wage-positive employees enrolled in an employer plan, so wage conversion does not rise with self-only, plus-one, or family enrollment. The policyholder's cash is included in the whole tax unit's resources, including a spouse covered through that worker. The all-covered-worker sensitivity instead gives a separate allocation to each wage-earning spouse or other worker with dependent ESI. Those allocation, pass-through, current-premium-tax, and benchmark-growth sensitivities remain available under an advanced disclosure rather than competing with the three primary credit controls.
 
-Under the default overall tax reform and a $2,000 fixed credit, **64.8% of covered people** are modeled as no worse off, with a median annual tax-unit resource change of about **+$3,428**. A roughly **$2,213 per-person** credit reaches 67%; the model estimates that 80% would require about **$3,856**, outside the requested slider range. The $2,000 credit costs **$330.8B** and would require a static **1.48 percentage-point** addition to the selected reform rate if financed from the model's rate-adjusted base. These are combined-reform incidence results, not the isolated effect of the health change.
+ASEC supplies employee-paid premium variation and a categorical employer-payment indicator, but not employer contribution dollars. The builder therefore crosswalks ASEC plan codes (1 family, 2 plus-one, 3 self-only) to the MEPS tier order, imputes the employer side by plan tier, private firm size, and sector, and reconciles it to projected 2025 BEA group-health compensation. Census HIPM supplies person-level 2024 benchmark premiums linked to ASEC. In the checked-in sample, current premium resources are **$978.0B employer (76.6%)** and **$298.8B employee (23.4%)** for 165.4M nonelderly ESI lives. The default 2025 benchmark pool is **$1.070T**.
+
+The view reports ESI winner shares, signed and absolute marginal-rate movement, the credit-cost decomposition, and a live policy marker against the 119-point near-term Pareto frontier. Axis selectors expose winners, MTR preservation, headline rate, credit cost, fiscal surplus, and median ESI resource change; point color represents the headline rate and point size represents total health-credit cost. The checked-in frontier used a broader policy architecture than the current app controls, so the live marker is explicitly a comparison rather than a claim of nondominance.
 
 ## Historical notebooks
 
@@ -126,4 +159,4 @@ Under the default overall tax reform and a $2,000 fixed credit, **64.8% of cover
 
 ## Iteration 1 limitations
 
-The model intentionally excludes dynamic GDP and capital effects, behavioral scoring, intergenerational transition incidence, existing-asset windfalls, household consumption microsimulation, Tax-Calculator, OG-USA, and state/local taxes. Transfer results do not model assets, immigration/work rules, detailed state variation, or local housing availability. The health experiment does not model plan actuarial value or cost sharing, network differences, adverse selection, employer identifiers, individual-market premium equilibrium, ACA income-based subsidies, Medicaid, or Medicare. Social Security retirement, SSDI, and SSI remain outside the working-age transfer module. The model pairs fiscal-year targets with a calendar-year base; the CPS distribution reports prior-year income; no administrative-data top-tail match is available; adult-credit take-up is a policy assumption; and the score remains static. The core household comparator still excludes employer pension and insurance benefits outside the dedicated health view and the 2025 special deductions for tips, overtime, car-loan interest, and seniors. Negative business liabilities are treated symmetrically.
+The model intentionally excludes dynamic GDP and capital effects, behavioral scoring, intergenerational transition incidence, existing-asset windfalls, household consumption microsimulation, Tax-Calculator, OG-USA, and state/local taxes. Transfer results do not model assets, immigration/work rules, detailed state variation, or local housing availability. The health experiment does not model plan actuarial value or cost sharing, network differences, adverse selection, employer identifiers, individual-market premium equilibrium, Medicaid, or Medicare; existing APTC enters only as an observed baseline amount for the proposed credit floor, not as a re-estimated ACA subsidy schedule. Social Security retirement, SSDI, and SSI remain outside the working-age transfer module. The model pairs fiscal-year targets with a calendar-year base; the CPS distribution reports prior-year income; no administrative-data top-tail match is available; adult-credit take-up is a policy assumption; and the score remains static. The core household comparator still excludes employer pension and insurance benefits outside the dedicated health view and the 2025 special deductions for tips, overtime, car-loan interest, and seniors. Negative business liabilities are treated symmetrically.

@@ -6,3 +6,9 @@ __pycache__/
 *.py[cod]
 *.tsbuildinfo
 .DS_Store
+
+# Large reproducible search dumps; curated summaries and browser assets are versioned.
+analysis/pareto_search_*.csv
+analysis/pareto_search_2025.json
+analysis/pareto_search_long_run_debt_2025.json
+analysis/pareto_search_replacement_2025.json

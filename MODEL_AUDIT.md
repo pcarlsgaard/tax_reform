@@ -22,7 +22,7 @@ The original repository was a notebook research prototype. Calculations were spr
 | Compensation | Benefits and employer payroll costs mixed differently across systems | Core tax-wedge view uses employer compensation; Social spending uses current cash wages and adds employer FICA only as a visible 0%–100% reform-side pass-through |
 | Healthcare | Optional subsidy changed reform results without an auditable coverage model | Dedicated linked-CPS ESI transition with explicit premium, wage-allocation, credit, and limitation identities |
 | Progressive reform | Flat tax only | Flat or progressive X tax scored over the CPS wage distribution |
-| Compensation exemptions | Compensation treated as one undifferentiated aggregate | Cash wages, employer social insurance, and pension/insurance supplements separately controlled; all taxable by default |
+| Compensation exemptions | Compensation treated as one undifferentiated aggregate | Cash wages, employer social insurance, employer health, and pension/other insurance separately controlled; all taxable by default |
 | Transfer replacement | No distinction between household value and national savings | Separate resource and federal fiscal identities |
 | EITC/CTC replacement | Liability-offset amounts reduce receipts, while refundable excess payments are mandatory outlays | No external toggles; FY2025 refundable outlays are an automatic saving when individual income taxation is replaced, while receipt offsets are not counted twice |
 | Program eligibility | No transfer engine | Explicit receipt; formulas only where credible; rationed programs stay manual |
@@ -56,7 +56,8 @@ BEA compensation reconciles exactly:
 ```text
 $12,958.656B cash wages and salaries
 +   908.979B employer government social insurance
-+ 1,859.275B employer pension and insurance supplements
++ 1,068.118B employer health insurance
++   791.157B employer pension and other insurance
 =15,726.910B employee compensation
 ```
 
@@ -76,7 +77,7 @@ The default live adult-credit decomposition is:
 
 Thus 154.281M adults, 57.2% of the adult control, are in tax units receiving a positive credit; only 57.646M are on the full-credit plateau. The live browser table recomputes these rows rather than scaling the default estimate. It creates a separate overlap row when the selected phaseout starts before phase-in can reach the maximum, and it separates statutory eligibility from the take-up-adjusted budget amount.
 
-The credit-income definition remains a material structural sensitivity. The active score uses $12,958.656B of cash wages plus $908.979B of employer government social insurance and $1,859.275B of employer pension/insurance supplements. It excludes self-employment earnings. The interface now discloses that definition and makes clear that tax-base exemptions do not alter credit eligibility.
+The credit-income definition remains a material structural sensitivity. The active score uses $12,958.656B of cash wages plus $908.979B of employer government social insurance, $1,068.118B of employer health, and $791.157B of pension/other insurance. It excludes self-employment earnings. The interface discloses that definition and makes clear that tax-base exemptions do not alter credit eligibility.
 
 The 160 ASEC replicate weights give sampling standard errors of **$3.095B** for the adult-credit cost and **$22.594B** for the rate-equivalent compensation base. These are under 1% of their point estimates. They do not capture model error from tax-unit construction, benefit allocation, take-up, behavioral response, or public-use top coding.
 
@@ -95,7 +96,7 @@ $22,311.8686B × 30.0% = $6,693.5606B gross collections (21.76% GDP)
 
 The unadjusted flat revenue-neutral rate is **26.6181573%**. The [FY2025 Treasury Combined Statement](https://fiscal.treasury.gov/system/files/files/reports-statements/combined-statement/cs2025/c40.pdf) records $66.0074466B of refundable EITC outlays (account 020-0906) and $26.5667613B of refundable child-credit outlays (account 020-0922). Replacing individual income taxation therefore removes $92.5742079B of mandatory outlays in addition to replacing receipts, producing an adjusted requirement of $4,958.7187921B and an adjusted flat rate of **26.2032471%**. The credit portion that offsets positive liability already reduces receipts and is not counted again. At the default progressive schedule, the pre-savings rate-adjusted base is $14,727.7840B; the unadjusted and adjusted revenue-neutral business/top wage rates are **40.3251994%** and **39.6966309%**.
 
-Two exemption sensitivities expose the importance of the compensation definition. Fully exempting employer pension/insurance supplements removes $1,719.829B after default compliance and raises the adjusted flat neutral rate from 26.20% to **28.39%**. Exempting both employer supplement categories removes $2,560.635B and raises it to **29.60%**. Cash wages remain fully taxed in both cases.
+The compensation sensitivity is now decomposed. Employer health is a $1,068.118B gross control and pension/other insurance is the $791.157B residual of BEA's combined supplement; each exclusion can be changed without moving the other. The two rows sum to the unchanged $1,859.275B BEA control, and the default keeps both fully taxable.
 
 ## Transfer-replacement fiscal reconciliation
 
@@ -122,23 +123,23 @@ Fiscal amounts do not derive from household benefits or recipient averages. Conv
 
 ## Employer-health microdata reconciliation
 
-The official 2025 CPS ASEC and Census HIPM files link on `H_SEQ` and `PPPOS` for all 142,125 sample people. The browser snapshot retains 35,641 rounded analytical cells representing 90.9M tax units and 165.4M nonelderly ESI-covered people. It does not retain respondent or household identifiers.
+The official 2025 CPS ASEC and Census HIPM files link on `H_SEQ` and `PPPOS` for all 142,125 sample people. The browser snapshot retains 35,639 rounded analytical cells representing 90.9M tax units and 165.4M nonelderly ESI-covered people. It does not retain respondent or household identifiers.
 
 ASEC reveals employee-paid premium variation and whether an employer paid all, some, or none, but no dollar employer contribution. The employer side is therefore imputed from MEPS-IC plan-tier, firm-size, and sector means and raked to projected 2025 BEA group-health compensation. The resulting transition pools reconcile as follows:
 
 ```text
-$  956.0B employer ESI contributions (67.9% of combined premium resources)
-+   452.5B employee ESI contributions (32.1%)
-= 1,408.5B current combined premium resources
+$  978.0B employer ESI contributions (76.6% of combined premium resources)
++   298.8B employee ESI contributions (23.4%)
+= 1,276.8B current combined premium resources
 
 $1,038.7B linked 2024 HIPM SLCSP benchmarks
 ×    1.03  default 2025 premium factor
 = 1,069.8B replacement benchmark premiums
 ```
 
-The default national equal-policyholder-worker rule allocates $957.4B after browser-cell rounding versus a $956.0B employer pool, a 0.14% difference within the 0.5% ETL guardrail. It covers 81.4M wage-positive ESI policyholder workers, about $11,755 each. The policyholder's cash counts in the entire tax unit's resources. The broader all-covered-worker sensitivity covers 109.9M workers at about $8,712 each and gives a separate allocation to wage-earning spouses or other workers with dependent ESI; that additional within-unit allocation, not a failure to share the policyholder wage, explains its different result.
+The default national equal-policyholder-worker rule allocates $977.8B after browser-cell rounding versus a $978.0B employer pool. It covers 81.4M wage-positive ESI policyholder workers, about $12,022 each. The policyholder's cash counts in the entire tax unit's resources. The broader all-covered-worker sensitivity covers 109.9M workers at about $8,909 each and gives a separate allocation to wage-earning spouses or other workers with dependent ESI; that additional within-unit allocation, not a failure to share the policyholder wage, explains its different result.
 
-At the default overall reform and a $2,000 fixed credit, the policyholder-worker rule gives a 64.8% covered-person no-worse-off share, a median annual tax-unit change of +$3,428, and a $330.8B credit cost. The covered-person weighted credit thresholds are about $560 for 50%, $2,213 for 67%, $3,856 for 80%, and $6,366 for 90%; the last three exceed the implemented $0–$2,000 range. Financing the $2,000 credit from the default rate-adjusted base adds 1.48 percentage points. These figures include the selected overall tax reform and must not be read as the health policy's isolated effect.
+The active browser defaults to the balanced search mix of $3,250 per adult and $750 per child. It reports the ESI cost separately from the nongroup no-APTC floor, APTC top-ups, and the take-up-adjusted uninsured cost, then sends their sum into the National and Designer revenue identities. A live centered-$1,000 MTR score and policy marker can be compared with the 119-point checked-in Pareto frontier; the chart warns that the reference search includes policy architectures not exposed by the current sliders.
 
 ## Regression examples at default settings
 
@@ -192,7 +193,7 @@ python3 scripts/build_baseline.py --verify-only
                    → $30.7621T GDP; $22.3119T default base (72.5% GDP)
 npm run microdata:verify
                    → 76,652 tax units; $542.0B adult credit; 47.87% progressive factor;
-                     35,641 health cells; 165.4M ESI lives; $956.0B employer pool
+                     35,639 health cells; 165.4M ESI lives; $978.0B employer pool
 ```
 
 ## Remaining audit risks
@@ -201,7 +202,7 @@ npm run microdata:verify
 2. A fiscal-year receipts target is paired with a calendar-year base.
 3. The NIPA construction is a cash-flow approximation, not a legislative score.
 4. The CPS public-use wage distribution has top coding and no administrative-data top-tail match; BEA controls correct the aggregate, not the shape.
-5. Employer social-insurance and pension/insurance supplements are allocated in proportion to cash wages because CPS does not identify them completely at the tax-unit level. This likely overstates supplements for some workers and understates them for others.
+5. Employer social-insurance, health, and pension/other-insurance supplements are allocated in proportion to cash wages in the national CPS score because CPS does not identify them completely at the tax-unit level. This likely overstates supplements for some workers and understates them for others.
 6. The 2025 CPS ASEC reports 2024 income. Raking to 2025 BEA totals does not capture every distributional change between years.
 7. Adult-credit take-up defaults to 100%; the control is a sensitivity rather than an estimated participation model.
 8. The federal-only Taxing Wages table is not the official OECD wedge and excludes state/local tax.
@@ -214,5 +215,5 @@ npm run microdata:verify
 15. The health transition does not compare actuarial value, deductibles, cost sharing, provider networks, employer versus individual risk pools, adverse selection, or individual-market capacity; equal nominal premiums are not equal welfare.
 16. ASEC has no employer identifier. Sector/firm-size allocation is only a proxy for equal redistribution within actual employers.
 17. Public-sector 2025 MEPS-IC costs are unavailable and use 2024 public means grown by the same-tier private-sector change. BEA's group-health detail also ends in 2024 and is projected with total employer pension/insurance growth.
-18. Under nondefault Designer pension/insurance exemptions, the health household engine taxes reclassified ESI wages but the National view does not add that health component back separately.
+18. Nongroup APTC enters as an observed baseline floor comparison, not a re-estimated ACA subsidy schedule under the reform.
 19. Retirement, disability, SSI, and detailed benefit interactions remain deliberately outside the working-age resource model.

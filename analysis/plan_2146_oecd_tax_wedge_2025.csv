@@ -1,0 +1,241 @@
+scenario,component,current_law,plan_2146,change
+"Single, no children · 67% AW",Original gross cash wage,49258.4,49258.4,0.0
+"Single, no children · 67% AW",Employer Social Security contribution,2941.3668000000002,0.0,-2941.3668000000002
+"Single, no children · 67% AW",Employer Medicare contribution,687.9003,0.0,-687.9003
+"Single, no children · 67% AW","Employer social-insurance contribution, total",3629.2671,0.0,-3629.2671
+"Single, no children · 67% AW",Employer health-insurance contribution,7594.781431536067,0.0,-7594.781431536067
+"Single, no children · 67% AW",Employer social-insurance cashout into wages,0.0,3629.2671,3629.2671
+"Single, no children · 67% AW",Employer health-pool cashout into wages,0.0,12021.8735532251,12021.8735532251
+"Single, no children · 67% AW",Gross cash wage after cashouts,49258.4,64909.5406532251,15651.140653225099
+"Single, no children · 67% AW",Taxable cash wage,47441.4,64909.5406532251,17468.1406532251
+"Single, no children · 67% AW",Individual/wage tax before credits,3564.4680000000003,15902.837460040148,12338.369460040147
+"Single, no children · 67% AW",Employee Social Security contribution,2941.3668000000002,0.0,-2941.3668000000002
+"Single, no children · 67% AW",Employee Medicare contribution,687.9003,0.0,-687.9003
+"Single, no children · 67% AW",Additional employee Medicare tax,0.0,0.0,0.0
+"Single, no children · 67% AW",Pre-credit federal tax and social contributions,10823.002199999999,15902.837460040148,5079.835260040149
+"Single, no children · 67% AW",Nonrefundable child tax credit,0.0,0.0,0.0
+"Single, no children · 67% AW",Nonrefundable adult credit,0.0,3000.0,3000.0
+"Single, no children · 67% AW",Refundable child credit,0.0,0.0,0.0
+"Single, no children · 67% AW",Refundable adult wage credit,0.0,500.0,500.0
+"Single, no children · 67% AW",Earned income tax credit,0.0,0.0,0.0
+"Single, no children · 67% AW",Health-insurance credit,0.0,3250.0,3250.0
+"Single, no children · 67% AW",Net federal tax before health credit,10823.002199999999,12402.837460040148,1579.8352600401486
+"Single, no children · 67% AW",Net federal tax after health credit,10823.002199999999,9152.837460040148,-1670.1647399598514
+"Single, no children · 67% AW",Gross annual health premium,9411.781431536067,7667.499391149566,-1744.2820403865007
+"Single, no children · 67% AW",Household-paid premium net of health credit,1817,4417.499391149566,2600.499391149566
+"Single, no children · 67% AW",OECD labour-cost denominator,52887.6671,64909.5406532251,12021.873553225101
+"Single, no children · 67% AW",Comprehensive employer labour cost,60482.448531536065,64909.5406532251,4427.092121689035
+"Single, no children · 67% AW",OECD-style federal tax wedge,0.204641323648023,0.14100912389657128,-0.06363219975145173
+"Single, no children · 67% AW",Full-compensation federal tax wedge,0.17894451138757705,0.14100912389657128,-0.03793538749100578
+"Single, no children · 67% AW",Spendable cash after federal tax and insurance,40247.6649,48089.20380203538,7841.538902035376
+"Single, no children · 67% AW",Spendable-cash wedge on comprehensive cost,0.334556290673078,0.2591350467422232,-0.07542124393085481
+"Single, no children · 100% AW",Original gross cash wage,73520.0,73520.0,0.0
+"Single, no children · 100% AW",Employer Social Security contribution,4445.586,0.0,-4445.586
+"Single, no children · 100% AW",Employer Medicare contribution,1039.6935,0.0,-1039.6935
+"Single, no children · 100% AW","Employer social-insurance contribution, total",5485.279500000001,0.0,-5485.279500000001
+"Single, no children · 100% AW",Employer health-insurance contribution,7594.781431536067,0.0,-7594.781431536067
+"Single, no children · 100% AW",Employer social-insurance cashout into wages,0.0,5485.279500000001,5485.279500000001
+"Single, no children · 100% AW",Employer health-pool cashout into wages,0.0,12021.8735532251,12021.8735532251
+"Single, no children · 100% AW",Gross cash wage after cashouts,73520.0,91027.1530532251,17507.153053225105
+"Single, no children · 100% AW",Taxable cash wage,71703.0,91027.1530532251,19324.153053225105
+"Single, no children · 100% AW",Individual/wage tax before credits,7223.66,23459.50356862878,16235.843568628781
+"Single, no children · 100% AW",Employee Social Security contribution,4445.586,0.0,-4445.586
+"Single, no children · 100% AW",Employee Medicare contribution,1039.6935,0.0,-1039.6935
+"Single, no children · 100% AW",Additional employee Medicare tax,0.0,0.0,0.0
+"Single, no children · 100% AW",Pre-credit federal tax and social contributions,18194.219,23459.50356862878,5265.28456862878
+"Single, no children · 100% AW",Nonrefundable child tax credit,0.0,0.0,0.0
+"Single, no children · 100% AW",Nonrefundable adult credit,0.0,3000.0,3000.0
+"Single, no children · 100% AW",Refundable child credit,0.0,0.0,0.0
+"Single, no children · 100% AW",Refundable adult wage credit,0.0,500.0,500.0
+"Single, no children · 100% AW",Earned income tax credit,0.0,0.0,0.0
+"Single, no children · 100% AW",Health-insurance credit,0.0,3250.0,3250.0
+"Single, no children · 100% AW",Net federal tax before health credit,18194.219,19959.50356862878,1765.28456862878
+"Single, no children · 100% AW",Net federal tax after health credit,18194.219,16709.50356862878,-1484.71543137122
+"Single, no children · 100% AW",Gross annual health premium,9411.781431536067,7667.499391149566,-1744.2820403865007
+"Single, no children · 100% AW",Household-paid premium net of health credit,1817,4417.499391149566,2600.499391149566
+"Single, no children · 100% AW",OECD labour-cost denominator,79005.2795,91027.1530532251,12021.873553225101
+"Single, no children · 100% AW",Comprehensive employer labour cost,86600.06093153608,91027.1530532251,4427.092121689027
+"Single, no children · 100% AW",OECD-style federal tax wedge,0.230291179464785,0.18356614491566547,-0.046725034549119526
+"Single, no children · 100% AW",Full-compensation federal tax wedge,0.21009475979911738,0.18356614491566547,-0.0265286148834519
+"Single, no children · 100% AW",Spendable cash after federal tax and insurance,58994.06049999999,66650.15009344676,7656.08959344677
+"Single, no children · 100% AW",Spendable-cash wedge on comprehensive cost,0.3187757622175431,0.2677992460724845,-0.050976516145058604
+"Single, no children · 167% AW",Original gross cash wage,122778.4,122778.4,0.0
+"Single, no children · 167% AW",Employer Social Security contribution,7499.6068,0.0,-7499.6068
+"Single, no children · 167% AW",Employer Medicare contribution,1753.9403,0.0,-1753.9403
+"Single, no children · 167% AW","Employer social-insurance contribution, total",9253.5471,0.0,-9253.5471
+"Single, no children · 167% AW",Employer health-insurance contribution,7594.781431536067,0.0,-7594.781431536067
+"Single, no children · 167% AW",Employer social-insurance cashout into wages,0.0,9253.5471,9253.5471
+"Single, no children · 167% AW",Employer health-pool cashout into wages,0.0,12021.8735532251,12021.8735532251
+"Single, no children · 167% AW",Gross cash wage after cashouts,122778.4,144053.8206532251,21275.420653225097
+"Single, no children · 167% AW",Taxable cash wage,120961.4,144053.8206532251,23092.420653225097
+"Single, no children · 167% AW",Individual/wage tax before credits,18097.735999999997,42018.83722862878,23921.10122862878
+"Single, no children · 167% AW",Employee Social Security contribution,7499.6068,0.0,-7499.6068
+"Single, no children · 167% AW",Employee Medicare contribution,1753.9403,0.0,-1753.9403
+"Single, no children · 167% AW",Additional employee Medicare tax,0.0,0.0,0.0
+"Single, no children · 167% AW",Pre-credit federal tax and social contributions,36604.8302,42018.83722862878,5414.007028628781
+"Single, no children · 167% AW",Nonrefundable child tax credit,0.0,0.0,0.0
+"Single, no children · 167% AW",Nonrefundable adult credit,0.0,3000.0,3000.0
+"Single, no children · 167% AW",Refundable child credit,0.0,0.0,0.0
+"Single, no children · 167% AW",Refundable adult wage credit,0.0,500.0,500.0
+"Single, no children · 167% AW",Earned income tax credit,0.0,0.0,0.0
+"Single, no children · 167% AW",Health-insurance credit,0.0,3250.0,3250.0
+"Single, no children · 167% AW",Net federal tax before health credit,36604.8302,38518.83722862878,1914.007028628781
+"Single, no children · 167% AW",Net federal tax after health credit,36604.8302,35268.83722862878,-1335.992971371219
+"Single, no children · 167% AW",Gross annual health premium,9411.781431536067,7667.499391149566,-1744.2820403865007
+"Single, no children · 167% AW",Household-paid premium net of health credit,1817,4417.499391149566,2600.499391149566
+"Single, no children · 167% AW",OECD labour-cost denominator,132031.9471,144053.8206532251,12021.873553225101
+"Single, no children · 167% AW",Comprehensive employer labour cost,139626.72853153606,144053.8206532251,4427.092121689027
+"Single, no children · 167% AW",OECD-style federal tax wedge,0.27724222056860054,0.24483097406718574,-0.0324112465014148
+"Single, no children · 167% AW",Full-compensation federal tax wedge,0.2621620558253819,0.24483097406718574,-0.017331081758196143
+"Single, no children · 167% AW",Spendable cash after federal tax and insurance,93610.1169,101117.48403344674,7507.367133446751
+"Single, no children · 167% AW",Spendable-cash wedge on comprehensive cost,0.32956878754874475,0.29805760392247593,-0.03151118362626881
+"Single, 2 children · 67% AW",Original gross cash wage,49258.4,49258.4,0.0
+"Single, 2 children · 67% AW",Employer Social Security contribution,2600.5528,0.0,-2600.5528
+"Single, 2 children · 67% AW",Employer Medicare contribution,608.1938,0.0,-608.1938
+"Single, 2 children · 67% AW","Employer social-insurance contribution, total",3208.7466,0.0,-3208.7466
+"Single, 2 children · 67% AW",Employer health-insurance contribution,19981.997421548702,0.0,-19981.997421548702
+"Single, 2 children · 67% AW",Employer social-insurance cashout into wages,0.0,3208.7466,3208.7466
+"Single, 2 children · 67% AW",Employer health-pool cashout into wages,0.0,12021.8735532251,12021.8735532251
+"Single, 2 children · 67% AW",Gross cash wage after cashouts,49258.4,64489.0201532251,15230.6201532251
+"Single, 2 children · 67% AW",Taxable cash wage,41944.4,64489.0201532251,22544.6201532251
+"Single, 2 children · 67% AW",Individual/wage tax before credits,2904.8280000000004,15799.809937540147,12894.981937540146
+"Single, 2 children · 67% AW",Employee Social Security contribution,2600.5528,0.0,-2600.5528
+"Single, 2 children · 67% AW",Employee Medicare contribution,608.1938,0.0,-608.1938
+"Single, 2 children · 67% AW",Additional employee Medicare tax,0.0,0.0,0.0
+"Single, 2 children · 67% AW",Pre-credit federal tax and social contributions,9322.3212,15799.809937540147,6477.488737540147
+"Single, 2 children · 67% AW",Nonrefundable child tax credit,2904.8280000000004,0.0,-2904.8280000000004
+"Single, 2 children · 67% AW",Nonrefundable adult credit,0.0,3000.0,3000.0
+"Single, 2 children · 67% AW",Refundable child credit,1495.1719999999996,4000.0,2504.8280000000004
+"Single, 2 children · 67% AW",Refundable adult wage credit,0.0,500.0,500.0
+"Single, 2 children · 67% AW",Earned income tax credit,3236.0193599999993,0.0,-3236.0193599999993
+"Single, 2 children · 67% AW",Health-insurance credit,0.0,5750.0,5750.0
+"Single, 2 children · 67% AW",Net federal tax before health credit,1686.301840000001,8299.809937540147,6613.508097540146
+"Single, 2 children · 67% AW",Net federal tax after health credit,1686.301840000001,2549.809937540147,863.5080975401461
+"Single, 2 children · 67% AW",Gross annual health premium,27295.997421548702,13149.201477269831,-14146.79594427887
+"Single, 2 children · 67% AW",Household-paid premium net of health credit,7314,7399.201477269831,85.20147726983123
+"Single, 2 children · 67% AW",OECD labour-cost denominator,52467.1466,64489.0201532251,12021.873553225101
+"Single, 2 children · 67% AW",Comprehensive employer labour cost,72449.14402154871,64489.0201532251,-7960.123868323608
+"Single, 2 children · 67% AW",OECD-style federal tax wedge,0.032140147678623734,0.03953866769074535,0.007398520012121615
+"Single, 2 children · 67% AW",Full-compensation federal tax wedge,0.023275662711742192,0.03953866769074535,0.016263004979003157
+"Single, 2 children · 67% AW",Spendable cash after federal tax and insurance,43466.84476,48790.00873841513,5323.163978415127
+"Single, 2 children · 67% AW",Spendable-cash wedge on comprehensive cost,0.40003646216894484,0.24343696613019272,-0.15659949603875212
+"Married, 2 children · 100% + 0% AW",Original gross cash wage,73520.0,73520.0,0.0
+"Married, 2 children · 100% + 0% AW",Employer Social Security contribution,4104.772,0.0,-4104.772
+"Married, 2 children · 100% + 0% AW",Employer Medicare contribution,959.9870000000001,0.0,-959.9870000000001
+"Married, 2 children · 100% + 0% AW","Employer social-insurance contribution, total",5064.759,0.0,-5064.759
+"Married, 2 children · 100% + 0% AW",Employer health-insurance contribution,19981.997421548702,0.0,-19981.997421548702
+"Married, 2 children · 100% + 0% AW",Employer social-insurance cashout into wages,0.0,5064.759,5064.759
+"Married, 2 children · 100% + 0% AW",Employer health-pool cashout into wages,0.0,12021.8735532251,12021.8735532251
+"Married, 2 children · 100% + 0% AW",Gross cash wage after cashouts,73520.0,90606.6325532251,17086.632553225107
+"Married, 2 children · 100% + 0% AW",Taxable cash wage,66206.0,90606.6325532251,24400.632553225107
+"Married, 2 children · 100% + 0% AW",Individual/wage tax before credits,3687.7200000000003,22198.624975540148,18510.904975540147
+"Married, 2 children · 100% + 0% AW",Employee Social Security contribution,4104.772,0.0,-4104.772
+"Married, 2 children · 100% + 0% AW",Employee Medicare contribution,959.9870000000001,0.0,-959.9870000000001
+"Married, 2 children · 100% + 0% AW",Additional employee Medicare tax,0.0,0.0,0.0
+"Married, 2 children · 100% + 0% AW",Pre-credit federal tax and social contributions,13817.238,22198.624975540148,8381.386975540148
+"Married, 2 children · 100% + 0% AW",Nonrefundable child tax credit,3687.7200000000003,0.0,-3687.7200000000003
+"Married, 2 children · 100% + 0% AW",Nonrefundable adult credit,0.0,6000.0,6000.0
+"Married, 2 children · 100% + 0% AW",Refundable child credit,712.2799999999997,4000.0,3287.7200000000003
+"Married, 2 children · 100% + 0% AW",Refundable adult wage credit,0.0,1000.0,1000.0
+"Married, 2 children · 100% + 0% AW",Earned income tax credit,0.0,0.0,0.0
+"Married, 2 children · 100% + 0% AW",Health-insurance credit,0.0,9000.0,9000.0
+"Married, 2 children · 100% + 0% AW",Net federal tax before health credit,9417.238000000001,11198.624975540148,1781.3869755401465
+"Married, 2 children · 100% + 0% AW",Net federal tax after health credit,9417.238000000001,2198.6249755401477,-7218.6130244598535
+"Married, 2 children · 100% + 0% AW",Gross annual health premium,27295.997421548702,20816.700868419397,-6479.296553129305
+"Married, 2 children · 100% + 0% AW",Household-paid premium net of health credit,7314,11816.700868419397,4502.700868419397
+"Married, 2 children · 100% + 0% AW",OECD labour-cost denominator,78584.759,90606.6325532251,12021.873553225101
+"Married, 2 children · 100% + 0% AW",Comprehensive employer labour cost,98566.75642154871,90606.6325532251,-7960.123868323601
+"Married, 2 children · 100% + 0% AW",OECD-style federal tax wedge,0.11983542508541638,0.024265607423922395,-0.09556981766149399
+"Married, 2 children · 100% + 0% AW",Full-compensation federal tax wedge,0.09554172564758559,0.024265607423922395,-0.0712761182236632
+"Married, 2 children · 100% + 0% AW",Spendable cash after federal tax and insurance,61853.521,67591.30670926555,5737.785709265554
+"Married, 2 children · 100% + 0% AW",Spendable-cash wedge on comprehensive cost,0.3724707675733402,0.2540136985053456,-0.11845706906799458
+"Married, 2 children · 100% + 33% AW",Original gross cash wage,97781.6,97781.6,0.0
+"Married, 2 children · 100% + 33% AW",Employer Social Security contribution,5608.9912,0.0,-5608.9912
+"Married, 2 children · 100% + 33% AW",Employer Medicare contribution,1311.7802000000001,0.0,-1311.7802000000001
+"Married, 2 children · 100% + 33% AW","Employer social-insurance contribution, total",6920.7714000000005,0.0,-6920.7714000000005
+"Married, 2 children · 100% + 33% AW",Employer health-insurance contribution,19981.997421548702,0.0,-19981.997421548702
+"Married, 2 children · 100% + 33% AW",Employer social-insurance cashout into wages,0.0,6920.7714000000005,6920.7714000000005
+"Married, 2 children · 100% + 33% AW",Employer health-pool cashout into wages,0.0,12021.8735532251,12021.8735532251
+"Married, 2 children · 100% + 33% AW",Gross cash wage after cashouts,97781.6,116724.2449532251,18942.6449532251
+"Married, 2 children · 100% + 33% AW",Taxable cash wage,90467.6,116724.2449532251,26256.6449532251
+"Married, 2 children · 100% + 33% AW",Individual/wage tax before credits,6599.112000000001,28597.44001354015,21998.328013540147
+"Married, 2 children · 100% + 33% AW",Employee Social Security contribution,5608.9912,0.0,-5608.9912
+"Married, 2 children · 100% + 33% AW",Employee Medicare contribution,1311.7802000000001,0.0,-1311.7802000000001
+"Married, 2 children · 100% + 33% AW",Additional employee Medicare tax,0.0,0.0,0.0
+"Married, 2 children · 100% + 33% AW",Pre-credit federal tax and social contributions,20440.654800000004,28597.44001354015,8156.7852135401445
+"Married, 2 children · 100% + 33% AW",Nonrefundable child tax credit,4400.0,0.0,-4400.0
+"Married, 2 children · 100% + 33% AW",Nonrefundable adult credit,0.0,6000.0,6000.0
+"Married, 2 children · 100% + 33% AW",Refundable child credit,0.0,4000.0,4000.0
+"Married, 2 children · 100% + 33% AW",Refundable adult wage credit,0.0,1000.0,1000.0
+"Married, 2 children · 100% + 33% AW",Earned income tax credit,0.0,0.0,0.0
+"Married, 2 children · 100% + 33% AW",Health-insurance credit,0.0,9000.0,9000.0
+"Married, 2 children · 100% + 33% AW",Net federal tax before health credit,16040.654800000004,17597.44001354015,1556.7852135401445
+"Married, 2 children · 100% + 33% AW",Net federal tax after health credit,16040.654800000004,8597.440013540148,-7443.2147864598555
+"Married, 2 children · 100% + 33% AW",Gross annual health premium,27295.997421548702,20816.700868419397,-6479.296553129305
+"Married, 2 children · 100% + 33% AW",Household-paid premium net of health credit,7314,11816.700868419397,4502.700868419397
+"Married, 2 children · 100% + 33% AW",OECD labour-cost denominator,104702.3714,116724.2449532251,12021.873553225101
+"Married, 2 children · 100% + 33% AW",Comprehensive employer labour cost,124684.3688215487,116724.2449532251,-7960.123868323601
+"Married, 2 children · 100% + 33% AW",OECD-style federal tax wedge,0.1532024020613539,0.07365599166638773,-0.07954641039496618
+"Married, 2 children · 100% + 33% AW",Full-compensation federal tax wedge,0.1286500862265885,0.07365599166638773,-0.05499409456020077
+"Married, 2 children · 100% + 33% AW",Spendable cash after federal tax and insurance,81347.71660000001,87310.10407126555,5962.387471265538
+"Married, 2 children · 100% + 33% AW",Spendable-cash wedge on comprehensive cost,0.347570851351649,0.25199684002022615,-0.09557401133142285
+"Married, no children · 100% + 33% AW",Original gross cash wage,97781.6,97781.6,0.0
+"Married, no children · 100% + 33% AW",Employer Social Security contribution,5766.3472,0.0,-5766.3472
+"Married, no children · 100% + 33% AW",Employer Medicare contribution,1348.5812,0.0,-1348.5812
+"Married, no children · 100% + 33% AW","Employer social-insurance contribution, total",7114.928400000001,0.0,-7114.928400000001
+"Married, no children · 100% + 33% AW",Employer health-insurance contribution,13827.369439438326,0.0,-13827.369439438326
+"Married, no children · 100% + 33% AW",Employer social-insurance cashout into wages,0.0,7114.928400000001,7114.928400000001
+"Married, no children · 100% + 33% AW",Employer health-pool cashout into wages,0.0,12021.8735532251,12021.8735532251
+"Married, no children · 100% + 33% AW",Gross cash wage after cashouts,97781.6,116918.40195322511,19136.801953225106
+"Married, no children · 100% + 33% AW",Taxable cash wage,93005.6,116918.40195322511,23912.801953225106
+"Married, no children · 100% + 33% AW",Individual/wage tax before credits,6903.6720000000005,28645.00847854015,21741.33647854015
+"Married, no children · 100% + 33% AW",Employee Social Security contribution,5766.3472,0.0,-5766.3472
+"Married, no children · 100% + 33% AW",Employee Medicare contribution,1348.5812,0.0,-1348.5812
+"Married, no children · 100% + 33% AW",Additional employee Medicare tax,0.0,0.0,0.0
+"Married, no children · 100% + 33% AW",Pre-credit federal tax and social contributions,21133.5288,28645.00847854015,7511.479678540149
+"Married, no children · 100% + 33% AW",Nonrefundable child tax credit,0.0,0.0,0.0
+"Married, no children · 100% + 33% AW",Nonrefundable adult credit,0.0,6000.0,6000.0
+"Married, no children · 100% + 33% AW",Refundable child credit,0.0,0.0,0.0
+"Married, no children · 100% + 33% AW",Refundable adult wage credit,0.0,1000.0,1000.0
+"Married, no children · 100% + 33% AW",Earned income tax credit,0.0,0.0,0.0
+"Married, no children · 100% + 33% AW",Health-insurance credit,0.0,6500.0,6500.0
+"Married, no children · 100% + 33% AW",Net federal tax before health credit,21133.5288,21645.00847854015,511.4796785401486
+"Married, no children · 100% + 33% AW",Net federal tax after health credit,21133.5288,15145.008478540149,-5988.520321459851
+"Married, no children · 100% + 33% AW",Gross annual health premium,18603.369439438327,15334.998782299132,-3268.370657139196
+"Married, no children · 100% + 33% AW",Household-paid premium net of health credit,4776,8834.998782299132,4058.9987822991316
+"Married, no children · 100% + 33% AW",OECD labour-cost denominator,104896.52840000001,116918.40195322511,12021.873553225101
+"Married, no children · 100% + 33% AW",Comprehensive employer labour cost,118723.89783943833,116918.40195322511,-1805.495886213219
+"Married, no children · 100% + 33% AW",OECD-style federal tax wedge,0.20147024045840584,0.1295348570073608,-0.07193538345104503
+"Married, no children · 100% + 33% AW",Full-compensation federal tax wedge,0.1780056853303527,0.1295348570073608,-0.04847082832299188
+"Married, no children · 100% + 33% AW",Spendable cash after federal tax and insurance,78986.9996,86438.39469238583,7451.395092385836
+"Married, no children · 100% + 33% AW",Spendable-cash wedge on comprehensive cost,0.33470008113428296,0.2606946960584806,-0.07400538507580234
+"Married, 2 children · 100% + 67% AW",Original gross cash wage,122778.4,122778.4,0.0
+"Married, 2 children · 100% + 67% AW",Employer Social Security contribution,7158.792799999999,0.0,-7158.792799999999
+"Married, 2 children · 100% + 67% AW",Employer Medicare contribution,1674.2338,0.0,-1674.2338
+"Married, 2 children · 100% + 67% AW","Employer social-insurance contribution, total",8833.0266,0.0,-8833.0266
+"Married, 2 children · 100% + 67% AW",Employer health-insurance contribution,19981.997421548702,0.0,-19981.997421548702
+"Married, 2 children · 100% + 67% AW",Employer social-insurance cashout into wages,0.0,8833.0266,8833.0266
+"Married, 2 children · 100% + 67% AW",Employer health-pool cashout into wages,0.0,12021.8735532251,12021.8735532251
+"Married, 2 children · 100% + 67% AW",Gross cash wage after cashouts,122778.4,143633.3001532251,20854.900153225113
+"Married, 2 children · 100% + 67% AW",Taxable cash wage,115464.4,143633.3001532251,28168.900153225113
+"Married, 2 children · 100% + 67% AW",Individual/wage tax before credits,9598.728,35190.15853754015,25591.43053754015
+"Married, 2 children · 100% + 67% AW",Employee Social Security contribution,7158.792799999999,0.0,-7158.792799999999
+"Married, 2 children · 100% + 67% AW",Employee Medicare contribution,1674.2338,0.0,-1674.2338
+"Married, 2 children · 100% + 67% AW",Additional employee Medicare tax,0.0,0.0,0.0
+"Married, 2 children · 100% + 67% AW",Pre-credit federal tax and social contributions,27264.781199999998,35190.15853754015,7925.377337540151
+"Married, 2 children · 100% + 67% AW",Nonrefundable child tax credit,4400.0,0.0,-4400.0
+"Married, 2 children · 100% + 67% AW",Nonrefundable adult credit,0.0,6000.0,6000.0
+"Married, 2 children · 100% + 67% AW",Refundable child credit,0.0,4000.0,4000.0
+"Married, 2 children · 100% + 67% AW",Refundable adult wage credit,0.0,1000.0,1000.0
+"Married, 2 children · 100% + 67% AW",Earned income tax credit,0.0,0.0,0.0
+"Married, 2 children · 100% + 67% AW",Health-insurance credit,0.0,9000.0,9000.0
+"Married, 2 children · 100% + 67% AW",Net federal tax before health credit,22864.781199999998,24190.15853754015,1325.3773375401506
+"Married, 2 children · 100% + 67% AW",Net federal tax after health credit,22864.781199999998,15190.158537540148,-7674.622662459849
+"Married, 2 children · 100% + 67% AW",Gross annual health premium,27295.997421548702,20816.700868419397,-6479.296553129305
+"Married, 2 children · 100% + 67% AW",Household-paid premium net of health credit,7314,11816.700868419397,4502.700868419397
+"Married, 2 children · 100% + 67% AW",OECD labour-cost denominator,131611.4266,143633.3001532251,12021.873553225101
+"Married, 2 children · 100% + 67% AW",Comprehensive employer labour cost,151593.4240215487,143633.3001532251,-7960.123868323601
+"Married, 2 children · 100% + 67% AW",OECD-style federal tax wedge,0.17372945336647538,0.10575652387945966,-0.06797292948701572
+"Married, 2 children · 100% + 67% AW",Full-compensation federal tax wedge,0.15082963754911832,0.10575652387945966,-0.04507311366965866
+"Married, 2 children · 100% + 67% AW",Spendable cash after federal tax and insurance,101432.6454,107626.44074726556,6193.7953472655645
+"Married, 2 children · 100% + 67% AW",Spendable-cash wedge on comprehensive cost,0.33089020150648785,0.2506860133934691,-0.08020418811301877

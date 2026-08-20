@@ -70,10 +70,21 @@ describe('2025 national accounting', () => {
   it('starts with all compensation taxable and scores named exemptions separately', () => {
     const base = calculateMacro(defaultSettings);
     expect(base.compensationExemptionLoss).toBe(0);
-    const pensionExempt = calculateMacro({ ...defaultSettings, employerPensionInsuranceExemptionShare: 1 });
-    expect(pensionExempt.compensationExemptionLoss).toBeCloseTo(1859.275 * 0.925, 8);
+    const healthExempt = calculateMacro({ ...defaultSettings, employerHealthInsuranceExemptionShare: 1 });
+    const pensionExempt = calculateMacro({ ...defaultSettings, employerPensionOtherInsuranceExemptionShare: 1 });
+    expect(healthExempt.compensationExemptionLoss).toBeCloseTo(1068.118 * 0.925, 8);
+    expect(pensionExempt.compensationExemptionLoss).toBeCloseTo(791.157 * 0.925, 8);
+    expect(base.taxableBase - healthExempt.taxableBase).toBeCloseTo(healthExempt.compensationExemptionLoss, 8);
     expect(base.taxableBase - pensionExempt.taxableBase).toBeCloseTo(pensionExempt.compensationExemptionLoss, 8);
-    expect(pensionExempt.businessTaxableBase).toBeCloseTo(base.businessTaxableBase, 8);
+    expect(healthExempt.businessTaxableBase).toBeCloseTo(base.businessTaxableBase, 8);
+  });
+
+  it('subtracts the explicitly supplied insurance-credit cost', () => {
+    const before = calculateMacro(defaultSettings);
+    const after = calculateMacro(defaultSettings, { insuranceCreditCost: 475 });
+    expect(after.insuranceCreditCost).toBe(475);
+    expect(after.netRevenue).toBeCloseTo(before.netRevenue - 475, 10);
+    expect(after.adjustedRevenueNeutralRate).toBeGreaterThan(before.adjustedRevenueNeutralRate);
   });
 
   it('applies adult-credit take-up after statutory eligibility without changing the tax base', () => {

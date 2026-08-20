@@ -18,6 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SERIES_PATH = ROOT / "data" / "fred_series.json"
 DEFAULT_OUTPUT = ROOT / "src" / "data" / "baseline_2025.json"
+HEALTH_OUTPUT = ROOT / "src" / "data" / "health_esi_2025.json"
 
 
 def annual_average(series_id: str, year: int) -> float:
@@ -60,6 +61,11 @@ def build(year: int, prior: dict, allow_provisional_housing: bool = False) -> di
         values["corporateProfits"] + values["proprietorsIncome"] + values["netInterest"]
         + values["capitalConsumption"] + values["productionTaxes"] - values["investment"]
     )
+    health_snapshot = json.loads(HEALTH_OUTPUT.read_text(encoding="utf-8"))
+    employer_health = health_snapshot["calibration"]["projectedBeaGroupHealth2025Billions"]
+    pension_other = values["employerPensionAndInsurance"] - employer_health
+    if pension_other < 0:
+        raise RuntimeError("Projected employer health exceeds the BEA pension-and-insurance control")
     return {
         **prior,
         "dataYear": year,
@@ -77,6 +83,8 @@ def build(year: int, prior: dict, allow_provisional_housing: bool = False) -> di
             "cashWagesAndSalaries": round(values["wagesAndSalaries"], 3),
             "employerGovernmentSocialInsurance": round(values["employerGovernmentSocialInsurance"], 3),
             "employerPensionAndInsurance": round(values["employerPensionAndInsurance"], 3),
+            "employerHealthInsurance": round(employer_health, 3),
+            "employerPensionAndOtherInsurance": round(pension_other, 3),
         },
     }
 
@@ -88,7 +96,17 @@ def verify(snapshot: dict) -> None:
         raise RuntimeError("Baseline contains a nonpositive GDP or theoretical base")
     default_base = theoretical * (1 - snapshot["defaultNoncomplianceRate"]) * (1 - snapshot["defaultExemptionShare"])
     compensation_components = snapshot["compensationComponents"]
-    compensation_sum = sum(compensation_components.values())
+    split_supplements = (
+        compensation_components["employerHealthInsurance"]
+        + compensation_components["employerPensionAndOtherInsurance"]
+    )
+    if abs(split_supplements - compensation_components["employerPensionAndInsurance"]) > 0.01:
+        raise RuntimeError("Employer health plus pension/other does not reconcile to the BEA supplement control")
+    compensation_sum = (
+        compensation_components["cashWagesAndSalaries"]
+        + compensation_components["employerGovernmentSocialInsurance"]
+        + split_supplements
+    )
     if abs(compensation_sum - components["compensation"]) > 0.01:
         raise RuntimeError(
             f"Compensation detail does not reconcile: {compensation_sum:.3f} versus {components['compensation']:.3f}"

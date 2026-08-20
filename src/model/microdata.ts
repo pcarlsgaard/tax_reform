@@ -19,6 +19,8 @@ export interface MicrodataScore {
   taxableCompensationBase: number;
   exemptCompensationBase: number;
   progressiveEquivalentCompensationBase: number;
+  progressiveMiddleCompensationBase: number;
+  progressiveTopCompensationBase: number;
   progressiveAverageWageRateShare: number;
   adultCreditStatutoryCost: number;
   adultCreditCost: number;
@@ -105,25 +107,31 @@ function zeroCreditCompensationPerAdult(settings: ReformSettings): number | null
   return phaseOutStart + settings.adultCredit / settings.adultCreditPhaseOutRate;
 }
 
-function progressiveEquivalentBase(compensation: number, scheduleAdults: number, settings: ReformSettings): number {
+function progressiveBases(compensation: number, scheduleAdults: number, settings: ReformSettings): [number, number] {
   const zeroCeiling = scheduleAdults * settings.progressiveZeroBracketPerAdult;
   const topThreshold = Math.max(zeroCeiling, scheduleAdults * settings.progressiveTopBracketPerAdult);
   const middleBase = Math.max(0, Math.min(compensation, topThreshold) - zeroCeiling);
   const topBase = Math.max(0, compensation - topThreshold);
-  return middleBase * settings.progressiveMiddleRateShare + topBase;
+  return [middleBase, topBase];
 }
 
 export function calculateMicrodataScore(settings: ReformSettings): MicrodataScore {
   const controls = microdataJson.compensationControlsBillions;
   const cashScale = microdataJson.calibration.cashWageScaleToBea2025;
   const socialInsurancePerCashDollar = controls.employerGovernmentSocialInsurance / controls.cashWagesAndSalaries;
-  const pensionInsurancePerCashDollar = controls.employerPensionAndInsurance / controls.cashWagesAndSalaries;
+  const healthInsurancePerCashDollar = baseline.compensationComponents.employerHealthInsurance
+    / controls.cashWagesAndSalaries;
+  const pensionOtherInsurancePerCashDollar = baseline.compensationComponents.employerPensionAndOtherInsurance
+    / controls.cashWagesAndSalaries;
   const adultPopulationScale = microdataJson.calibration.adultPopulationScaleToCensus2025;
   const cashTaxableShare = 1 - share(settings.cashWageExemptionShare);
   const socialTaxableShare = 1 - share(settings.employerSocialInsuranceExemptionShare);
-  const pensionTaxableShare = 1 - share(settings.employerPensionInsuranceExemptionShare);
+  const healthTaxableShare = 1 - share(settings.employerHealthInsuranceExemptionShare);
+  const pensionOtherTaxableShare = 1 - share(settings.employerPensionOtherInsuranceExemptionShare);
 
   let progressiveBaseDollars = 0;
+  let progressiveMiddleBaseDollars = 0;
+  let progressiveTopBaseDollars = 0;
   let statutoryAdultCreditDollars = 0;
   let totalTaxUnits = 0;
   let totalAdults = 0;
@@ -136,13 +144,26 @@ export function calculateMicrodataScore(settings: ReformSettings): MicrodataScor
     const [asecCashWage, scheduleAdults, creditAdults, taxUnitWeight] = rawCell as DistributionCell;
     const projectedCashWage = asecCashWage * cashScale;
     const employerSocialInsurance = projectedCashWage * socialInsurancePerCashDollar;
-    const employerPensionInsurance = projectedCashWage * pensionInsurancePerCashDollar;
-    const grossCompensation = projectedCashWage + employerSocialInsurance + employerPensionInsurance;
+    const employerHealthInsurance = projectedCashWage * healthInsurancePerCashDollar;
+    const employerPensionOtherInsurance = projectedCashWage * pensionOtherInsurancePerCashDollar;
+    const grossCompensation = projectedCashWage + employerSocialInsurance
+      + employerHealthInsurance + employerPensionOtherInsurance;
     const taxableCompensation = projectedCashWage * cashTaxableShare
       + employerSocialInsurance * socialTaxableShare
-      + employerPensionInsurance * pensionTaxableShare;
+      + employerHealthInsurance * healthTaxableShare
+      + employerPensionOtherInsurance * pensionOtherTaxableShare;
+    const [progressiveMiddleBase, progressiveTopBase] = progressiveBases(
+      taxableCompensation,
+      scheduleAdults,
+      settings,
+    );
+    const middleRateShare = settings.rate > 0
+      ? Math.min(1, Math.max(0, settings.progressiveMiddleRate / settings.rate))
+      : 0;
+    progressiveMiddleBaseDollars += taxUnitWeight * progressiveMiddleBase;
+    progressiveTopBaseDollars += taxUnitWeight * progressiveTopBase;
     progressiveBaseDollars += taxUnitWeight
-      * progressiveEquivalentBase(taxableCompensation, scheduleAdults, settings);
+      * (progressiveMiddleBase * middleRateShare + progressiveTopBase);
     const creditCalculation = adultCredit(grossCompensation, creditAdults, settings);
     const calibratedAdults = taxUnitWeight * creditAdults * adultPopulationScale;
     const calibratedCreditCost = taxUnitWeight * creditCalculation.credit * adultPopulationScale;
@@ -168,7 +189,10 @@ export function calculateMicrodataScore(settings: ReformSettings): MicrodataScor
   const grossCompensationBase = baseline.components.compensation;
   const exemptCompensationBase = controls.cashWagesAndSalaries * share(settings.cashWageExemptionShare)
     + controls.employerGovernmentSocialInsurance * share(settings.employerSocialInsuranceExemptionShare)
-    + controls.employerPensionAndInsurance * share(settings.employerPensionInsuranceExemptionShare);
+    + baseline.compensationComponents.employerHealthInsurance
+      * share(settings.employerHealthInsuranceExemptionShare)
+    + baseline.compensationComponents.employerPensionAndOtherInsurance
+      * share(settings.employerPensionOtherInsuranceExemptionShare);
   const taxableCompensationBase = grossCompensationBase - exemptCompensationBase;
   const adultCreditStatutoryCost = statutoryAdultCreditDollars / 1e9;
   const adultCreditCost = adultCreditStatutoryCost * share(settings.adultCreditTakeUpRate);
@@ -228,6 +252,8 @@ export function calculateMicrodataScore(settings: ReformSettings): MicrodataScor
     taxableCompensationBase,
     exemptCompensationBase,
     progressiveEquivalentCompensationBase: progressiveBaseDollars / 1e9,
+    progressiveMiddleCompensationBase: progressiveMiddleBaseDollars / 1e9,
+    progressiveTopCompensationBase: progressiveTopBaseDollars / 1e9,
     progressiveAverageWageRateShare: taxableCompensationBase > 0
       ? (progressiveBaseDollars / 1e9) / taxableCompensationBase
       : 0,

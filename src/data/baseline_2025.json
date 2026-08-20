@@ -13,7 +13,9 @@
   "compensationComponents": {
     "cashWagesAndSalaries": 12958.656,
     "employerGovernmentSocialInsurance": 908.979,
-    "employerPensionAndInsurance": 1859.275
+    "employerPensionAndInsurance": 1859.275,
+    "employerHealthInsurance": 1068.118,
+    "employerPensionAndOtherInsurance": 791.157
   },
   "componentFormulas": {
     "netCapitalIncomeAfterInvestment": "CPROFIT + PROPINC + B471RC1Q027SBEA + COFC + GDITAXES - GPDI",

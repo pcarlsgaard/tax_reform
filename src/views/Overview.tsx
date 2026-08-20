@@ -3,15 +3,12 @@ import { RangeField, SelectField } from '../components/Controls';
 import { MetricCard } from '../components/MetricCard';
 import { dollars, moneyB, percent } from '../components/format';
 import {
-  calculateFederalProgramSavings,
-  calculateMacro,
   microdata2025,
   type AdultCreditAuditBucketId,
   type AdultCreditMode,
   type MacroResult,
   type ReformSettings,
   type ReplacedTax,
-  type TransferReplacementSettings,
   type WageTaxMode,
 } from '../model';
 
@@ -37,9 +34,7 @@ const adultCreditBucketLabels: Record<AdultCreditAuditBucketId, string> = {
 const billions = (value: number) => `$${value.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}B`;
 const countMillions = (value: number) => `${value.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}M`;
 
-export function Overview({ settings, setSettings, transferSettings }: { settings: ReformSettings; setSettings: (value: ReformSettings) => void; transferSettings: TransferReplacementSettings }) {
-  const federalTransferSavings = calculateFederalProgramSavings(transferSettings);
-  const result = calculateMacro(settings, { federalTransferSavings });
+export function Overview({ settings, setSettings, result }: { settings: ReformSettings; setSettings: (value: ReformSettings) => void; result: MacroResult }) {
   const hasFiscalSavings = result.totalFederalSavings > 0;
   const update = (patch: Partial<ReformSettings>) => setSettings({ ...settings, ...patch });
   const toggleTax = (key: ReplacedTax) => update({ replacedTaxes: { ...settings.replacedTaxes, [key]: !settings.replacedTaxes[key] } });
@@ -55,7 +50,7 @@ export function Overview({ settings, setSettings, transferSettings }: { settings
           <span>Progressive wage schedule</span>
           <RangeField label="Zero-rate ceiling / adult" value={settings.progressiveZeroBracketPerAdult} min={0} max={100000} step={1000} display={`$${settings.progressiveZeroBracketPerAdult.toLocaleString()}`} onChange={(progressiveZeroBracketPerAdult) => update({ progressiveZeroBracketPerAdult })} />
           <RangeField label="Top-rate threshold / adult" value={settings.progressiveTopBracketPerAdult} min={25000} max={300000} step={5000} display={`$${settings.progressiveTopBracketPerAdult.toLocaleString()}`} onChange={(progressiveTopBracketPerAdult) => update({ progressiveTopBracketPerAdult })} />
-          <RangeField label="Middle rate / business rate" value={settings.progressiveMiddleRateShare} min={0} max={1} step={0.025} display={percent(settings.progressiveMiddleRateShare)} onChange={(progressiveMiddleRateShare) => update({ progressiveMiddleRateShare })} />
+          <RangeField label="Middle wage rate" value={Math.min(settings.rate, settings.progressiveMiddleRate)} min={0} max={settings.rate} step={0.005} display={percent(Math.min(settings.rate, settings.progressiveMiddleRate))} onChange={(progressiveMiddleRate) => update({ progressiveMiddleRate })} hint="Direct statutory rate in 0.5 percentage-point increments." />
           <p className="control-note">CPS microdata imply an average wage rate equal to <strong>{percent(result.microdataAverageWageRateShare)}</strong> of the business rate for this schedule.</p>
         </div>}
         <SelectField label="Adult credit structure" value={settings.adultCreditMode} options={[{ value: 'earned', label: 'EITC-like phase-in/out' }, { value: 'universal', label: 'Universal flat credit' }]} onChange={(adultCreditMode) => update({ adultCreditMode: adultCreditMode as AdultCreditMode })} />
@@ -74,7 +69,8 @@ export function Overview({ settings, setSettings, transferSettings }: { settings
           <span>Compensation exemptions</span>
           <RangeField label="Cash wages exempt" value={settings.cashWageExemptionShare} min={0} max={1} step={0.01} display={percent(settings.cashWageExemptionShare)} onChange={(cashWageExemptionShare) => update({ cashWageExemptionShare })} />
           <RangeField label="Employer social insurance exempt" value={settings.employerSocialInsuranceExemptionShare} min={0} max={1} step={0.01} display={percent(settings.employerSocialInsuranceExemptionShare)} onChange={(employerSocialInsuranceExemptionShare) => update({ employerSocialInsuranceExemptionShare })} />
-          <RangeField label="Employer pension / insurance exempt" value={settings.employerPensionInsuranceExemptionShare} min={0} max={1} step={0.01} display={percent(settings.employerPensionInsuranceExemptionShare)} onChange={(employerPensionInsuranceExemptionShare) => update({ employerPensionInsuranceExemptionShare })} hint="All three are fully taxable by default." />
+          <RangeField label="Employer health insurance exempt" value={settings.employerHealthInsuranceExemptionShare} min={0} max={1} step={0.01} display={percent(settings.employerHealthInsuranceExemptionShare)} onChange={(employerHealthInsuranceExemptionShare) => update({ employerHealthInsuranceExemptionShare })} hint="The ESI exclusion is now independent of pensions." />
+          <RangeField label="Employer pension / other insurance exempt" value={settings.employerPensionOtherInsuranceExemptionShare} min={0} max={1} step={0.01} display={percent(settings.employerPensionOtherInsuranceExemptionShare)} onChange={(employerPensionOtherInsuranceExemptionShare) => update({ employerPensionOtherInsuranceExemptionShare })} hint="All four compensation components are fully taxable by default." />
         </div>
         <fieldset className="tax-checks"><legend>Existing taxes replaced</legend>{(Object.keys(taxLabels) as ReplacedTax[]).map((key) => <label key={key}><input type="checkbox" checked={settings.replacedTaxes[key]} onChange={() => toggleTax(key)} /><span>{taxLabels[key]}</span></label>)}</fieldset>
       </aside>
@@ -84,10 +80,10 @@ export function Overview({ settings, setSettings, transferSettings }: { settings
         <div className="metric-grid">
           <MetricCard label="Final taxable base" value={moneyB(result.taxableBase)} note={`${percent(result.basePercentGdp)} of GDP`} tone="accent"><MacroBaseAudit result={result} /></MetricCard>
           <MetricCard label="Gross collections" value={moneyB(result.grossRevenue)} note={`${percent(result.grossRevenuePercentGdp)} of GDP`}><Audit><Formula>{moneyB(result.rateAdjustedBase)} rate-adjusted base × {percent(settings.rate)} = {moneyB(result.grossRevenue)}</Formula></Audit></MetricCard>
-          <MetricCard label="Refundable credits" value={moneyB(result.adultCreditCost + result.childCreditCost)} note={`${percent(result.creditCostPercentGdp)} of GDP`}><Audit><Formula>{moneyB(result.adultCreditStatutoryCost)} statutory adult eligibility × {percent(result.adultCreditTakeUpRate)} take-up = {moneyB(result.adultCreditCost)} adult credits<br />+ {moneyB(result.childCreditCost)} child credits</Formula></Audit></MetricCard>
+          <MetricCard label="Refundable credits" value={moneyB(result.adultCreditCost + result.childCreditCost + result.insuranceCreditCost)} note={`${percent(result.creditCostPercentGdp)} of GDP`}><Audit><Formula>{moneyB(result.adultCreditStatutoryCost)} statutory adult eligibility × {percent(result.adultCreditTakeUpRate)} take-up = {moneyB(result.adultCreditCost)} adult credits<br />+ {moneyB(result.childCreditCost)} child credits<br />+ {moneyB(result.insuranceCreditCost)} premium-purchase credits</Formula></Audit></MetricCard>
           <MetricCard label="Net federal revenue" value={moneyB(result.netRevenue)} note={`${percent(result.netRevenuePercentGdp)} of GDP · adjusted target ${percent(result.adjustedTargetRevenuePercentGdp)}`} tone={result.adjustedSurplusDeficit >= 0 ? 'good' : 'bad'}><RevenueAudit result={result} /></MetricCard>
           <MetricCard label={result.adjustedSurplusDeficit >= 0 ? 'Adjusted static surplus' : 'Adjusted static deficit'} value={moneyB(result.adjustedSurplusDeficit)} note={`${percent(result.adjustedSurplusDeficitPercentGdp)} of GDP${hasFiscalSavings ? ` · ${moneyB(result.totalFederalSavings)} total savings` : ''}`} tone={result.adjustedSurplusDeficit >= 0 ? 'good' : 'bad'} />
-          <MetricCard label="Revenue-neutral rate" value={percent(result.adjustedRevenueNeutralRate, 2)} note={hasFiscalSavings ? `Before fiscal savings ${percent(result.revenueNeutralRate, 2)}` : 'Solved algebraically'} tone="accent"><Audit><Formula>{hasFiscalSavings && <>{moneyB(result.targetRevenue)} original target<br />− {moneyB(result.refundableTaxCreditOutlaySavings)} automatic refundable EITC/CTC outlay savings<br />− {moneyB(result.federalTransferSavings)} selected external-program savings<br />= {moneyB(result.adjustedTargetRevenue)} adjusted target.<br /><br /></>}({moneyB(result.adjustedTargetRevenue)} + {moneyB(result.adultCreditCost + result.childCreditCost)}) ÷ {moneyB(result.rateAdjustedBase)} rate-adjusted base = {percent(result.adjustedRevenueNeutralRate, 2)}</Formula></Audit></MetricCard>
+          <MetricCard label="Revenue-neutral rate" value={percent(result.adjustedRevenueNeutralRate, 2)} note={hasFiscalSavings ? `Before fiscal savings ${percent(result.revenueNeutralRate, 2)}` : 'Solved algebraically'} tone="accent"><Audit><Formula>{hasFiscalSavings && <>{moneyB(result.targetRevenue)} original target<br />− {moneyB(result.refundableTaxCreditOutlaySavings)} automatic refundable EITC/CTC outlay savings<br />− {moneyB(result.federalTransferSavings)} selected external-program savings<br />= {moneyB(result.adjustedTargetRevenue)} adjusted target.<br /><br /></>}({moneyB(result.adjustedTargetRevenue)} + {moneyB(result.adultCreditCost + result.childCreditCost + result.insuranceCreditCost)}) ÷ {moneyB(result.rateAdjustedBase)} rate-adjusted base = {percent(result.adjustedRevenueNeutralRate, 2)}</Formula></Audit></MetricCard>
         </div>
         <AdultCreditAuditPanel result={result} settings={settings} />
         <Flow result={result} />
@@ -133,7 +129,7 @@ function MacroBaseAudit({ result }: { result: MacroResult }) {
 }
 
 function RevenueAudit({ result }: { result: MacroResult }) {
-  return <Audit><Formula>{moneyB(result.grossRevenue)} gross<br />− {moneyB(result.adultCreditCost)} adult credits<br />− {moneyB(result.childCreditCost)} child credits<br />= {moneyB(result.netRevenue)}</Formula></Audit>;
+  return <Audit><Formula>{moneyB(result.grossRevenue)} gross<br />− {moneyB(result.adultCreditCost)} adult credits<br />− {moneyB(result.childCreditCost)} child credits<br />− {moneyB(result.insuranceCreditCost)} health-insurance credits<br />= {moneyB(result.netRevenue)}</Formula></Audit>;
 }
 
 function Flow({ result }: { result: MacroResult }) {

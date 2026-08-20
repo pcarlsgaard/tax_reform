@@ -32,13 +32,15 @@ export function calculateMacro(settings: ReformSettings, adjustment: MacroAdjust
     ? wageTaxableBase
     : microdata.progressiveEquivalentCompensationBase * retainedBaseShare;
   const rateAdjustedBase = businessTaxableBase + rateAdjustedWageBase;
+  const progressiveMiddleBase = microdata.progressiveMiddleCompensationBase * retainedBaseShare;
+  const progressiveTopBase = microdata.progressiveTopCompensationBase * retainedBaseShare;
 
   const adultCreditStatutoryCost = microdata.adultCreditStatutoryCost;
   const adultCreditCost = microdata.adultCreditCost;
   const childCreditCost = baseline.populationsMillions.children * settings.childCredit / 1000;
-  const otherRebates = 0;
+  const insuranceCreditCost = Math.max(0, adjustment.insuranceCreditCost ?? 0);
   const grossRevenue = rateAdjustedBase * settings.rate;
-  const netRevenue = grossRevenue - adultCreditCost - childCreditCost - otherRebates;
+  const netRevenue = grossRevenue - adultCreditCost - childCreditCost - insuranceCreditCost;
 
   const targetRevenue = receiptKeys.reduce(
     (sum, key) => sum + (settings.replacedTaxes[key] ? baseline.federalReceipts[key] : 0),
@@ -50,12 +52,22 @@ export function calculateMacro(settings: ReformSettings, adjustment: MacroAdjust
   const federalTransferSavings = Math.max(0, adjustment.federalTransferSavings ?? 0);
   const totalFederalSavings = refundableTaxCreditOutlaySavings + federalTransferSavings;
   const adjustedTargetRevenue = Math.max(0, targetRevenue - totalFederalSavings);
-  const revenueNeutralRate = rateAdjustedBase > 0
-    ? (targetRevenue + adultCreditCost + childCreditCost + otherRebates) / rateAdjustedBase
-    : Number.POSITIVE_INFINITY;
-  const adjustedRevenueNeutralRate = rateAdjustedBase > 0
-    ? (adjustedTargetRevenue + adultCreditCost + childCreditCost + otherRebates) / rateAdjustedBase
-    : Number.POSITIVE_INFINITY;
+  const solveRate = (revenueRequirement: number): number => {
+    const requiredGross = revenueRequirement + adultCreditCost + childCreditCost + insuranceCreditCost;
+    if (settings.wageTaxMode === 'flat') {
+      return taxableBase > 0 ? requiredGross / taxableBase : Number.POSITIVE_INFINITY;
+    }
+    const allHeadlineBase = businessTaxableBase + progressiveMiddleBase + progressiveTopBase;
+    const rateBeforeMiddleBinds = allHeadlineBase > 0 ? requiredGross / allHeadlineBase : Number.POSITIVE_INFINITY;
+    const middleRate = Math.max(0, settings.progressiveMiddleRate);
+    if (rateBeforeMiddleBinds <= middleRate) return rateBeforeMiddleBinds;
+    const headlineBase = businessTaxableBase + progressiveTopBase;
+    return headlineBase > 0
+      ? (requiredGross - progressiveMiddleBase * middleRate) / headlineBase
+      : Number.POSITIVE_INFINITY;
+  };
+  const revenueNeutralRate = solveRate(targetRevenue);
+  const adjustedRevenueNeutralRate = solveRate(adjustedTargetRevenue);
 
   return {
     gdp: baseline.gdp,
@@ -79,8 +91,8 @@ export function calculateMacro(settings: ReformSettings, adjustment: MacroAdjust
     adultCreditTakeUpRate: settings.adultCreditTakeUpRate,
     adultCreditAudit: microdata.adultCreditAudit,
     childCreditCost,
-    otherRebates,
-    creditCostPercentGdp: (adultCreditCost + childCreditCost + otherRebates) / baseline.gdp,
+    insuranceCreditCost,
+    creditCostPercentGdp: (adultCreditCost + childCreditCost + insuranceCreditCost) / baseline.gdp,
     netRevenue,
     netRevenuePercentGdp: netRevenue / baseline.gdp,
     targetRevenue,
@@ -107,7 +119,7 @@ export const defaultSettings: ReformSettings = {
   wageTaxMode: 'flat',
   progressiveZeroBracketPerAdult: 30000,
   progressiveTopBracketPerAdult: 100000,
-  progressiveMiddleRateShare: 0.5,
+  progressiveMiddleRate: 0.15,
   adultCredit: 4800,
   adultCreditMode: 'earned',
   adultCreditPhaseInRate: 0.30,
@@ -119,7 +131,8 @@ export const defaultSettings: ReformSettings = {
   exemptionShare: baseline.defaultExemptionShare,
   cashWageExemptionShare: 0,
   employerSocialInsuranceExemptionShare: 0,
-  employerPensionInsuranceExemptionShare: 0,
+  employerHealthInsuranceExemptionShare: 0,
+  employerPensionOtherInsuranceExemptionShare: 0,
   replacedTaxes: {
     individualIncome: true,
     payroll: true,

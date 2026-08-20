@@ -46,7 +46,8 @@ export interface ReformSettings {
   wageTaxMode: WageTaxMode;
   progressiveZeroBracketPerAdult: number;
   progressiveTopBracketPerAdult: number;
-  progressiveMiddleRateShare: number;
+  /** Statutory middle wage rate; constrained to the headline rate in calculations. */
+  progressiveMiddleRate: number;
   adultCredit: number;
   adultCreditMode: AdultCreditMode;
   adultCreditPhaseInRate: number;
@@ -58,7 +59,8 @@ export interface ReformSettings {
   exemptionShare: number;
   cashWageExemptionShare: number;
   employerSocialInsuranceExemptionShare: number;
-  employerPensionInsuranceExemptionShare: number;
+  employerHealthInsuranceExemptionShare: number;
+  employerPensionOtherInsuranceExemptionShare: number;
   replacedTaxes: Record<ReplacedTax, boolean>;
 }
 
@@ -84,7 +86,7 @@ export interface MacroResult {
   adultCreditTakeUpRate: number;
   adultCreditAudit: AdultCreditAudit;
   childCreditCost: number;
-  otherRebates: number;
+  insuranceCreditCost: number;
   creditCostPercentGdp: number;
   netRevenue: number;
   netRevenuePercentGdp: number;
@@ -109,6 +111,8 @@ export interface MacroResult {
 export interface MacroAdjustment {
   /** FY2025 federal program spending removed outside the individual-income-tax system, in billions. */
   federalTransferSavings?: number;
+  /** Refundable health-insurance credits, including ESI and nongroup coverage, in billions. */
+  insuranceCreditCost?: number;
 }
 
 export interface RefundableTaxCreditOutlayItem {
