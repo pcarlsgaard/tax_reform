@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "analysis" / "pareto_search_near_term_debt_2025.json"
+SOURCE = ROOT / "analysis" / "pareto_search_replacement_2025.json"
 OUTPUT = ROOT / "src" / "data" / "pareto_frontier_2025.json"
 
 FIELDS = (
@@ -19,7 +19,6 @@ FIELDS = (
     "adult_health_credit",
     "child_health_credit",
     "total_health_credit_cost_billions",
-    "fiscal_gap_billions",
     "esi_winner_share",
     "mean_absolute_mtr_change",
     "mtr_within_two_points_share",
@@ -29,16 +28,25 @@ FIELDS = (
 
 def main() -> None:
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
+    fiscal_identity = source["fiscal_identity"]
+    additional_revenue = fiscal_identity["additional_revenue_billions"]
+    selected = source["selected"]
     compact = {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "snapshot": source["experiment"],
-        "targetLabel": source["fiscal_identity"]["target_label"],
-        "targetRevenueBillions": source["fiscal_identity"]["target_revenue_billions"],
+        "referenceLabel": "Static deficit reduction versus current law",
+        "currentLawReplacementBaselineBillions": fiscal_identity["replacement_target_billions"],
         "candidateDraws": source["candidate_draws"],
         "feasibleCandidates": source["feasible_candidates"],
-        "selectedIds": {"plan2146": 2146, "balanced": 1570},
+        "selectedIds": {
+            "mtrPreservation": selected["mtr_preservation_at_67pct_winners"]["default"]["candidate_id"],
+            "balanced": selected["balanced"]["default"]["candidate_id"],
+        },
         "points": [
-            {key: row[key] for key in FIELDS}
+            {
+                **{key: row[key] for key in FIELDS},
+                "deficit_reduction_billions": row["fiscal_gap_billions"] + additional_revenue,
+            }
             for row in source["frontier"]
         ],
     }

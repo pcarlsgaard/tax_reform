@@ -19,14 +19,13 @@ const millionsPeople = (value: number) => `${value.toFixed(1)}M`;
 
 export function Health({ settings, policy, setPolicy, result, macro }: { settings: ReformSettings; policy: HealthPolicySettings; setPolicy: (value: HealthPolicySettings) => void; result: HealthAnalysis; macro: MacroResult }) {
   const update = (patch: Partial<HealthPolicySettings>) => setPolicy({ ...policy, ...patch });
-  const nearTermFiscalGap = macro.adjustedSurplusDeficit - macro.gdp * 0.016;
   const liveParetoPoint = {
     winnerShare: result.winnerCoveredPeopleShare,
     meanAbsMtr: result.meanAbsoluteMtrChange,
     mtrPreserved: result.mtrWithinTwoPointsShare,
     rate: settings.rate,
     healthCost: result.totalHealthCreditCostBillions,
-    fiscalGap: nearTermFiscalGap,
+    deficitReduction: macro.deficitReduction,
     medianChange: result.medianDollarChange,
     middleRate: settings.wageTaxMode === 'flat'
       ? settings.rate
@@ -42,7 +41,7 @@ export function Health({ settings, policy, setPolicy, result, macro }: { setting
       <aside className="control-panel health-controls">
         <span className="eyebrow">Policy controls</span><h2>Insurance credit</h2>
         <RangeControl label="Refundable adult health credit" value={policy.adultHealthCredit} min={0} max={3500} step={250} display={dollars(policy.adultHealthCredit)} onChange={(adultHealthCredit) => update({ adultHealthCredit })} hint="Per covered adult; the household total is capped at its benchmark premium." />
-        <RangeControl label="Refundable child health credit" value={policy.childHealthCredit} min={0} max={1500} step={250} display={dollars(policy.childHealthCredit)} onChange={(childHealthCredit) => update({ childHealthCredit })} hint="Per covered child, separately adjustable because child premiums are generally lower." />
+        <RangeControl label="Refundable child health credit" value={policy.childHealthCredit} min={0} max={3500} step={250} display={dollars(policy.childHealthCredit)} onChange={(childHealthCredit) => update({ childHealthCredit })} hint="Per covered child; the range now matches the adult credit and the household total remains benchmark-capped." />
         <RangeControl label="Uninsured enrollment take-up" value={policy.uninsuredTakeUpRate} min={0} max={1} step={0.05} display={percent(policy.uninsuredTakeUpRate, 0)} onChange={(uninsuredTakeUpRate) => update({ uninsuredTakeUpRate })} hint="Share of the full credit cost for currently uninsured people who enroll." />
         <details className="control-disclosure"><summary>Advanced transition assumptions</summary><div>
           <label className="select-field"><span>Employer contribution redistribution</span><select value={policy.redistributionRule} onChange={(event) => update({ redistributionRule: event.target.value as HealthRedistributionRule })}><option value="nationalEqual">Equal national wage</option><option value="employerCellEqual">Equal within sector / firm-size cells</option><option value="ownContribution">Convert own imputed contribution</option></select><small className="control-hint">The searched plans use equal national dollars among ESI policyholder workers.</small></label>

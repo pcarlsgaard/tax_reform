@@ -49,7 +49,7 @@ RATE_STEP = 0.005
 FISCAL_TARGETS = {
     "replacement": {
         "additional_revenue_percent_gdp": 0.0,
-        "label": "Tax-replacement neutrality",
+        "label": "Current-law static baseline",
     },
     "near_term_debt": {
         "additional_revenue_percent_gdp": 0.016,
@@ -774,7 +774,7 @@ def generate_candidates(count: int, seed: int) -> list[Candidate]:
         "wage_credit_phase_in": np.arange(0.15, 0.501, 0.05),
         "child_credit": np.arange(2000, 10001, 500),
         "adult_health_credit": np.arange(0, 3501, 250),
-        "child_health_credit": np.arange(0, 1501, 250),
+        "child_health_credit": np.arange(0, 3501, 250),
         "zero_bracket": np.arange(5000, 50001, 5000),
         "middle_rate_share": np.arange(0.25, 0.851, 0.05),
         "top_bracket": np.arange(60000, 200001, 10000),
@@ -987,24 +987,45 @@ def write_summary(path: Path, result: dict) -> None:
         sign = "-" if value < 0 else ""
         return f"{sign}${abs(value):,.0f}"
 
+    replacement_mode = result["fiscal_identity"]["target_mode"] == "replacement"
+    fiscal_column = "Static deficit reduction" if replacement_mode else "Fiscal surplus"
+    if replacement_mode:
+        fiscal_identity_sentence = (
+            f"The current-law static replacement baseline is "
+            f"${result['fiscal_identity']['replacement_target_billions']:,.1f}B."
+        )
+        fiscal_range_sentence = (
+            f"The resulting static deficit reductions range from "
+            f"${result['validation']['minimum_fiscal_surplus_billions']:,.1f}B to "
+            f"${result['validation']['maximum_fiscal_surplus_billions']:,.1f}B."
+        )
+    else:
+        fiscal_identity_sentence = (
+            f"The net-revenue target is ${result['fiscal_identity']['target_revenue_billions']:,.1f}B, including "
+            f"${result['fiscal_identity']['additional_revenue_billions']:,.1f}B "
+            f"({result['fiscal_identity']['additional_revenue_percent_gdp']:.1%} of GDP) above tax-replacement neutrality."
+        )
+        fiscal_range_sentence = (
+            f"The resulting candidate surpluses range from "
+            f"${result['validation']['minimum_fiscal_surplus_billions']:,.1f}B to "
+            f"${result['validation']['maximum_fiscal_surplus_billions']:,.1f}B."
+        )
+
     lines = [
         f"# Expanded 2025 X-tax and health-credit Pareto search — {result['fiscal_identity']['target_label']}",
         "",
         f"The seeded search scored {result['candidate_draws']:,} designs; "
         f"{result['feasible_candidates']:,} balanced within the 10%-60% headline-rate range, "
         f"and {result['pareto_candidates']:,} were nondominated.",
-        f"The net-revenue target is ${result['fiscal_identity']['target_revenue_billions']:,.1f}B, including "
-        f"${result['fiscal_identity']['additional_revenue_billions']:,.1f}B "
-        f"({result['fiscal_identity']['additional_revenue_percent_gdp']:.1%} of GDP) above tax-replacement neutrality.",
-        f"Headline/business/top rates are restricted to {result['fiscal_identity']['headline_rate_step']:.1%} steps and rounded up to the first target-meeting rate; statutory middle wage rates are rounded to the nearest step. "
-        f"The resulting candidate surpluses range from ${result['validation']['minimum_fiscal_surplus_billions']:,.1f}B to "
-        f"${result['validation']['maximum_fiscal_surplus_billions']:,.1f}B.",
+        fiscal_identity_sentence,
+        f"Headline/business/top rates are restricted to {result['fiscal_identity']['headline_rate_step']:.1%} steps and rounded up to the first fiscal-floor-meeting rate; statutory middle wage rates are rounded to the nearest step. "
+        + fiscal_range_sentence,
         f"The modeled current ESI exclusions are worth ${result['validation']['current_esi_exclusion_federal_tax_value_billions']:,.1f}B "
         f"in combined federal income and payroll taxes, or about "
         f"${result['validation']['current_esi_exclusion_value_per_covered_person']:,.0f} per ESI-covered person. "
         "The health amounts below are true refundable credits, not income exclusions, and are deliberately searched near that tax-value scale.",
         "",
-        "| Selection | Schedule | Headline | Middle | Fiscal surplus | Adult nonref. | Adult refundable schedule | Child | Adult health | Child health | ESI winners | Mean absolute MTR change (pp) | Stress winners |",
+        f"| Selection | Schedule | Headline | Middle | {fiscal_column} | Adult nonref. | Adult refundable schedule | Child | Adult health | Child health | ESI winners | Mean absolute MTR change (pp) | Stress winners |",
         "|---|---|---:|---:|---:|---:|---|---:|---:|---:|---:|---:|---:|",
     ]
     for name, pair in result["selected"].items():
@@ -1063,7 +1084,11 @@ def write_summary(path: Path, result: dict) -> None:
         f"{refundable_description}, "
         f"a ${balanced['child_credit']:,.0f} refundable child credit, and a "
         f"${balanced['adult_health_credit']:,.0f} adult / ${balanced['child_health_credit']:,.0f} child refundable health credit.",
-        f"The discrete rate raises ${balanced['fiscal_gap_billions']:,.1f}B above the modeled target.",
+        (
+            f"At the discrete rate, the plan reduces the static deficit by ${balanced['fiscal_gap_billions']:,.1f}B relative to current law."
+            if replacement_mode
+            else f"The discrete rate raises ${balanced['fiscal_gap_billions']:,.1f}B above the modeled target."
+        ),
         "",
         f"Its health-credit score is ${balanced['total_health_credit_cost_billions']:,.1f}B: "
         f"${balanced['health_credit_cost_billions']:,.1f}B for the ESI transition plus "
@@ -1174,7 +1199,7 @@ def run(
 
     result = {
         "schema_version": 2,
-        "experiment": "expanded-x-tax-split-health-credit-debt-target-pareto-search",
+        "experiment": "expanded-x-tax-split-health-credit-pareto-search",
         "seed": seed,
         "candidate_draws": len(candidates),
         "feasible_candidates": len(rows),
@@ -1222,11 +1247,11 @@ def run(
             "refundable_wage_credit": "$0-$9,000 in $500 increments; universal or earned with 15%-50% phase-in and no phaseout",
             "refundable_child_credit": "$2,000-$10,000 in $500 increments",
             "refundable_adult_health_credit": "$0-$3,500 in $250 increments; deliberately bounded near the current ESI exclusion's estimated tax value rather than the full premium",
-            "refundable_child_health_credit": "$0-$1,500 in $250 increments; deliberately below the adult range",
+            "refundable_child_health_credit": "$0-$3,500 in $250 increments; the same range as the adult health credit",
             "progressive_zero_bracket_per_schedule_adult": "$5,000-$50,000 in $5,000 increments when that architecture is selected; no zero bracket in the nonrefundable-credit architecture",
             "progressive_middle_rate_share": "Target share of 25%-85% of the headline rate in 5-point increments; the actual statutory middle rate is rounded to the nearest 0.5 percentage point",
             "progressive_top_threshold_per_schedule_adult": "$60,000-$200,000 in $10,000 increments",
-            "business_and_top_wage_rate": "10%-60% in 0.5-percentage-point increments; the lowest target-meeting step is selected",
+            "business_and_top_wage_rate": "10%-60% in 0.5-percentage-point increments; the lowest fiscal-floor-meeting step is selected",
         },
         "scope_limits": [
             "National CPS cells identify wage, schedule-adult, and credit-adult counts but not children; they therefore determine revenue, not national winner shares.",
@@ -1261,7 +1286,7 @@ def main() -> None:
     parser.add_argument("--candidates", type=int, default=5000)
     parser.add_argument("--seed", type=int, default=20250819)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    parser.add_argument("--target-mode", choices=sorted(FISCAL_TARGETS), default="near_term_debt")
+    parser.add_argument("--target-mode", choices=sorted(FISCAL_TARGETS), default="replacement")
     parser.add_argument("--uninsured-takeup", type=float, default=0.15)
     args = parser.parse_args()
     if args.candidates <= 0:

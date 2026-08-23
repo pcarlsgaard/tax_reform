@@ -86,7 +86,11 @@ statutory adult credit cost
 adult credit cost = statutory adult credit cost × take-up rate
 child credit cost = child population × flat child credit
 net revenue = gross revenue − adult credits − child credits − other rebates
-surplus / deficit = net revenue − selected replacement-revenue target
+static deficit reduction versus current law
+= net revenue
+− selected current-law receipts replaced
++ automatic refundable-credit outlay savings
++ selected external federal-program savings
 ```
 
 Universal adult-credit cost uses the Census adult-population control directly. The earned schedule is calculated from tax-unit compensation, adult counts, and the selected phase-in/out parameters. The aggregate take-up control defaults to 100% and is applied after statutory eligibility; it does not change an illustrative household's statutory entitlement.
@@ -101,11 +105,11 @@ The checked-in browser asset aggregates identical `[cash wages, schedule adults,
 
 National adult-credit eligibility currently uses gross employee compensation: BEA-raked CPS cash wages plus employer government social insurance, employer health, and pension/other insurance supplements allocated in proportion to cash wages. Self-employment income is excluded. Named compensation exemptions, the broad exemption, and noncompliance affect the tax base but not this credit-income measure. These are explicit policy-definition choices, not data necessities. The replicate-weight standard error stored in the snapshot applies only to the default credit schedule and is not recomputed for arbitrary browser settings.
 
-The algebraic revenue-neutral headline rate is:
+The algebraic receipts-neutral headline rate before outlay savings is:
 
 ```text
 required rate
-= (target + adult credits + child credits + insurance credits)
+= (selected current-law receipts + adult credits + child credits + insurance credits)
   / rate-adjusted base
 ```
 
@@ -120,13 +124,13 @@ automatic refundable-credit outlay savings
 External transfer repeal is a separate fiscal adjustment, not a rebate and not a second tax engine:
 
 ```text
-adjusted required federal revenue
-= tax-replacement revenue target
+current-law static replacement baseline
+= selected current-law receipts replaced
 − automatic refundable-credit outlay savings, if individual income tax is replaced
 − FY2025 federal fiscal amounts for selected external programs
 
-adjusted required rate
-= (adjusted target + adult credits + child credits + insurance credits)
+replacement-neutral rate
+= (current-law static replacement baseline + adult credits + child credits + insurance credits)
   / rate-adjusted base
 ```
 
@@ -153,7 +157,7 @@ Only federal amounts enter this subtraction. State maintenance-of-effort, local 
 
 Eleven of twelve inputs are observed for 2025. Housing-sector value added is provisional because FRED series `B952RC1A027NBEA` ends in 2024; the snapshot scales its 2024 value by 2024–25 nominal GDP growth. The builder requires an explicit opt-in for that estimate.
 
-The default target replaces FY2025 individual income tax ($2,656.044B), social-insurance/payroll receipts ($1,748.294B), corporate income tax ($452.089B), and customs duties ($194.866B): **$5,051.293B**, or **16.42% of GDP**. The target is fiscal-year cash receipts while the base is a calendar-year economic measure.
+The default comparison replaces FY2025 individual income tax ($2,656.044B), social-insurance/payroll receipts ($1,748.294B), corporate income tax ($452.089B), and customs duties ($194.866B): **$5,051.293B**, or **16.42% of GDP**. These are fiscal-year cash receipts while the base is a calendar-year economic measure.
 
 At the flat defaults, gross collections are $6,693.561B, CPS-scored adult credits cost $542.013B, child credits cost $345.702B, and net revenue is $5,805.845B. Against the unadjusted receipts target the surplus is $754.552B and the revenue-neutral rate is **26.6182%**. FY2025 actual refundable EITC outlays of $66.007B and refundable child-credit outlays of $26.567B reduce the operative requirement to $4,958.719B and the adjusted revenue-neutral rate to **26.2032%**. These Treasury outlays were recorded during FY2025 and primarily reflect tax year 2024 returns, another explicit timing mismatch.
 
@@ -348,7 +352,7 @@ The selected employer-health exemption share applies to reclassified health comp
 
 ### Interpretation
 
-A covered person is counted as better off when their tax unit's reform disposable resources are at least current resources. The view also computes current and reform marginal tax/subsidy rates over a centered $1,000 primary-wage window, weighted by ESI-covered people. The live marker can be compared with the checked-in near-term Pareto frontier along selectable winner, MTR, rate, cost, fiscal-gap, and median-change axes.
+A covered person is counted as better off when their tax unit's reform disposable resources are at least current resources. The view also computes current and reform marginal tax/subsidy rates over a centered $1,000 primary-wage window, weighted by ESI-covered people. The live marker can be compared with the checked-in replacement-neutral reference frontier along selectable winner, MTR, rate, cost, static-deficit-reduction, and median-change axes.
 
 This is a static cash-incidence test, not an insurance-market simulation. It holds coverage conceptually constant but does not adjust for deductibles, cost sharing, provider networks, actuarial value, employer risk pooling, adverse selection, individual-market capacity, induced benchmark-premium changes, ACA income-based subsidies, or Medicaid transitions. CPS has no employer identifier, so the sector/firm-size rule is not literal within-employer redistribution.
 

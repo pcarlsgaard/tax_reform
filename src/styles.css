@@ -248,7 +248,7 @@ tr.total td { background:var(--ink); color:white; font-weight:800; border-color:
 .pareto-axis-label { font-weight:800!important; fill:#415d6c!important; }
 .pareto-point { opacity:.65; stroke:white; stroke-width:1; }
 .pareto-point:hover { opacity:1; stroke:var(--ink); stroke-width:2; }
-.pareto-point.plan2146 { opacity:1; stroke:var(--teal-dark); stroke-width:3; }
+.pareto-point.mtrPreservation { opacity:1; stroke:var(--teal-dark); stroke-width:3; }
 .pareto-point.balanced { opacity:1; stroke:var(--orange); stroke-width:3; }
 .pareto-live path { fill:var(--ink); stroke:white; stroke-width:2; filter:drop-shadow(0 2px 3px #0b1f3355); }
 .business-layout { display:grid; grid-template-columns:300px minmax(0,1fr); gap:18px; align-items:start; }

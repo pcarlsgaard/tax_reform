@@ -42,7 +42,7 @@ describe('transfer integration regressions', () => {
     expect(after.adjustedTargetRevenue).toBe(before.adjustedTargetRevenue);
     expect(after.revenueNeutralRate).toBe(before.revenueNeutralRate);
     expect(after.adjustedRevenueNeutralRate).toBe(before.adjustedRevenueNeutralRate);
-    expect(after.adjustedSurplusDeficit).toBe(before.adjustedSurplusDeficit);
+    expect(after.deficitReduction).toBe(before.deficitReduction);
     expect(after.refundableTaxCreditOutlaySavings).toBeCloseTo(totalRefundableTaxCreditOutlays, 10);
   });
 
@@ -99,7 +99,7 @@ describe('federal fiscal replacement accounting', () => {
     expect(result.totalFederalSavings).toBeCloseTo(totalRefundableTaxCreditOutlays + savings, 10);
     expect(result.adjustedTargetRevenue).toBeCloseTo(result.targetRevenue - totalRefundableTaxCreditOutlays - savings, 10);
     const solved = calculateMacro({ ...defaultSettings, rate: result.adjustedRevenueNeutralRate }, { federalTransferSavings: savings });
-    expect(solved.adjustedSurplusDeficit).toBeCloseTo(0, 8);
+    expect(solved.deficitReduction).toBeCloseTo(0, 8);
   });
 
   it('does not add refundable-credit outlay savings when individual income taxation is retained', () => {

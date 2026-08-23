@@ -26,22 +26,30 @@ describe('2025 national accounting', () => {
     expect(result.refundableTaxCreditOutlaySavings).toBeCloseTo(92.5742078756, 10);
     expect(result.totalFederalSavings).toBeCloseTo(totalRefundableTaxCreditOutlays, 10);
     expect(result.adjustedTargetRevenue).toBeCloseTo(result.targetRevenue - totalRefundableTaxCreditOutlays, 10);
-    expect(result.surplusDeficit).toBeCloseTo(result.netRevenue - result.targetRevenue, 8);
+    expect(result.deficitReduction).toBeCloseTo(
+      result.netRevenue - result.targetRevenue + result.totalFederalSavings,
+      10,
+    );
     expect(result.grossRevenuePercentGdp).toBeCloseTo(result.grossRevenue / result.gdp, 12);
     expect(result.netRevenuePercentGdp).toBeCloseTo(result.netRevenue / result.gdp, 12);
     expect(result.targetRevenuePercentGdp).toBeCloseTo(result.targetRevenue / result.gdp, 12);
+    expect(result.deficitReductionPercentGdp).toBeCloseTo(result.deficitReduction / result.gdp, 12);
   });
 
   it('solves flat and progressive rate-equivalent targets algebraically', () => {
     const flat = calculateMacro(defaultSettings);
     const flatSolved = calculateMacro({ ...defaultSettings, rate: flat.revenueNeutralRate });
-    expect(flatSolved.surplusDeficit).toBeCloseTo(0, 8);
+    expect(flatSolved.netRevenue - flatSolved.targetRevenue).toBeCloseTo(0, 8);
+    const flatAdjustedSolved = calculateMacro({ ...defaultSettings, rate: flat.adjustedRevenueNeutralRate });
+    expect(flatAdjustedSolved.deficitReduction).toBeCloseTo(0, 8);
 
     const progressiveSettings = { ...defaultSettings, wageTaxMode: 'progressive' as const };
     const progressive = calculateMacro(progressiveSettings);
     expect(progressive.rateAdjustedBase).toBeLessThan(progressive.taxableBase);
     const progressiveSolved = calculateMacro({ ...progressiveSettings, rate: progressive.revenueNeutralRate });
-    expect(progressiveSolved.surplusDeficit).toBeCloseTo(0, 8);
+    expect(progressiveSolved.netRevenue - progressiveSolved.targetRevenue).toBeCloseTo(0, 8);
+    const progressiveAdjustedSolved = calculateMacro({ ...progressiveSettings, rate: progressive.adjustedRevenueNeutralRate });
+    expect(progressiveAdjustedSolved.deficitReduction).toBeCloseTo(0, 8);
   });
 
   it('changes the target only for selected replacement taxes', () => {
@@ -84,6 +92,7 @@ describe('2025 national accounting', () => {
     const after = calculateMacro(defaultSettings, { insuranceCreditCost: 475 });
     expect(after.insuranceCreditCost).toBe(475);
     expect(after.netRevenue).toBeCloseTo(before.netRevenue - 475, 10);
+    expect(after.deficitReduction).toBeCloseTo(before.deficitReduction - 475, 10);
     expect(after.adjustedRevenueNeutralRate).toBeGreaterThan(before.adjustedRevenueNeutralRate);
   });
 

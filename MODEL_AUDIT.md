@@ -11,7 +11,7 @@ The original repository was a notebook research prototype. Calculations were spr
 | Noncompliance | 5%, 7.5%, and 15% | 7.5% default, explicit control |
 | National base | $19.8T through $23.4T | Auditable NIPA build with separate compliance/exemption stages |
 | Base labeling | Post-compliance result called “before exemptions” | Compliance status shown at every stage |
-| Revenue target | $4.3T, $4.4T, and $4.6T | Selected FY2025 Treasury receipts; $5.051293T default |
+| Revenue comparison | $4.3T, $4.4T, and $4.6T | Selected FY2025 Treasury receipts; $5.051293T default |
 | Population | 258M/74M and 267M/73M | Census Vintage 2025: 269.764M adults / 72.021M children |
 | Adult credits | Nonrefundable with 70%/80% “absorption” | Refundable schedule scored on CPS tax units, plus explicit take-up |
 | Reform household credit | Adult offset multiplied by `1 + rate` | Removed; direct refundable credit identity |
@@ -90,8 +90,9 @@ $22,311.8686B × 30.0% = $6,693.5606B gross collections (21.76% GDP)
 −   $542.0128B adult credits
 −   $345.7025B child credits
 = $5,805.8453B net revenue (18.87% GDP)
-− $5,051.2930B selected target (16.42% GDP)
-=   $754.5523B static surplus (2.45% GDP)
+− $5,051.2930B selected current-law receipts replaced (16.42% GDP)
++    $92.5742B eliminated refundable-credit outlays
+=   $847.1265B static deficit reduction (2.75% GDP)
 ```
 
 The unadjusted flat revenue-neutral rate is **26.6181573%**. The [FY2025 Treasury Combined Statement](https://fiscal.treasury.gov/system/files/files/reports-statements/combined-statement/cs2025/c40.pdf) records $66.0074466B of refundable EITC outlays (account 020-0906) and $26.5667613B of refundable child-credit outlays (account 020-0922). Replacing individual income taxation therefore removes $92.5742079B of mandatory outlays in addition to replacing receipts, producing an adjusted requirement of $4,958.7187921B and an adjusted flat rate of **26.2032471%**. The credit portion that offsets positive liability already reduces receipts and is not counted again. At the default progressive schedule, the pre-savings rate-adjusted base is $14,727.7840B; the unadjusted and adjusted revenue-neutral business/top wage rates are **40.3251994%** and **39.6966309%**.
@@ -111,7 +112,7 @@ $106.336B SNAP actual net outlays
 +   4.377B LIHEAP actual net outlays
 = $163.768B illustrative federal fiscal savings
 
-$5,051.293B original tax-replacement target
+$5,051.293B selected current-law receipts replaced
 −   92.574B automatic refundable-credit outlay savings
 −  163.768B selected external federal program savings
 = $4,794.951B adjusted revenue requirement
@@ -139,7 +140,7 @@ $1,038.7B linked 2024 HIPM SLCSP benchmarks
 
 The default national equal-policyholder-worker rule allocates $977.8B after browser-cell rounding versus a $978.0B employer pool. It covers 81.4M wage-positive ESI policyholder workers, about $12,022 each. The policyholder's cash counts in the entire tax unit's resources. The broader all-covered-worker sensitivity covers 109.9M workers at about $8,909 each and gives a separate allocation to wage-earning spouses or other workers with dependent ESI; that additional within-unit allocation, not a failure to share the policyholder wage, explains its different result.
 
-The active browser defaults to the balanced search mix of $3,250 per adult and $750 per child. It reports the ESI cost separately from the nongroup no-APTC floor, APTC top-ups, and the take-up-adjusted uninsured cost, then sends their sum into the National and Designer revenue identities. A live centered-$1,000 MTR score and policy marker can be compared with the 119-point checked-in Pareto frontier; the chart warns that the reference search includes policy architectures not exposed by the current sliders.
+The active browser retains its established $3,250-per-adult and $750-per-child defaults for continuity. It reports the ESI cost separately from the nongroup no-APTC floor, APTC top-ups, and the take-up-adjusted uninsured cost, then sends their sum into the National and Designer revenue identities. A live centered-$1,000 MTR score and policy marker can be compared with the 123-point checked-in replacement-neutral Pareto frontier; the chart warns that the reference search includes policy architectures not exposed by the current sliders.
 
 ## Regression examples at default settings
 
@@ -187,7 +188,7 @@ Validation commands:
 
 ```text
 npm run typecheck  → passed
-npm test           → 62 passed
+npm test           → 63 passed
 npm run build      → passed
 python3 scripts/build_baseline.py --verify-only
                    → $30.7621T GDP; $22.3119T default base (72.5% GDP)
@@ -199,7 +200,7 @@ npm run microdata:verify
 ## Remaining audit risks
 
 1. One annual housing series is estimated; the snapshot must be rebuilt after BEA publishes 2025.
-2. A fiscal-year receipts target is paired with a calendar-year base.
+2. A fiscal-year receipts comparison is paired with a calendar-year base.
 3. The NIPA construction is a cash-flow approximation, not a legislative score.
 4. The CPS public-use wage distribution has top coding and no administrative-data top-tail match; BEA controls correct the aggregate, not the shape.
 5. Employer social-insurance, health, and pension/other-insurance supplements are allocated in proportion to cash wages in the national CPS score because CPS does not identify them completely at the tax-unit level. This likely overstates supplements for some workers and understates them for others.

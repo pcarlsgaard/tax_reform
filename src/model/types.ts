@@ -99,10 +99,9 @@ export interface MacroResult {
   totalFederalSavingsPercentGdp: number;
   adjustedTargetRevenue: number;
   adjustedTargetRevenuePercentGdp: number;
-  surplusDeficit: number;
-  surplusDeficitPercentGdp: number;
-  adjustedSurplusDeficit: number;
-  adjustedSurplusDeficitPercentGdp: number;
+  /** Static change in the federal deficit versus current law, holding all other receipts and outlays fixed. */
+  deficitReduction: number;
+  deficitReductionPercentGdp: number;
   revenueNeutralRate: number;
   adjustedRevenueNeutralRate: number;
   revenueNeutralRateReduction: number;

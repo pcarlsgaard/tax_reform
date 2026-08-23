@@ -52,6 +52,7 @@ export function calculateMacro(settings: ReformSettings, adjustment: MacroAdjust
   const federalTransferSavings = Math.max(0, adjustment.federalTransferSavings ?? 0);
   const totalFederalSavings = refundableTaxCreditOutlaySavings + federalTransferSavings;
   const adjustedTargetRevenue = Math.max(0, targetRevenue - totalFederalSavings);
+  const deficitReduction = netRevenue - targetRevenue + totalFederalSavings;
   const solveRate = (revenueRequirement: number): number => {
     const requiredGross = revenueRequirement + adultCreditCost + childCreditCost + insuranceCreditCost;
     if (settings.wageTaxMode === 'flat') {
@@ -104,10 +105,8 @@ export function calculateMacro(settings: ReformSettings, adjustment: MacroAdjust
     totalFederalSavingsPercentGdp: totalFederalSavings / baseline.gdp,
     adjustedTargetRevenue,
     adjustedTargetRevenuePercentGdp: adjustedTargetRevenue / baseline.gdp,
-    surplusDeficit: netRevenue - targetRevenue,
-    surplusDeficitPercentGdp: (netRevenue - targetRevenue) / baseline.gdp,
-    adjustedSurplusDeficit: netRevenue - adjustedTargetRevenue,
-    adjustedSurplusDeficitPercentGdp: (netRevenue - adjustedTargetRevenue) / baseline.gdp,
+    deficitReduction,
+    deficitReductionPercentGdp: deficitReduction / baseline.gdp,
     revenueNeutralRate,
     adjustedRevenueNeutralRate,
     revenueNeutralRateReduction: revenueNeutralRate - adjustedRevenueNeutralRate,

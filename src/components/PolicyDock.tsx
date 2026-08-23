@@ -30,8 +30,7 @@ export function PolicyDock({
     .filter((key) => settings.replacedTaxes[key])
     .map((key) => taxLabels[key])
     .join(', ');
-  const nearTermTarget = result.adjustedTargetRevenue + result.gdp * 0.016;
-  const nearTermGap = result.netRevenue - nearTermTarget;
+  const deficitReduction = result.deficitReduction;
 
   return <div className="policy-dock-shell">
     <section className={`policy-dock ${expanded ? 'expanded' : 'collapsed'}`} aria-label="Current reform policy and revenue">
@@ -46,7 +45,7 @@ export function PolicyDock({
         <div><span>Insurance credits</span><strong>${healthPolicy.adultHealthCredit.toLocaleString()} adult · ${healthPolicy.childHealthCredit.toLocaleString()} child</strong><small>{percent(healthPolicy.uninsuredTakeUpRate)} uninsured take-up · {billions(result.insuranceCreditCost)} total cost</small></div>
         <div><span>Compensation exclusions</span><strong>{percent(settings.employerHealthInsuranceExemptionShare)} ESI · {percent(settings.employerPensionOtherInsuranceExemptionShare)} pension/other</strong><small>{percent(settings.cashWageExemptionShare)} cash wages · {percent(settings.employerSocialInsuranceExemptionShare)} employer social insurance · {percent(settings.exemptionShare)} broad</small></div>
         <div><span>Taxes replaced</span><strong>{replaced || 'None'}</strong><small>{billions(result.totalFederalSavings)} automatic and selected federal savings</small></div>
-        <div className={nearTermGap >= 0 ? 'good' : 'bad'}><span>Near-term debt target</span><strong>{nearTermGap >= 0 ? '+' : '−'}{billions(Math.abs(nearTermGap))}</strong><small>Net revenue versus {moneyB(nearTermTarget)} target · neutral rate {percent(result.adjustedRevenueNeutralRate, 2)}</small></div>
+        <div className={deficitReduction >= 0 ? 'good' : 'bad'}><span>Static deficit {deficitReduction >= 0 ? 'reduction' : 'increase'}</span><strong>{deficitReduction >= 0 ? '+' : '−'}{billions(Math.abs(deficitReduction))}</strong><small>Net revenue versus {moneyB(result.adjustedTargetRevenue)} current-law replacement baseline · {percent(result.deficitReductionPercentGdp)} of GDP</small></div>
       </div>}
     </section>
   </div>;
