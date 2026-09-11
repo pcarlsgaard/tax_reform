@@ -1,4 +1,5 @@
 import parameters from '../data/current_law_2025.json';
+import { calculateChildCredit } from './childCredits';
 import type {
   FilingStatus,
   HouseholdInput,
@@ -138,7 +139,8 @@ function totalTaxAtWage(input: HouseholdInput, settings: ReformSettings, passThr
   const reformWageBase = totalCashWage + employerFicaPassThrough;
   const taxableWageBase = taxableReformWageBase(totalCashWage, employerFicaPassThrough, settings);
   const adults = input.filingStatus === 'married' ? 2 : 1;
-  const reformCredits = calculateAdultCredit(reformWageBase, adults, settings) + input.children * settings.childCredit;
+  const reformCredits = calculateAdultCredit(reformWageBase, adults, settings)
+    + calculateChildCredit(reformWageBase, input.children, input.childrenUnder6 ?? 0, settings);
   const retainedTaxBeforeCredits = (settings.replacedTaxes.individualIncome ? 0 : current.incomeTaxBeforeCredits)
     + (payrollIsReplaced ? 0 : current.employeePayrollTax + current.employerPayrollTax);
   const retainedTaxCredits = settings.replacedTaxes.individualIncome ? 0 : taxCredits(current);
@@ -148,9 +150,11 @@ function totalTaxAtWage(input: HouseholdInput, settings: ReformSettings, passThr
 }
 
 export function calculateHousehold(input: HouseholdInput, settings: ReformSettings, employerFicaPassThroughRate = 1): HouseholdResult {
+  const children = Math.max(0, Math.min(4, Math.trunc(input.children)));
   const normalized: HouseholdInput = {
     filingStatus: input.filingStatus,
-    children: Math.max(0, Math.min(4, Math.trunc(input.children))),
+    children,
+    childrenUnder6: Math.max(0, Math.min(children, Math.trunc(input.childrenUnder6 ?? 0))),
     cashWage: Math.max(0, input.cashWage),
     secondaryCashWage: input.filingStatus === 'married' ? Math.max(0, input.secondaryCashWage ?? 0) : 0,
   };
@@ -171,7 +175,12 @@ export function calculateHousehold(input: HouseholdInput, settings: ReformSettin
   const adults = normalized.filingStatus === 'married' ? 2 : 1;
   const adultCreditMaximum = adults * settings.adultCredit;
   const adultCredit = calculateAdultCredit(reformWageBase, adults, settings);
-  const childCredit = normalized.children * settings.childCredit;
+  const childCredit = calculateChildCredit(
+    reformWageBase,
+    normalized.children,
+    normalized.childrenUnder6 ?? 0,
+    settings,
+  );
   const totalReformCredit = adultCredit + childCredit;
   const currentPreCreditTaxLiability = preCreditTaxLiability(current);
   const currentTaxCredits = taxCredits(current);
