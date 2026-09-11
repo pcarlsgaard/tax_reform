@@ -31,6 +31,7 @@ export function PolicyDock({
     .map((key) => taxLabels[key])
     .join(', ');
   const deficitReduction = result.deficitReduction;
+  const childBaselineRefundable = settings.childCreditBaselineRefundableShare ?? 1;
 
   return <div className="policy-dock-shell">
     <section className={`policy-dock ${expanded ? 'expanded' : 'collapsed'}`} aria-label="Current reform policy and revenue">
@@ -41,7 +42,7 @@ export function PolicyDock({
       </button>
       {expanded && <div className="policy-dock-details">
         <div><span>Wage schedule</span><strong>{structure}</strong><small>{settings.wageTaxMode === 'progressive' ? `$${settings.progressiveZeroBracketPerAdult.toLocaleString()} zero ceiling · $${settings.progressiveTopBracketPerAdult.toLocaleString()} top threshold per adult` : 'Wages and business cash flow use the same rate'}</small></div>
-        <div><span>Cash credits</span><strong>${settings.adultCredit.toLocaleString()} adult · ${settings.childCredit.toLocaleString()} child</strong><small>{settings.adultCreditMode === 'earned' ? `${percent(settings.adultCreditPhaseInRate)} phase-in · ${percent(settings.adultCreditPhaseOutRate)} phaseout` : 'Universal adult credit'} · {percent(settings.adultCreditTakeUpRate)} take-up</small></div>
+        <div><span>Cash credits</span><strong>${settings.adultCredit.toLocaleString()} adult · ${settings.childCredit.toLocaleString()} child · +${(settings.under6ChildCredit ?? 0).toLocaleString()} U6</strong><small>{settings.adultCreditMode === 'earned' ? `${percent(settings.adultCreditPhaseInRate)} adult phase-in · ${percent(settings.adultCreditPhaseOutRate)} phaseout` : 'Universal adult credit'} · child {percent(childBaselineRefundable)} baseline refundable</small></div>
         <div><span>Insurance credits</span><strong>${healthPolicy.adultHealthCredit.toLocaleString()} adult · ${healthPolicy.childHealthCredit.toLocaleString()} child</strong><small>{percent(healthPolicy.uninsuredTakeUpRate)} uninsured take-up · {billions(result.insuranceCreditCost)} total cost</small></div>
         <div><span>Compensation exclusions</span><strong>{percent(settings.employerHealthInsuranceExemptionShare)} ESI · {percent(settings.employerPensionOtherInsuranceExemptionShare)} pension/other</strong><small>{percent(settings.cashWageExemptionShare)} cash wages · {percent(settings.employerSocialInsuranceExemptionShare)} employer social insurance · {percent(settings.exemptionShare)} broad</small></div>
         <div><span>Taxes replaced</span><strong>{replaced || 'None'}</strong><small>{billions(result.totalFederalSavings)} automatic and selected federal savings</small></div>
