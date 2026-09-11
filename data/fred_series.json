@@ -1,0 +1,17 @@
+{
+  "gdp": { "id": "GDP", "label": "Gross domestic product" },
+  "compensation": { "id": "COE", "label": "Compensation of employees" },
+  "wagesAndSalaries": { "id": "WASCUR", "label": "Wages and salary disbursements" },
+  "employerGovernmentSocialInsurance": { "id": "B039RC1A027NBEA", "label": "Employer contributions for government social insurance" },
+  "employerPensionAndInsurance": { "id": "B040RC1A027NBEA", "label": "Employer contributions for employee pension and insurance funds" },
+  "corporateProfits": { "id": "CPROFIT", "label": "Corporate profits" },
+  "proprietorsIncome": { "id": "PROPINC", "label": "Proprietors' income" },
+  "netInterest": { "id": "B471RC1Q027SBEA", "label": "Net interest and miscellaneous payments" },
+  "capitalConsumption": { "id": "COFC", "label": "Consumption of fixed capital" },
+  "productionTaxes": { "id": "GDITAXES", "label": "Taxes on production and imports less subsidies" },
+  "investment": { "id": "GPDI", "label": "Gross private domestic investment" },
+  "imports": { "id": "IMPGS", "label": "Imports of goods and services" },
+  "exports": { "id": "EXPGS", "label": "Exports of goods and services" },
+  "householdInvestment": { "id": "W988RC1A027NBEA", "label": "Household gross investment" },
+  "housingValueAdded": { "id": "B952RC1A027NBEA", "label": "Housing-sector gross value added" }
+}

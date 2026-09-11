@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "dataYear": 2024,
+  "units": "billions_of_dollars",
+  "snapshot": "archived-repository-output-2026-02-27",
+  "gdp": 29298.0,
+  "components": {
+    "compensation": 15027.1,
+    "netCapitalIncomeAfterInvestment": 7516.2,
+    "netImports": 898.5,
+    "housingAdjustment": -676.9
+  },
+  "componentFormulas": {
+    "netCapitalIncomeAfterInvestment": "CPROFIT + PROPINC + B471RC1Q027SBEA + COFC + GDITAXES - GPDI",
+    "netImports": "IMPGS - EXPGS",
+    "housingAdjustment": "W988RC1A027NBEA - B952RC1A027NBEA"
+  },
+  "defaultNoncomplianceRate": 0.075,
+  "defaultExemptionShare": 0,
+  "populationsMillions": {
+    "adults": 267.0,
+    "children": 73.1
+  },
+  "federalReceipts": {
+    "individualIncome": 2426,
+    "payroll": 1709,
+    "corporateIncome": 530,
+    "customs": 77
+  },
+  "sources": [
+    {
+      "label": "Archived VAT Base Updater notebook",
+      "url": "https://github.com/pcarlsgaard/tax_reform/blob/main/VAT_Base_Updater.ipynb",
+      "note": "Saved 2024 NIPA/FRED output; values may reflect the vintage available on 2026-02-27."
+    },
+    {
+      "label": "FRED / BEA series catalog",
+      "url": "https://fred.stlouisfed.org/",
+      "note": "Series identifiers and formulas are listed in data/fred_series.json."
+    },
+    {
+      "label": "CBO: Revenues in Fiscal Year 2024",
+      "url": "https://www.cbo.gov/publication/61185",
+      "note": "FY2024 receipts by source; fiscal-year receipts are compared with a calendar-year economic base."
+    },
+    {
+      "label": "Census 2024 population estimates",
+      "url": "https://www.census.gov/newsroom/press-releases/2024/population-estimates-international-migration.html",
+      "note": "Approximately 267.0 million adults and 73.1 million people under age 18."
+    }
+  ]
+}

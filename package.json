@@ -1,0 +1,30 @@
+{
+  "name": "tax-reform-simulator",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -b",
+    "pareto:search": "python3 scripts/run_pareto_search.py",
+    "pareto:browser": "python3 scripts/build_pareto_browser_data.py",
+    "wedge:plan2146": "python3 scripts/build_plan_2146_oecd_wedge.py",
+    "microdata:verify": "python3 scripts/build_microdata.py --verify-only && python3 scripts/build_health_microdata.py --verify-only"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "6.0.5",
+    "vite": "8.2.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10"
+  }
+}
