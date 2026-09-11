@@ -38,6 +38,8 @@ export function Overview({ settings, setSettings, result }: { settings: ReformSe
   const hasFiscalSavings = result.totalFederalSavings > 0;
   const update = (patch: Partial<ReformSettings>) => setSettings({ ...settings, ...patch });
   const toggleTax = (key: ReplacedTax) => update({ replacedTaxes: { ...settings.replacedTaxes, [key]: !settings.replacedTaxes[key] } });
+  const childBaselineRefundableShare = settings.childCreditBaselineRefundableShare ?? 1;
+  const childCreditPhaseInRate = settings.childCreditPhaseInRate ?? 0;
 
   return (
     <div className="view-grid overview-view">
@@ -62,7 +64,14 @@ export function Overview({ settings, setSettings, result }: { settings: ReformSe
           <RangeField label="Phase-out rate" value={settings.adultCreditPhaseOutRate} min={0} max={0.50} step={0.005} display={percent(settings.adultCreditPhaseOutRate)} onChange={(adultCreditPhaseOutRate) => update({ adultCreditPhaseOutRate })} />
         </div>}
         <RangeField label="Adult-credit take-up" value={settings.adultCreditTakeUpRate} min={0} max={1} step={0.01} display={percent(settings.adultCreditTakeUpRate)} onChange={(adultCreditTakeUpRate) => update({ adultCreditTakeUpRate })} hint="Aggregate participation assumption applied after the CPS statutory eligibility score; individual examples show statutory eligibility." />
-        <RangeField label="Child credit" value={settings.childCredit} min={0} max={12000} step={100} display={`$${settings.childCredit.toLocaleString()}`} onChange={(childCredit) => update({ childCredit })} hint="Fully refundable; one per person under 18." />
+        <RangeField label="Child credit" value={settings.childCredit} min={0} max={12000} step={100} display={`$${settings.childCredit.toLocaleString()}`} onChange={(childCredit) => update({ childCredit })} hint="Base amount for every qualifying child under 18." />
+        <RangeField label="Additional under-6 credit" value={settings.under6ChildCredit ?? 0} min={0} max={12000} step={100} display={`$${(settings.under6ChildCredit ?? 0).toLocaleString()}`} onChange={(under6ChildCredit) => update({ under6ChildCredit })} hint="Added on top of the base child credit for each child younger than 6." />
+        <div className="control-group">
+          <span>Child credit refundability</span>
+          <RangeField label="Baseline refundable share" value={childBaselineRefundableShare} min={0} max={1} step={0.01} display={percent(childBaselineRefundableShare)} onChange={(childCreditBaselineRefundableShare) => update({ childCreditBaselineRefundableShare })} hint="Share available even with zero earnings." />
+          <RangeField label="Phase-in rate" value={childCreditPhaseInRate} min={0} max={1} step={0.01} display={percent(childCreditPhaseInRate)} onChange={(childCreditPhaseInRateValue) => update({ childCreditPhaseInRate: childCreditPhaseInRateValue })} hint="Applies only to the portion not already refundable at baseline." />
+          <p className="control-note">At <strong>100% baseline refundability</strong>, the entire child credit is available at zero earnings, so the phase-in setting has no effect.</p>
+        </div>
         <RangeField label="Noncompliance" value={settings.noncomplianceRate} min={0} max={0.30} step={0.005} display={percent(settings.noncomplianceRate)} onChange={(noncomplianceRate) => update({ noncomplianceRate })} />
         <RangeField label="Other broad exemptions" value={settings.exemptionShare} min={0} max={0.30} step={0.005} display={percent(settings.exemptionShare)} onChange={(exemptionShare) => update({ exemptionShare })} hint="Share removed from every otherwise-compliant component before the named compensation exemptions." />
         <div className="control-group">
