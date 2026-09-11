@@ -5,4 +5,5 @@ export * from './childCredits';
 export * from './household';
 export * from './business';
 export * from './transfers';
+export { calculateTransferAnalysis, calculateMarginalResourceWithdrawalRate } from './transferAnalysis';
 export * from './health';
