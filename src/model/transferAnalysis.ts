@@ -10,7 +10,9 @@ import type {
   TransferReplacementSettings,
 } from './types';
 
-function withChildAges(input: TransferHouseholdInput): TransferHouseholdInput {
+function withChildAges(input: TransferHouseholdInput, reform: ReformSettings): TransferHouseholdInput {
+  if ((reform.under6ChildCredit ?? 0) <= 0) return input;
+
   const children = Math.max(0, Math.trunc(input.household.children));
   const childrenUnder6 = Math.max(0, Math.min(children, Math.trunc(input.preschoolChildren)));
   return {
@@ -24,15 +26,15 @@ function withChildAges(input: TransferHouseholdInput): TransferHouseholdInput {
 
 /**
  * Social-spending households already distinguish preschool and school-age children.
- * Translate that information into the household tax engine's under-6 count so the
- * additional young-child credit is included in every resource identity.
+ * Translate that information into the household tax engine's under-6 count when the
+ * policy includes an under-6 supplement, so every resource identity includes it.
  */
 export function calculateTransferAnalysis(
   input: TransferHouseholdInput,
   reform: ReformSettings,
   replacements: TransferReplacementSettings = defaultTransferReplacementSettings,
 ): TransferAnalysisResult {
-  return calculateTransferAnalysisBase(withChildAges(input), reform, replacements);
+  return calculateTransferAnalysisBase(withChildAges(input, reform), reform, replacements);
 }
 
 export function calculateMarginalResourceWithdrawalRate(
