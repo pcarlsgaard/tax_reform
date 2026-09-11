@@ -1,5 +1,6 @@
 import baseline from '../data/baseline_2025.json';
 import refundableTaxCreditOutlaysJson from '../data/refundable_tax_credit_outlays_2025.json';
+import { calculateAggregateChildCreditCost } from './childCredits';
 import { calculateMicrodataScore } from './microdata';
 import type { MacroAdjustment, MacroResult, ReformSettings, ReplacedTax, RefundableTaxCreditOutlayData } from './types';
 
@@ -37,7 +38,7 @@ export function calculateMacro(settings: ReformSettings, adjustment: MacroAdjust
 
   const adultCreditStatutoryCost = microdata.adultCreditStatutoryCost;
   const adultCreditCost = microdata.adultCreditCost;
-  const childCreditCost = baseline.populationsMillions.children * settings.childCredit / 1000;
+  const childCreditCost = calculateAggregateChildCreditCost(settings);
   const insuranceCreditCost = Math.max(0, adjustment.insuranceCreditCost ?? 0);
   const grossRevenue = rateAdjustedBase * settings.rate;
   const netRevenue = grossRevenue - adultCreditCost - childCreditCost - insuranceCreditCost;
