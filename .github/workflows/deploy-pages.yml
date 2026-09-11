@@ -26,6 +26,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: python3 scripts/build_child_credit_microdata.py
       - run: npm run microdata:verify
       - run: npm test
       - run: npm run build
