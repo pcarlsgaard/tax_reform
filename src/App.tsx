@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import './styles.css';
+import './mobile-fixes.css';
 import {
   calculateFederalProgramSavings,
   calculateHealthAnalysis,
@@ -24,11 +25,34 @@ const views: Array<[View, string, string]> = [
   ['designer', 'Reform designer', '01'], ['national', 'National base', '02'], ['household', 'Households', '03'], ['transfers', 'Social spending', '04'], ['health', 'Employer health', '05'], ['business', 'Businesses', '06'],
 ];
 
+const websiteDefaultSettings: ReformSettings = {
+  ...defaultSettings,
+  rate: 0.35,
+  wageTaxMode: 'progressive',
+  progressiveZeroBracketPerAdult: 0,
+  progressiveTopBracketPerAdult: 60000,
+  progressiveMiddleRate: 0.25,
+  adultCredit: 2000,
+  adultCreditMode: 'earned',
+  adultCreditPhaseInRate: 0.10,
+  adultCreditPhaseOutRate: 0,
+  childCredit: 4000,
+  under6ChildCredit: 6000,
+  childCreditBaselineRefundableShare: 1,
+  childCreditPhaseInRate: 0.15,
+};
+
+const websiteDefaultHealthPolicy: HealthPolicySettings = {
+  ...defaultHealthPolicySettings,
+  adultHealthCredit: 3000,
+  childHealthCredit: 1500,
+};
+
 export default function App() {
   const [view, setView] = useState<View>('designer');
-  const [settings, setSettings] = useState<ReformSettings>(defaultSettings);
+  const [settings, setSettings] = useState<ReformSettings>(websiteDefaultSettings);
   const [transferSettings, setTransferSettings] = useState<TransferReplacementSettings>(defaultTransferReplacementSettings);
-  const [healthPolicy, setHealthPolicy] = useState<HealthPolicySettings>(defaultHealthPolicySettings);
+  const [healthPolicy, setHealthPolicy] = useState<HealthPolicySettings>(websiteDefaultHealthPolicy);
   const [policyDockExpanded, setPolicyDockExpanded] = useState(true);
   const healthAnalysis = useMemo(
     () => calculateHealthAnalysis(settings, healthPolicy),
