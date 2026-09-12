@@ -1,4 +1,5 @@
 .overview-view,
+.results-panel,
 .control-panel,
 .control-panel > *,
 .control-field,
@@ -25,22 +26,132 @@
 }
 
 @media (max-width: 760px) {
+  html,
+  body,
+  #root,
+  .app {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   .view-grid,
   .page-shell {
     width: 100%;
-    max-width: 100vw;
-    padding-left: max(14px, 4vw);
-    padding-right: max(14px, 4vw);
-    overflow-x: clip;
+    max-width: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
+    overflow-x: hidden;
   }
 
+  /* The desktop designer is a fixed 330px control column plus results.
+     Collapse it completely on phones so neither column can force the viewport wider. */
   .overview-view {
     width: 100%;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
   }
 
-  .control-panel {
-    padding: 20px 18px;
-    border-radius: 16px;
+  .overview-view > *,
+  .results-panel {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .control-panel,
+  .app.policy-summary-open .control-panel {
+    position: static;
+    top: auto;
+    width: 100%;
+    max-width: 100%;
+    padding: 16px 12px;
+    border-radius: 14px;
+  }
+
+  .control-panel h2 {
+    margin: 5px 0 16px;
+    font-size: 19px;
+  }
+
+  .control-field,
+  .select-field {
+    margin-bottom: 14px;
+  }
+
+  .control-heading {
+    gap: 6px;
+    align-items: center;
+    font-size: 11px;
+  }
+
+  .control-heading > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .control-heading > strong {
+    flex: 0 0 auto;
+    font-size: 11px;
+  }
+
+  .control-field input[type='range'] {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    margin: 7px 0 3px;
+  }
+
+  .control-hint,
+  .control-note {
+    font-size: 9px;
+    line-height: 1.35;
+  }
+
+  .select-field > span:first-child {
+    font-size: 11px;
+  }
+
+  .select-field select {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .control-group {
+    padding: 10px 10px 0;
+    margin-bottom: 14px;
+    border-radius: 10px;
+  }
+
+  .control-group > span {
+    margin-bottom: 9px;
+    font-size: 9px;
+  }
+
+  .control-group .control-field {
+    margin-bottom: 11px;
+  }
+
+  .tax-checks {
+    padding-top: 14px;
+  }
+
+  .tax-checks legend,
+  .tax-checks label {
+    font-size: 10px;
+  }
+
+  .view-intro {
+    gap: 12px;
+  }
+
+  .view-intro h1 {
+    font-size: clamp(27px, 9vw, 38px);
+  }
+
+  .metric-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .control-heading {
