@@ -2,6 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { calculateMicrodataScore, defaultSettings, microdata2025 } from '../src/model';
 
 describe('CPS ASEC microdata score', () => {
+  it('phases the revised earned adult credit in on cash wages consistently with household liability', () => {
+    const revised = { ...defaultSettings, adultCredit: 2000,
+      adultCreditPhaseInRate: .1, adultCreditPhaseOutRate: 0,
+      adultCreditEarningsBase: 'cash' as const };
+    const cash = calculateMicrodataScore(revised);
+    const compensation = calculateMicrodataScore({ ...revised,
+      adultCreditEarningsBase: 'compensation' as const });
+    expect(cash.adultCreditCost).toBeLessThan(compensation.adultCreditCost);
+  });
   it('reproduces the checked-in default estimates', () => {
     const score = calculateMicrodataScore(defaultSettings);
     expect(score.grossCompensationBase).toBeCloseTo(15726.91, 8);

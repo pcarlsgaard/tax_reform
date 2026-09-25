@@ -18,6 +18,10 @@ from build_microdata import EXPECTED_SOURCE_SHA256, ROOT, read_person_units, sou
 
 LAW = json.loads((ROOT / "src/data/current_law_2025.json").read_text())
 BASELINE = json.loads((ROOT / "src/data/baseline_2025.json").read_text())
+TRANSFERS = json.loads((ROOT / "src/data/transfers_2025.json").read_text())
+SWAP_CHILD_CREDIT = 7200 + sum(
+    row["federalFiscalAmountBillions"] for row in TRANSFERS["programs"]
+) * 1000 / BASELINE["populationsMillions"]["children"]
 OTHER_BENEFITS_PER_CASH_WAGE = (
     BASELINE["compensationComponents"]["employerHealthInsurance"]
     + BASELINE["compensationComponents"]["employerPensionAndOtherInsurance"]
@@ -58,19 +62,31 @@ def current_tax(earners: list[float], married: bool, children: int,
 
 def reform_tax(earners: list[float], married: bool, credit_adults: int, children: int,
                *, zero_bracket: int = 0, child_credit: int = 7200,
+               insurance_credit: bool = True,
+               health_adults_under65: int | None = None,
+               benefit_cash_out_share: float = 0.0,
+               fica_cash_credit_share: float = 1.0,
                employer_pass_through: float = 1.0, benefit_share: float = OTHER_BENEFITS_PER_CASH_WAGE,
                benefit_amount: float | None = None) -> float:
     wage = sum(earners)
     employer_fica = current_tax(earners, married, children)[1]
-    compensation = wage + (wage * benefit_share if benefit_amount is None else benefit_amount)
+    benefits = wage * benefit_share if benefit_amount is None else benefit_amount
+    compensation = wage + benefits
     compensation += employer_pass_through * employer_fica
     schedule_adults = 2 if married else 1
     zero = schedule_adults * zero_bracket
     top = max(zero, schedule_adults * 75000)
     business_wage_tax = .25 * max(0, min(compensation, top) - zero) + .35 * max(0, compensation - top)
-    # Interpret the user's $20k/adult credit phase-in as cash wages, not imputed ESI.
-    adult_credit = min(credit_adults * 2000, .10 * wage)
-    return business_wage_tax - adult_credit - child_credit * children
+    # Cash-out changes earned-credit eligibility, not the wage-tax base:
+    # compensation is taxed at the same rate whether paid by employers in kind or cash.
+    cash_earnings_for_credit = wage + benefit_cash_out_share * benefits
+    cash_earnings_for_credit += fica_cash_credit_share * employer_pass_through * employer_fica
+    adult_credit = min(credit_adults * 2000, .10 * cash_earnings_for_credit)
+    # A flat purchase credit affects the tax level but not the marginal tax rate.
+    # We assume full qualifying coverage for these units; enrollment is not in this sample.
+    health_credit = (3000 * (credit_adults if health_adults_under65 is None else health_adults_under65)
+                     + 1500 * children) if insurance_credit else 0
+    return business_wage_tax - adult_credit - child_credit * children - health_credit
 
 
 def weighted_quantile(items: list[tuple[float, float]], quantile: float) -> float:
@@ -84,11 +100,14 @@ def weighted_quantile(items: list[tuple[float, float]], quantile: float) -> floa
     return items[-1][0]
 
 
-def score(units: list[dict], *, zero_bracket: int = 0, child_credit: int = 7200,
+def score(units: list[dict], *, zero_bracket: int = 0, child_credit: float = 7200,
+          insurance_credit: bool = True,
+          benefit_cash_out_share: float = 0.0,
+          fica_cash_credit_share: float = 1.0,
           employer_pass_through: float = 1.0, substitution_primary: float = .25,
           substitution_secondary: float = .32, income_elasticity: float = -.05,
           benefit_share: float = OTHER_BENEFITS_PER_CASH_WAGE,
-          marginal_benefit_share: float = 0.0,
+          marginal_benefit_share: float = OTHER_BENEFITS_PER_CASH_WAGE,
           capital_wage_ratio: float = 1.0083745732907252) -> dict:
     cash_scale = BASELINE["compensationComponents"]["cashWagesAndSalaries"] * 1e9 / sum(
         u["headWeight"] * u["rawCashWage"] for u in units)
@@ -108,10 +127,15 @@ def score(units: list[dict], *, zero_bracket: int = 0, child_credit: int = 7200,
         children = unit["children"]
         children_under17 = unit["childrenUnder17"]
         adults = unit["creditAdults"]
+        health_adults = unit["healthCreditAdultsUnder65"]
         base_benefit_amount = sum(earners) * benefit_share
         old_tax, employer_fica = current_tax(earners, married, children, children_under17)
         new_tax = reform_tax(earners, married, adults, children, zero_bracket=zero_bracket,
-                             child_credit=child_credit, employer_pass_through=employer_pass_through,
+                             child_credit=child_credit, insurance_credit=insurance_credit,
+                             health_adults_under65=health_adults,
+                             benefit_cash_out_share=benefit_cash_out_share,
+                             fica_cash_credit_share=fica_cash_credit_share,
+                             employer_pass_through=employer_pass_through,
                              benefit_amount=base_benefit_amount)
         old_comp = sum(earners) + base_benefit_amount + employer_fica
         for index, wage in enumerate(earners):
@@ -122,6 +146,10 @@ def score(units: list[dict], *, zero_bracket: int = 0, child_credit: int = 7200,
             old_plus, fica_plus = current_tax(perturbed, married, children, children_under17)
             new_plus = reform_tax(perturbed, married, adults, children,
                                   zero_bracket=zero_bracket, child_credit=child_credit,
+                                  insurance_credit=insurance_credit,
+                                  health_adults_under65=health_adults,
+                                  benefit_cash_out_share=benefit_cash_out_share,
+                                  fica_cash_credit_share=fica_cash_credit_share,
                                   employer_pass_through=employer_pass_through,
                                   benefit_amount=base_benefit_amount + marginal_benefit_share * 1000)
             increment = 1000 * (1 + marginal_benefit_share) + fica_plus - employer_fica
@@ -165,6 +193,10 @@ def score(units: list[dict], *, zero_bracket: int = 0, child_credit: int = 7200,
                      "topThresholdPerAdult": 75000, "topRate": .35,
                      "adultCreditPerAdult": 2000, "adultCreditPhaseIn": .10,
                      "childCreditPerChild": child_credit,
+                     "insuranceCreditAdultUnder65": 3000 if insurance_credit else 0,
+                     "insuranceCreditChild": 1500 if insurance_credit else 0,
+                     "benefitCashOutShareIntoEarnedCredit": benefit_cash_out_share,
+                     "employerFicaPassThroughInEarnedCredit": fica_cash_credit_share,
                      "employerPayrollPassThrough": employer_pass_through,
                      "employerBenefitPerCashWage": benefit_share,
                      "marginalBenefitPerDollarCashWage": marginal_benefit_share,
@@ -207,8 +239,15 @@ def main() -> None:
         "oldZeroBracket17k": score(units, zero_bracket=17000),
         "childCredit6k": score(units, child_credit=6000),
         "childCredit12k": score(units, child_credit=12000),
+        "universalChildCreditSwap": score(units, child_credit=SWAP_CHILD_CREDIT),
+        "illustrativeFamilySafeguard16k2": score(units, child_credit=16200),
+        "employerFicaNotCreditedAsCash": score(units, fica_cash_credit_share=0),
+        "halfBenefitsCashOut": score(units, benefit_cash_out_share=.5, fica_cash_credit_share=1),
+        "allBenefitsCashOut": score(units, benefit_cash_out_share=1, fica_cash_credit_share=1),
+        "noInsurancePurchaseCredit": score(units, insurance_credit=False),
         "halfEmployerFicaPassThrough": score(units, employer_pass_through=.5),
         "cashAndFicaOnly": score(units, benefit_share=0),
+        "benefitsFixedAtMargin": score(units, marginal_benefit_share=0),
         "pensionBenefitsMarginal": score(units, marginal_benefit_share=(
             BASELINE["compensationComponents"]["employerPensionAndOtherInsurance"]
             / BASELINE["compensationComponents"]["cashWagesAndSalaries"])),
@@ -219,7 +258,7 @@ def main() -> None:
     }
     output = {"schemaVersion": 1, "source": "2025 CPS ASEC, income year 2024, projected to 2025 BEA wages",
               "archiveSha256": EXPECTED_SOURCE_SHA256, "sample": sample,
-              "method": "Wage-only current law; +$1,000 per worker; employer cost denominator; earnings weights; CBO 2026 central substitution elasticities .25/.32 and income -.05; no transfer withdrawal or participation of current nonworkers",
+              "method": "Wage-only current law; +$1,000 per worker; employer cost denominator; proportional employer health/pension benefits taxable under reform; full insurance purchase-credit take-up assumed; earnings weights; CBO 2026 elasticities .25/.32 and income -.05; no social-program receipt, transfer withdrawal or participation of current nonworkers",
               "central": central,
               "sensitivities": {name: {"oldEarningsWeightedFederalMTR": v["oldEarningsWeightedFederalMTR"],
                                        "newEarningsWeightedFederalMTR": v["newEarningsWeightedFederalMTR"],

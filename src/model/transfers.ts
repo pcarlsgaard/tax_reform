@@ -1,4 +1,5 @@
 import transferDataJson from '../data/transfers_2025.json';
+import { childCreditPopulationSummary } from './childCredits';
 import { calculateHousehold } from './household';
 import type {
   ReformSettings,
@@ -199,6 +200,21 @@ export function calculateFederalProgramSavings(settings: TransferReplacementSett
   );
 }
 
+/** Federal outlays spread over every child, with no income or program-receipt test. */
+export function universalChildCreditSwap(baseChildCredit = 7200): {
+  replacements: TransferReplacementSettings;
+  federalSavingsBillions: number;
+  supplementPerChild: number;
+  totalChildCredit: number;
+} {
+  const replacements = { replacedPrograms: allProgramFlags(true) };
+  const federalSavingsBillions = calculateFederalProgramSavings(replacements);
+  const childrenMillions = childCreditPopulationSummary().childrenMillions;
+  const supplementPerChild = childrenMillions > 0 ? federalSavingsBillions * 1000 / childrenMillions : 0;
+  return { replacements, federalSavingsBillions, supplementPerChild,
+    totalChildCredit: baseChildCredit + supplementPerChild };
+}
+
 function resourceScenario(annual: number, fpl: number, currentAnnual: number): ResourceScenario {
   const changeFromCurrent = annual - currentAnnual;
   return {
@@ -339,6 +355,15 @@ export const transferPresets: TransferPreset[] = [
     monthlyDependentCareExpense: 350,
     receives: { ...baseReceives(), snap: true, wic: true, schoolMeals: true, summerEbt: true, tanf: true, liheap: true },
     manualAnnualBenefits: { wic: 900, tanf: 2400, liheap: 600 },
+  }),
+  preset('parent-housing', 'Single parent + two children, $12k housing aid', { filingStatus: 'single', children: 2, cashWage: 25000 }, {
+    preschoolChildren: 1,
+    schoolAgeChildren: 1,
+    monthlyShelterCost: 1250,
+    monthlyDependentCareExpense: 350,
+    receives: { ...baseReceives(), snap: true, wic: true, schoolMeals: true,
+      summerEbt: true, tanf: true, liheap: true, housing: true },
+    manualAnnualBenefits: { wic: 900, tanf: 2400, liheap: 600, housing: 12000 },
   }),
   preset('married-one', 'Married + two children, one earner', { filingStatus: 'married', children: 2, cashWage: 35000, secondaryCashWage: 0 }, {
     preschoolChildren: 1,

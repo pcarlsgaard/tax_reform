@@ -8,6 +8,27 @@ import {
 } from '../src/model';
 
 describe('employer health transition', () => {
+  it('taxes the same employer health value equally whether kept as ESI or paid as cash', () => {
+    const tax = { ...defaultSettings, adultCreditEarningsBase: 'cash' as const,
+      adultCredit: 2000, adultCreditPhaseInRate: .1, adultCreditPhaseOutRate: 0 };
+    const policy = { ...defaultHealthPolicySettings, redistributionRule: 'ownContribution' as const,
+      employerHealthPassThroughRate: 1 };
+    const cash = calculateHealthAnalysis(tax, policy);
+    const esi = calculateHealthAnalysis(tax, { ...policy, employerHealthPassThroughRate: 0 });
+    expect(cash.aggregateResourceChangeBillions).toBeGreaterThanOrEqual(esi.aggregateResourceChangeBillions);
+    expect(esi.healthTransferWageTaxBillions).toBeCloseTo(cash.healthTransferWageTaxBillions, 7);
+  });
+
+  it('replaces existing ACA premium credits with gross flat credits and separate savings', () => {
+    const kept = calculateHealthAnalysis(defaultSettings, defaultHealthPolicySettings);
+    const replaced = calculateHealthAnalysis(defaultSettings, {
+      ...defaultHealthPolicySettings, replaceAcaAptc: true,
+    });
+    expect(replaced.estimatedExistingAptcSavingsBillions).toBeGreaterThan(0);
+    expect(kept.estimatedExistingAptcSavingsBillions).toBe(0);
+    expect(replaced.nongroupAptcFloorTopUpCostBillions)
+      .toBeGreaterThan(kept.nongroupAptcFloorTopUpCostBillions);
+  });
   it('reconciles the redistributed health wage to the employer contribution pool', () => {
     const result = calculateHealthAnalysis(defaultSettings, defaultHealthPolicySettings);
     expect(result.coveredPeopleMillions).toBeGreaterThan(150);

@@ -164,11 +164,13 @@ export function calculateMicrodataScore(settings: ReformSettings): MicrodataScor
     progressiveTopBaseDollars += taxUnitWeight * progressiveTopBase;
     progressiveBaseDollars += taxUnitWeight
       * (progressiveMiddleBase * middleRateShare + progressiveTopBase);
-    const creditCalculation = adultCredit(grossCompensation, creditAdults, settings);
+    const creditEarnings = settings.adultCreditEarningsBase === 'cash'
+      ? projectedCashWage + employerSocialInsurance : grossCompensation;
+    const creditCalculation = adultCredit(creditEarnings, creditAdults, settings);
     const calibratedAdults = taxUnitWeight * creditAdults * adultPopulationScale;
     const calibratedCreditCost = taxUnitWeight * creditCalculation.credit * adultPopulationScale;
     const bucket = auditBuckets.get(adultCreditBucket(
-      grossCompensation,
+      creditEarnings,
       creditAdults,
       creditCalculation,
       settings.adultCreditMode,

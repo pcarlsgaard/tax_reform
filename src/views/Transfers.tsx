@@ -11,6 +11,8 @@ import {
   refundableTaxCreditOutlays,
   transferData,
   transferPresets,
+  childCreditPopulationSummary,
+  universalChildCreditSwap,
   type FilingStatus,
   type MacroResult,
   type ReformSettings,
@@ -25,11 +27,13 @@ const billions = (value: number) => `$${value.toLocaleString('en-US', { minimumF
 
 export function Transfers({
   settings,
+  setSettings,
   replacements,
   setReplacements,
   macro,
 }: {
   settings: ReformSettings;
+  setSettings: (value: ReformSettings) => void;
   replacements: TransferReplacementSettings;
   setReplacements: (value: TransferReplacementSettings) => void;
   macro: MacroResult;
@@ -39,6 +43,34 @@ export function Transfers({
   const [chartMax, setChartMax] = useState(100000);
   const analysis = calculateTransferAnalysis(input, settings, replacements);
   const federalSavings = calculateFederalProgramSavings(replacements);
+  const displacedAcaCredits = Math.max(0, macro.federalTransferSavings - federalSavings);
+  const swap = universalChildCreditSwap();
+  const childrenMillions = childCreditPopulationSummary().childrenMillions;
+  const swapPolicy = { ...settings, childCredit: swap.totalChildCredit,
+    under6ChildCredit: 0, childCreditBaselineRefundableShare: 1 };
+  const neutralDiagnostics = transferPresets.map((row) => {
+    const result = calculateTransferAnalysis(cloneTransferPreset(row), swapPolicy, swap.replacements);
+    return { row, result };
+  });
+  const largestFamilyShortfallPerChild = Math.max(0, ...neutralDiagnostics
+    .filter(({ row, result }) => row.input.household.children > 0 && result.eliminatedHouseholdBenefits > 0)
+    .map(({ row, result }) => Math.max(0, -result.reformAfterReplacement.changeFromCurrent)
+      / row.input.household.children));
+  const safeguardChildCredit = Math.ceil((swap.totalChildCredit + largestFamilyShortfallPerChild) / 100) * 100;
+  const safeguardAdditionalCostBillions = (safeguardChildCredit - swap.totalChildCredit)
+    * childrenMillions / 1000;
+  const safeguardPolicy = { ...swapPolicy, childCredit: safeguardChildCredit };
+  const presetDiagnostics = neutralDiagnostics.map(({ row, result }) => {
+    const children = row.input.household.children;
+    return { id: row.id, label: row.label, children,
+      lostBenefits: result.eliminatedHouseholdBenefits,
+      difference: result.reformAfterReplacement.changeFromCurrent,
+      safeguardedDifference: calculateTransferAnalysis(
+        cloneTransferPreset(row), safeguardPolicy, swap.replacements,
+      ).reformAfterReplacement.changeFromCurrent,
+      furtherPerChild: children > 0
+        ? Math.max(0, -result.reformAfterReplacement.changeFromCurrent / children) : null };
+  });
 
   const choosePreset = (id: string) => {
     const selected = transferPresets.find((row) => row.id === id)!;
@@ -74,6 +106,15 @@ export function Transfers({
   return <main className="page-shell transfer-page">
     <div className="view-intro"><div><span className="eyebrow">Transfer replacement · 2025/FY2025</span><h1>Household resources are not fiscal savings</h1></div><p>Compare the household value of selected benefits with the federal outlays that repeal would remove. Receipt is explicit, and the assumed household pass-through of repealed employer FICA is visible and adjustable.</p></div>
 
+    <section className="table-card compact">
+      <div className="section-heading"><div><span className="eyebrow">Universal child credit · illustrative swap</span><h2>Replace seven external programs with a flat child supplement</h2><p>Divide {billions(swap.federalSavingsBillions)} of listed federal spending by all children. Add {dollars(swap.supplementPerChild)} to the $7,200 base credit for every child, with no income or benefit receipt test.</p></div><strong>{dollars(swap.totalChildCredit)} per child</strong></div>
+      <p><button type="button" onClick={() => { setReplacements(swap.replacements); setSettings(swapPolicy); }}>Apply spending-neutral swap</button> <button type="button" onClick={() => { setReplacements(swap.replacements); setSettings(safeguardPolicy); }}>Hold illustrated families harmless: {dollars(safeguardChildCredit)}/child</button></p>
+      <p className="table-note">The higher amount adds {billions(safeguardAdditionalCostBillions)} annually beyond the spending-neutral swap, reducing the modeled deficit improvement by that amount. Its calibration covers every child-recipient example in the table, including a family with an illustrative $12,000 housing voucher. It does not promise that all real recipients break even.</p>
+      <p className="table-note">This balances the listed federal spending against the incremental child credit arithmetically. It does not guarantee recipient families are held harmless. In particular, childless SNAP or housing recipients receive no child supplement; a universal child credit cannot replace their support. Health coverage, SSI, and Social Security remain outside this swap. Costs use federal account totals, including some administration, and omit state spending and transition costs.</p>
+      <div className="responsive-table"><table><thead><tr><th>Illustrative household</th><th>Removed household benefit value</th><th>Change at spending-neutral credit</th><th>Change at higher credit</th><th>Further credit per child to break even at spending-neutral</th></tr></thead><tbody>{presetDiagnostics.map((row) => <tr key={row.id}><td>{row.label}</td><td>{dollars(row.lostBenefits)}</td><td>{dollars(row.difference)}</td><td>{dollars(row.safeguardedDifference)}</td><td>{row.furtherPerChild == null ? 'No children' : dollars(row.furtherPerChild)}</td></tr>)}</tbody></table></div>
+      <p className="table-note">Rows are examples with explicitly assumed receipt, not a nationally representative estimate of how many recipients gain or lose. Adjust the child credit in Reform Designer, or select a household below, to inspect a different amount. The flat supplement creates no withdrawal cliff; other retained benefits or the adult earned-credit phase-in may still change incentives.</p>
+    </section>
+
     <section className="transfer-inputs">
       <label className="wide"><span>Representative household</span><select value={presetId} onChange={(event) => choosePreset(event.target.value)}>{transferPresets.map((row) => <option key={row.id} value={row.id}>{row.label}</option>)}</select></label>
       <label><span>Filing status</span><select value={input.household.filingStatus} onChange={(event) => updateHousehold({ filingStatus: event.target.value as FilingStatus, secondaryCashWage: event.target.value === 'single' ? 0 : input.household.secondaryCashWage })}><option value="single">Single</option><option value="married">Married filing jointly</option></select></label>
@@ -93,7 +134,7 @@ export function Transfers({
       <MetricCard label="Household replacement ratio" value={analysis.householdReplacementRatio == null ? '—' : `${analysis.householdReplacementRatio.toFixed(Math.abs(analysis.householdReplacementRatio) < 0.01 ? 3 : 2)}×`} note="Tax-reform resource gain ÷ eliminated benefit value"><Audit><Formula>{dollars(analysis.reformRetained.changeFromCurrent)} reform tax/credit gain ÷ {dollars(analysis.eliminatedHouseholdBenefits)} eliminated household resources. This is not a national budget efficiency measure.</Formula></Audit></MetricCard>
       <MetricCard label="Automatic refundable-credit savings" value={billions(macro.refundableTaxCreditOutlaySavings)} note={`${percent(macro.refundableTaxCreditOutlaySavingsPercentGdp, 2)} of GDP · ${settings.replacedTaxes.individualIncome ? 'income tax replaced' : 'income tax retained'}`}><Audit><Formula>FY2025 actual refundable EITC and child-credit outlays are removed automatically only when individual income taxation is replaced. The liability-offset portion already lowers receipts and is not counted again.</Formula></Audit></MetricCard>
       <MetricCard label="Selected external-program savings" value={billions(federalSavings)} note={`${percent(federalSavings / macro.gdp, 2)} of GDP`}><Audit><Formula>Only checked external programs are summed. State-financed amounts are excluded.</Formula></Audit></MetricCard>
-      <MetricCard label="Current-law replacement baseline" value={moneyB(macro.adjustedTargetRevenue)} note={`${percent(macro.adjustedTargetRevenuePercentGdp)} of GDP`}><Audit><Formula>{moneyB(macro.targetRevenue)} selected current-law receipts<br />− {moneyB(macro.refundableTaxCreditOutlaySavings)} automatic refundable-credit outlay savings<br />− {moneyB(federalSavings)} selected external-program savings<br />= {moneyB(macro.adjustedTargetRevenue)}</Formula></Audit></MetricCard>
+      <MetricCard label="Current-law replacement baseline" value={moneyB(macro.adjustedTargetRevenue)} note={`${percent(macro.adjustedTargetRevenuePercentGdp)} of GDP`}><Audit><Formula>{moneyB(macro.targetRevenue)} selected current-law receipts<br />− {moneyB(macro.refundableTaxCreditOutlaySavings)} automatic refundable-credit outlay savings<br />− {moneyB(federalSavings)} selected external-program savings<br />− {moneyB(displacedAcaCredits)} estimated displaced ACA premium credits<br />= {moneyB(macro.adjustedTargetRevenue)}</Formula></Audit></MetricCard>
       <MetricCard label="Replacement-neutral rate after savings" value={percent(macro.adjustedRevenueNeutralRate, 2)} note={`Before savings ${percent(macro.revenueNeutralRate, 2)}`} tone="accent"><Audit><Formula>({moneyB(macro.adjustedTargetRevenue)} current-law replacement baseline + {moneyB(macro.adultCreditCost + macro.childCreditCost + macro.insuranceCreditCost)} reform credits) ÷ {moneyB(macro.rateAdjustedBase)} = {percent(macro.adjustedRevenueNeutralRate, 2)}</Formula></Audit></MetricCard>
       <MetricCard label="Rate reduction" value={`${(macro.revenueNeutralRateReduction * 100).toFixed(2)} pp`} note={`Static deficit ${macro.deficitReduction >= 0 ? 'reduction' : 'increase'} at selected rate ${moneyB(macro.deficitReduction)}`} tone={macro.deficitReduction >= 0 ? 'good' : 'bad'} />
     </div>
@@ -159,7 +200,7 @@ export function Transfers({
     </section>
     <Audit title="Define the marginal withdrawal measure"><Formula>Effective marginal resource withdrawal rate = 1 − (change in resource-equivalent consumption capacity ÷ change in employer compensation), measured over a centered $1,000 primary-wage window. SNAP, school-meal, and Summer EBT rule transitions enter when receipt is selected. Fixed manual WIC, TANF, LIHEAP, and housing amounts have no modeled phaseout and therefore create no artificial marginal wedge.</Formula></Audit>
 
-    <section className="two-column transfer-notes"><div className="content-card"><h2>Scope guardrails</h2><p>Excluded: Medicaid, Medicare, ACA subsidies, employer health exclusions, Social Security retirement, and SSDI. Health coverage cannot credibly be collapsed into ordinary consumption dollars; retirement/disability programs require age and disability circumstances absent from this working-age wage model. SSI is deferred for the same reason.</p></div><div className="content-card"><h2>Timing and precision</h2><p>Household rules mix calendar 2025, FY2025, and school year 2024-25 exactly as labeled. The module is deterministic but not a microsimulation: it does not estimate take-up, geography, assets, immigration status, state rules, disability, or local housing availability.</p><p className="callout">{transferData.povertyGuidelines.note}</p></div></section>
+    <section className="two-column transfer-notes"><div className="content-card"><h2>Scope guardrails</h2><p>Medicaid, Medicare, Social Security retirement, SSDI and SSI remain outside this child-credit swap. ACA premium credits are handled separately in the Health view. Medical coverage cannot credibly be collapsed into ordinary consumption dollars; retirement/disability programs require age and disability circumstances absent from this working-age wage model.</p></div><div className="content-card"><h2>Timing and precision</h2><p>Household rules mix calendar 2025, FY2025, and school year 2024-25 exactly as labeled. The module uses illustrative households, not representative program-receipt microsimulation: it does not estimate take-up, geography, assets, immigration status, state rules, disability, or local housing availability.</p><p className="callout">{transferData.povertyGuidelines.note}</p></div></section>
   </main>;
 }
 

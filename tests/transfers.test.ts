@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   calculateFederalProgramSavings,
+  calculateHealthAnalysis,
   calculateHousehold,
   calculateMacro,
   calculateMarginalResourceWithdrawalRate,
@@ -9,12 +10,14 @@ import {
   calculateTransferPrograms,
   cloneTransferPreset,
   defaultSettings,
+  defaultHealthPolicySettings,
   defaultTransferReplacementSettings,
   illustrativeCoreReplacement,
   povertyGuideline,
   transferPresets,
   transferPrograms,
   totalRefundableTaxCreditOutlays,
+  universalChildCreditSwap,
   type TransferHouseholdInput,
   type TransferProgramId,
   type TransferReplacementSettings,
@@ -35,6 +38,42 @@ function preset(id: string): TransferHouseholdInput {
 }
 
 describe('transfer integration regressions', () => {
+  it('spreads replaced federal outlays over all children and exposes childless recipients left behind', () => {
+    const swap = universalChildCreditSwap();
+    expect(swap.federalSavingsBillions).toBeCloseTo(202.088, 3);
+    expect(swap.supplementPerChild).toBeCloseTo(2805.9458, 3);
+    const policy = { ...defaultSettings, adultCredit: 2000, adultCreditPhaseInRate: .1,
+      adultCreditPhaseOutRate: 0, adultCreditEarningsBase: 'cash' as const,
+      wageTaxMode: 'progressive' as const, rate: .35,
+      progressiveMiddleRate: .25, progressiveZeroBracketPerAdult: 0,
+      progressiveTopBracketPerAdult: 75000, childCredit: swap.totalChildCredit,
+      under6ChildCredit: 0, childCreditBaselineRefundableShare: 1 };
+    const childless = calculateTransferAnalysis(preset('single-zero'), policy, swap.replacements);
+    expect(childless.eliminatedHouseholdBenefits).toBeGreaterThan(0);
+    expect(childless.tax.childCredit).toBe(0);
+    const family = calculateTransferAnalysis(preset('parent-housing'), policy, swap.replacements);
+    expect(family.eliminatedHouseholdBenefits).toBeGreaterThan(12000);
+    const familyCredit = Math.ceil((swap.totalChildCredit
+      + Math.max(0, -family.reformAfterReplacement.changeFromCurrent) / 2) / 100) * 100;
+    const safer = { ...policy, childCredit: familyCredit };
+    const health = calculateHealthAnalysis(safer, { ...defaultHealthPolicySettings,
+      adultHealthCredit: 3000, childHealthCredit: 1500, replaceAcaAptc: true });
+    const staticScore = calculateMacro(safer, {
+      federalTransferSavings: swap.federalSavingsBillions + health.estimatedExistingAptcSavingsBillions,
+      insuranceCreditCost: health.totalHealthCreditCostBillions,
+    });
+    expect(calculateTransferAnalysis(preset('parent-housing'), safer, swap.replacements)
+      .reformAfterReplacement.changeFromCurrent).toBeGreaterThanOrEqual(0);
+    console.log('Neutral swap examples:', JSON.stringify({
+      childless: childless.reformAfterReplacement.changeFromCurrent,
+      housingFamily: family.reformAfterReplacement.changeFromCurrent,
+      illustrativeFamilyFloorCredit: familyCredit,
+      additionalCostAboveNeutralBillions: (familyCredit - swap.totalChildCredit) * 72.021348 / 1000,
+      flatInsuranceCreditsBillions: health.totalHealthCreditCostBillions,
+      existingAptcSavingsBillions: health.estimatedExistingAptcSavingsBillions,
+      staticDeficitReductionBillions: staticScore.deficitReduction,
+    }));
+  });
   it('leaves macro results unchanged across callers when no external programs are selected', () => {
     const before = calculateMacro(defaultSettings);
     const after = calculateMacro(defaultSettings, { federalTransferSavings: calculateFederalProgramSavings(noReplacements()) });

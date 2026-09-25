@@ -89,6 +89,7 @@ def read_person_units(archive_path: Path) -> tuple[list[dict], dict]:
                 "taxId": tax_id,
                 "rawCashWage": 0,
                 "creditAdults": 0,
+                "healthCreditAdultsUnder65": 0,
                 "children": 0,
                 "childrenUnder17": 0,
                 "childrenUnder6": 0,
@@ -103,6 +104,7 @@ def read_person_units(archive_path: Path) -> tuple[list[dict], dict]:
             if person_wage > 0:
                 unit["earnerCashWages"].append(person_wage)
             unit["creditAdults"] += int(age >= 18)
+            unit["healthCreditAdultsUnder65"] += int(18 <= age < 65)
             unit["children"] += int(age < 18)
             unit["childrenUnder17"] += int(age < 17)
             unit["childrenUnder6"] += int(age < 6)

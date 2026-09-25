@@ -30,14 +30,15 @@ const websiteDefaultSettings: ReformSettings = {
   rate: 0.35,
   wageTaxMode: 'progressive',
   progressiveZeroBracketPerAdult: 0,
-  progressiveTopBracketPerAdult: 60000,
+  progressiveTopBracketPerAdult: 75000,
   progressiveMiddleRate: 0.25,
   adultCredit: 2000,
   adultCreditMode: 'earned',
+  adultCreditEarningsBase: 'cash',
   adultCreditPhaseInRate: 0.10,
   adultCreditPhaseOutRate: 0,
-  childCredit: 4000,
-  under6ChildCredit: 6000,
+  childCredit: 7200,
+  under6ChildCredit: 0,
   childCreditBaselineRefundableShare: 1,
   childCreditPhaseInRate: 0.15,
 };
@@ -46,6 +47,7 @@ const websiteDefaultHealthPolicy: HealthPolicySettings = {
   ...defaultHealthPolicySettings,
   adultHealthCredit: 3000,
   childHealthCredit: 1500,
+  replaceAcaAptc: true,
 };
 
 export default function App() {
@@ -59,9 +61,11 @@ export default function App() {
     [settings, healthPolicy],
   );
   const macroResult = useMemo(() => calculateMacro(settings, {
-    federalTransferSavings: calculateFederalProgramSavings(transferSettings),
+    federalTransferSavings: calculateFederalProgramSavings(transferSettings)
+      + healthAnalysis.estimatedExistingAptcSavingsBillions,
     insuranceCreditCost: healthAnalysis.totalHealthCreditCostBillions,
-  }), [settings, transferSettings, healthAnalysis.totalHealthCreditCostBillions]);
+  }), [settings, transferSettings, healthAnalysis.totalHealthCreditCostBillions,
+    healthAnalysis.estimatedExistingAptcSavingsBillions]);
   return <div className={`app ${policyDockExpanded ? 'policy-summary-open' : 'policy-summary-closed'}`}>
     <header className="site-header"><button className="brand" onClick={() => setView('designer')}><span>CT</span><div><strong>Consumption Tax Lab</strong><small>Static reform simulator · Iteration 1</small></div></button><div className="status-pill provisional"><i />2025 provisional baseline</div></header>
     <nav className="view-nav" aria-label="Simulator views">{views.map(([key, label, number]) => <button key={key} className={view === key ? 'active' : ''} onClick={() => setView(key)}><small>{number}</small>{label}</button>)}</nav>
@@ -69,7 +73,7 @@ export default function App() {
     {view === 'designer' && <Overview settings={settings} setSettings={setSettings} result={macroResult} />}
     {view === 'national' && <National settings={settings} result={macroResult} />}
     {view === 'household' && <Household settings={settings} />}
-    {view === 'transfers' && <Transfers settings={settings} replacements={transferSettings} setReplacements={setTransferSettings} macro={macroResult} />}
+    {view === 'transfers' && <Transfers settings={settings} setSettings={setSettings} replacements={transferSettings} setReplacements={setTransferSettings} macro={macroResult} />}
     {view === 'health' && <Health settings={settings} policy={healthPolicy} setPolicy={setHealthPolicy} result={healthAnalysis} macro={macroResult} />}
     {view === 'business' && <Business settings={settings} />}
     <footer><p>Static accounting model · Tax year / data year 2025 · One provisional housing input · No growth, transition, or behavioral effects</p><a href="https://github.com/pcarlsgaard/tax_reform" target="_blank" rel="noreferrer">Methodology & source</a></footer>

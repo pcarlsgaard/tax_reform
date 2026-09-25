@@ -15,6 +15,8 @@ export interface HealthPolicySettings {
   employerFicaPassThroughRate: number;
   employeePremiumPreTaxShare: number;
   benchmarkPremiumScale: number;
+  /** Replace the observed ACA premium tax credit with the flat purchase credit. */
+  replaceAcaAptc?: boolean;
   redistributionRule: HealthRedistributionRule;
   recipientScope: HealthRecipientScope;
 }
@@ -148,6 +150,7 @@ export interface HealthAnalysis {
   healthCreditCostBillions: number;
   nongroupNoAptcCostBillions: number;
   nongroupAptcFloorTopUpCostBillions: number;
+  estimatedExistingAptcSavingsBillions: number;
   uninsuredFullTakeUpCostBillions: number;
   uninsuredInducedEnrollmentCostBillions: number;
   nongroupExtensionCostBillions: number;
@@ -200,6 +203,7 @@ export const defaultHealthPolicySettings: HealthPolicySettings = {
   employerFicaPassThroughRate: 1,
   employeePremiumPreTaxShare: 1,
   benchmarkPremiumScale: 1.03,
+  replaceAcaAptc: false,
   redistributionRule: 'nationalEqual',
   recipientScope: 'policyholders',
 };
@@ -306,10 +310,15 @@ function calculateCell(
     ? currentTax.employerPayrollTax * clampShare(policy.employerFicaPassThroughRate)
     : 0;
   const healthWage = selectedHealthWage(cell, policy) * clampShare(policy.employerHealthPassThroughRate);
+  // Employer-paid coverage remains compensation when the employer keeps paying the insurer.
+  // It is counted once, whether delivered as ESI or converted into cash wages.
+  const retainedEmployerCoverage = cell.employerContribution
+    * (1 - clampShare(policy.employerHealthPassThroughRate));
+  const taxableHealthCompensation = healthWage + retainedEmployerCoverage;
   const reformPrimaryWage = primaryWage + employerFicaPassThrough + healthWage;
   const reformCurrentTax = calculateCurrentLaw(inputAtWages(cell, reformPrimaryWage, secondaryWage));
-  const reformGrossResources = cashWage + employerFicaPassThrough + healthWage;
-  const taxableWage = taxableReformWage(cashWage, employerFicaPassThrough, healthWage, settings);
+  const reformGrossResources = cashWage + employerFicaPassThrough + taxableHealthCompensation;
+  const taxableWage = taxableReformWage(cashWage, employerFicaPassThrough, taxableHealthCompensation, settings);
   const taxableWageWithoutHealth = taxableReformWage(cashWage, employerFicaPassThrough, 0, settings);
   const reformWageTax = calculateReformWageTax(taxableWage, filingStatus(cell), settings);
   const reformWageTaxWithoutHealth = calculateReformWageTax(
@@ -318,7 +327,11 @@ function calculateCell(
   const retainedPreCreditTax = (settings.replacedTaxes.individualIncome ? 0 : reformCurrentTax.incomeTaxBeforeCredits)
     + (payrollIsReplaced ? 0 : reformCurrentTax.employeePayrollTax);
   const retainedCredits = settings.replacedTaxes.individualIncome ? 0 : currentCredits(reformCurrentTax);
-  const adultCredit = calculateAdultCredit(reformGrossResources, cell.creditAdults, settings);
+  const adultCredit = calculateAdultCredit(
+    settings.adultCreditEarningsBase === 'cash'
+      ? cashWage + employerFicaPassThrough + healthWage : reformGrossResources,
+    cell.creditAdults, settings,
+  );
   const childCredit = cell.children * settings.childCredit;
   const benchmarkPremium = cell.benchmarkPremium2024 * Math.max(0, policy.benchmarkPremiumScale);
   const healthCredit = Math.min(
@@ -366,6 +379,7 @@ function calculateCell(
 interface NongroupCreditCosts {
   noAptc: number;
   aptcFloorTopUp: number;
+  existingAptc: number;
   uninsuredFullTakeUp: number;
   uninsuredInducedEnrollment: number;
 }
@@ -373,6 +387,7 @@ interface NongroupCreditCosts {
 function calculateNongroupCreditCosts(policy: HealthPolicySettings): NongroupCreditCosts {
   let noAptc = 0;
   let aptcFloorTopUp = 0;
+  let existingAptc = 0;
   let uninsuredFullTakeUp = 0;
   for (const row of nongroupHealthSnapshot.distribution) {
     const [status, adults, children, benchmark2024, currentAptc2024, weight] = row;
@@ -385,10 +400,10 @@ function calculateNongroupCreditCosts(policy: HealthPolicySettings): NongroupCre
     const statusScale = nongroupHealthSnapshot.statusWeightScales[String(status)] ?? 1;
     if (status === 1) noAptc += proposed * weight * statusScale;
     if (status === 2) {
-      aptcFloorTopUp += Math.max(
-        0,
-        proposed - currentAptc2024 * Math.max(0, policy.benchmarkPremiumScale),
-      ) * weight * statusScale;
+      const baselineCredit = currentAptc2024 * Math.max(0, policy.benchmarkPremiumScale);
+      existingAptc += baselineCredit * weight * statusScale;
+      aptcFloorTopUp += (policy.replaceAcaAptc ? proposed : Math.max(0, proposed - baselineCredit))
+        * weight * statusScale;
     }
     if (status === 3) uninsuredFullTakeUp += proposed * weight;
   }
@@ -396,6 +411,7 @@ function calculateNongroupCreditCosts(policy: HealthPolicySettings): NongroupCre
   return {
     noAptc: noAptc / 1e9,
     aptcFloorTopUp: aptcFloorTopUp / 1e9,
+    existingAptc: existingAptc / 1e9,
     uninsuredFullTakeUp: uninsuredFullTakeUp / 1e9,
     uninsuredInducedEnrollment: uninsuredInducedEnrollment / 1e9,
   };
@@ -570,6 +586,7 @@ export function calculateHealthAnalysis(
     healthCreditCostBillions,
     nongroupNoAptcCostBillions: nongroup.noAptc,
     nongroupAptcFloorTopUpCostBillions: nongroup.aptcFloorTopUp,
+    estimatedExistingAptcSavingsBillions: policy.replaceAcaAptc ? nongroup.existingAptc : 0,
     uninsuredFullTakeUpCostBillions: nongroup.uninsuredFullTakeUp,
     uninsuredInducedEnrollmentCostBillions: nongroup.uninsuredInducedEnrollment,
     nongroupExtensionCostBillions,

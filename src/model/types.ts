@@ -50,6 +50,8 @@ export interface ReformSettings {
   progressiveMiddleRate: number;
   adultCredit: number;
   adultCreditMode: AdultCreditMode;
+  /** The earned credit's earnings test; cash includes passed-through employer FICA but excludes retained benefits. */
+  adultCreditEarningsBase?: 'cash' | 'compensation';
   adultCreditPhaseInRate: number;
   adultCreditPhaseOutStartPerAdult: number;
   adultCreditPhaseOutRate: number;

@@ -35,13 +35,14 @@ export function Health({ settings, policy, setPolicy, result, macro }: { setting
   };
 
   return <main className="page-shell health-page">
-    <div className="view-intro"><div><span className="eyebrow">ESI transition · linked CPS microdata</span><h1>Cash out employer health benefits and test who wins</h1></div><p>The employer pool is redistributed equally among ESI policyholder workers, and the same premium-capped refundable credit is extended to qualifying nongroup and newly insured people. Adult and child amounts are separate.</p></div>
+    <div className="view-intro"><div><span className="eyebrow">ESI transition · linked CPS microdata</span><h1>Tax employer health compensation like cash</h1></div><p>Employers can continue sponsoring coverage or pay its value as wages; both forms enter the reform wage-tax base. A fixed refundable purchase credit applies to ESI and individual insurance alike, subject to modeled premiums. The cash-out analysis below remains an incidence assumption.</p></div>
 
     <div className="health-layout">
       <aside className="control-panel health-controls">
         <span className="eyebrow">Policy controls</span><h2>Insurance credit</h2>
         <RangeControl label="Refundable adult health credit" value={policy.adultHealthCredit} min={0} max={3500} step={250} display={dollars(policy.adultHealthCredit)} onChange={(adultHealthCredit) => update({ adultHealthCredit })} hint="Per covered adult; the household total is capped at its benchmark premium." />
         <RangeControl label="Refundable child health credit" value={policy.childHealthCredit} min={0} max={3500} step={250} display={dollars(policy.childHealthCredit)} onChange={(childHealthCredit) => update({ childHealthCredit })} hint="Per covered child; the range now matches the adult credit and the household total remains benchmark-capped." />
+        <label className="check-control"><input type="checkbox" checked={Boolean(policy.replaceAcaAptc)} onChange={(event) => update({ replaceAcaAptc: event.target.checked })} /><span>Replace ACA premium tax credits with this flat credit</span></label>
         <RangeControl label="Uninsured enrollment take-up" value={policy.uninsuredTakeUpRate} min={0} max={1} step={0.05} display={percent(policy.uninsuredTakeUpRate, 0)} onChange={(uninsuredTakeUpRate) => update({ uninsuredTakeUpRate })} hint="Share of the full credit cost for currently uninsured people who enroll." />
         <details className="control-disclosure"><summary>Advanced transition assumptions</summary><div>
           <label className="select-field"><span>Employer contribution redistribution</span><select value={policy.redistributionRule} onChange={(event) => update({ redistributionRule: event.target.value as HealthRedistributionRule })}><option value="nationalEqual">Equal national wage</option><option value="employerCellEqual">Equal within sector / firm-size cells</option><option value="ownContribution">Convert own imputed contribution</option></select><small className="control-hint">The searched plans use equal national dollars among ESI policyholder workers.</small></label>
@@ -69,16 +70,17 @@ export function Health({ settings, policy, setPolicy, result, macro }: { setting
 
         <section className="table-card compact health-identity">
           <div className="section-heading"><div><span className="eyebrow">Household identity</span><h2>What is compared</h2><p>Coverage is held conceptually constant; current ESI and reform benchmark insurance are both treated as purchased.</p></div><strong>{percent(result.winnerTaxUnitShare)} of tax units win</strong></div>
-          <div className="two-column"><Formula>Current law<br />cash wages<br />− income tax before credits<br />− employee payroll tax<br />+ EITC / CTC<br />− employee ESI premium</Formula><Formula>Reform<br />cash wages + FICA pass-through + health wage<br />− reform and retained tax before credits<br />+ adult / child / retained credits<br />+ fixed health credit<br />− ACA benchmark premium</Formula></div>
+          <div className="two-column"><Formula>Current law<br />cash wages<br />− income tax before credits<br />− employee payroll tax<br />+ EITC / CTC<br />− employee ESI premium</Formula><Formula>Reform<br />cash wages + FICA pass-through + employer health compensation (cash or ESI value)<br />− reform and retained tax before credits<br />+ adult / child / retained credits<br />+ fixed health credit<br />− modeled benchmark premium</Formula></div>
           <p className="table-note">The Designer now scores employer health separately from pension and other insurance. The selected employer-health exemption share applies to the converted health compensation in this incidence view; reclassification does not enlarge total compensation.</p>
         </section>
 
         <section className="table-card compact">
-          <div className="section-heading"><div><span className="eyebrow">Federal cost</span><h2>Who receives the premium-credit floor</h2><p>The same adult/child schedule applies across coverage sources. Existing APTC is topped up only when below the proposed premium-capped credit.</p></div><strong>{billions(result.totalHealthCreditCostBillions)} total</strong></div>
+          <div className="section-heading"><div><span className="eyebrow">Federal cost</span><h2>Who receives the purchase credit</h2><p>The same adult/child schedule applies across coverage sources. {policy.replaceAcaAptc ? 'Observed ACA premium credits are removed and counted separately as fiscal savings.' : 'Existing ACA premium credits are retained and topped up where needed.'}</p></div><strong>{billions(result.totalHealthCreditCostBillions)} gross</strong></div>
           <div className="responsive-table"><table><thead><tr><th>Coverage group</th><th>Incremental annual cost</th><th>Policy treatment</th></tr></thead><tbody>
             <tr><td>People transitioning from ESI</td><td>{billions(result.healthCreditCostBillions)}</td><td>Full adult/child credit, benchmark-capped</td></tr>
             <tr><td>Nongroup coverage without positive APTC</td><td>{billions(result.nongroupNoAptcCostBillions)}</td><td>Full credit floor</td></tr>
-            <tr><td>Current APTC below the proposed floor</td><td>{billions(result.nongroupAptcFloorTopUpCostBillions)}</td><td>Top-up only</td></tr>
+            <tr><td>Current ACA premium-credit recipients</td><td>{billions(result.nongroupAptcFloorTopUpCostBillions)}</td><td>{policy.replaceAcaAptc ? 'Full new flat credit; old APTC removed' : 'Top-up only; old APTC retained'}</td></tr>
+            {policy.replaceAcaAptc && <tr><td>Estimated existing ACA premium credits removed</td><td>−{billions(result.estimatedExistingAptcSavingsBillions)}</td><td>Separate fiscal saving; 2024 observed amounts projected with benchmark factor</td></tr>}
             <tr><td>Currently uninsured people induced to enroll</td><td>{billions(result.uninsuredInducedEnrollmentCostBillions)}</td><td>{percent(policy.uninsuredTakeUpRate, 0)} of {billions(result.uninsuredFullTakeUpCostBillions)} full take-up cost</td></tr>
             <tr className="total"><td>Total refundable health credit</td><td>{billions(result.totalHealthCreditCostBillions)}</td><td>Included in Designer and National revenue</td></tr>
           </tbody></table></div>

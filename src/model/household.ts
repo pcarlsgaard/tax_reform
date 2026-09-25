@@ -139,7 +139,9 @@ function totalTaxAtWage(input: HouseholdInput, settings: ReformSettings, passThr
   const reformWageBase = totalCashWage + employerFicaPassThrough;
   const taxableWageBase = taxableReformWageBase(totalCashWage, employerFicaPassThrough, settings);
   const adults = input.filingStatus === 'married' ? 2 : 1;
-  const reformCredits = calculateAdultCredit(reformWageBase, adults, settings)
+  // Repealed employer FICA is actual cash pay when passed through.
+  const earnedCreditBase = reformWageBase;
+  const reformCredits = calculateAdultCredit(earnedCreditBase, adults, settings)
     + calculateChildCredit(reformWageBase, input.children, input.childrenUnder6 ?? 0, settings);
   const retainedTaxBeforeCredits = (settings.replacedTaxes.individualIncome ? 0 : current.incomeTaxBeforeCredits)
     + (payrollIsReplaced ? 0 : current.employeePayrollTax + current.employerPayrollTax);
