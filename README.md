@@ -119,6 +119,8 @@ Vite uses `/tax_reform/` as its production base. `.github/workflows/deploy-pages
 
 An initial, separately labeled long-run general-equilibrium layer and the Tax Foundation DBCFT benchmark comparison are described in [GENERAL_EQUILIBRIUM.md](GENERAL_EQUILIBRIUM.md). The app's national score remains static; the prototype does not change its displayed revenue or household results.
 
+The subsequent [worker-level labor response](LABOR_RESPONSE.md) uses the pinned Census ASEC sample to compare marginal tax rates earner by earner for the revised X-tax. It supersedes the first prototype's uniform-wage-wedge policy illustration. Reproduce the aggregate analysis with `python3 scripts/estimate_labor_response.py --archive /path/to/asecpub25csv.zip`.
+
 The user can select either:
 
 - a flat X tax / DBCFT plus wage-side tax at the same rate; or

@@ -1,5 +1,7 @@
 # DBCFT and progressive X-tax: first general equilibrium layer
 
+**Update:** The X-tax labor and GDP illustration below uses a uniform wage-tax proxy and an earlier policy schedule. It has been superseded by the [survey-weighted worker analysis](LABOR_RESPONSE.md), which evaluates the revised 25/35 wage rates, earned adult credit, and child-credit sensitivity. The DBCFT capital benchmark remains the same.
+
 This is a **working comparative-statics prototype**, not a reproduction of the Tax Foundation tax calculator, a CBO overlapping-generations forecast, or a ten-year budget score. It lives in `src/model/generalEquilibrium.ts`; run `npx vitest run tests/generalEquilibrium.test.ts --reporter=verbose` to see the calibration and first policy run. The existing app and its static revenue calculations are unchanged.
 
 ## Benchmark, definition, and calibration

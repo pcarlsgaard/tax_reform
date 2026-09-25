@@ -96,6 +96,27 @@ export function solveLongRun(policy: GEPolicy, p: GEParameters = referenceParame
   return { capitalRatio, hoursRatio, outputRatio, gdpRatio, wageRatio, userCostRatio, afterTaxWageRatio };
 }
 
+/** Combine a separately estimated distributional labor response with the capital equilibrium.
+ * Unlike solveLongRun, this does not derive hours from an aggregate marginal tax rate.
+ */
+export function solveLongRunAtHours(hoursRatio: number,
+  businessRate: number, recoveryPresentValue: number,
+  p: GEParameters = referenceParameters) {
+  validate(p, { businessRate, recoveryPresentValue,
+    laborMarginalRate: p.baselineLaborMarginalRate });
+  if (!Number.isFinite(hoursRatio) || hoursRatio <= 0) throw new Error('Invalid hours ratio');
+  const rawCostRatio = userCost(businessRate, recoveryPresentValue, p)
+    / userCost(p.baselineBusinessRate, p.baselineRecoveryPresentValue, p);
+  const userCostRatio = rawCostRatio ** p.exposedCapitalShare;
+  const capitalPerHourRatio = userCostRatio ** (-1 / (1 - p.capitalShare));
+  const capitalRatio = hoursRatio * capitalPerHourRatio;
+  const wageRatio = capitalPerHourRatio ** p.capitalShare;
+  const outputRatio = capitalRatio ** p.capitalShare * hoursRatio ** (1 - p.capitalShare);
+  const gdpRatio = 1 + p.responsiveOutputShare * (outputRatio - 1);
+  return { capitalRatio, hoursRatio, capitalPerHourRatio, outputRatio, gdpRatio,
+    wageRatio, userCostRatio };
+}
+
 /** In-sample calibration on ONE published statistic; the other statistics are checks. */
 export function calibrateExposure(targetCapitalRatio: number, policy: GEPolicy,
   p: GEParameters = referenceParameters): GEParameters {
@@ -171,6 +192,10 @@ export function estimateReformLaborMarginalRate(settings: ReformSettings): numbe
   return rateSum / weightSum;
 }
 
+/** @deprecated Diagnostic of the original aggregate-wedge approximation. It
+ * must not be presented as the current X-tax result. Use the sampled worker
+ * analysis in scripts/estimate_labor_response.py and solveLongRunAtHours.
+ */
 export function scoreLongRunReform(settings: ReformSettings,
   p: GEParameters = referenceParameters, adjustment: MacroAdjustment = {}) {
   const staticScore = calculateMacro(settings, adjustment);

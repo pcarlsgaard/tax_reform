@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { defaultSettings } from '../src/model/macro';
+import { calculateMacro, defaultSettings } from '../src/model/macro';
 import {
   calibrateExposure, estimateReformLaborMarginalRate, referenceParameters,
-  scoreLongRunReform, solveLongRun, taxFoundationDBCFT, userCost,
+  scoreLongRunReform, solveLongRun, solveLongRunAtHours, taxFoundationDBCFT, userCost,
 } from '../src/model/generalEquilibrium';
 
 describe('long-run comparative-statics prototype', () => {
@@ -62,5 +62,30 @@ describe('long-run comparative-statics prototype', () => {
       equilibrium: result.equilibrium,
       illustrativeRevenueFeedbackBillions: result.illustrativeReformRevenueFeedbackBillions,
     }));
+  });
+
+  it('accepts a distributional labor response without reusing the aggregate labor wedge', () => {
+    const calibrated = calibrateExposure(taxFoundationDBCFT.capitalRatio, taxFoundationDBCFT.policy);
+    const result = solveLongRunAtHours(1.005193196678652, 0.35, 1, calibrated);
+    expect(result.hoursRatio).toBeCloseTo(1.005193196678652, 12);
+    expect(result.gdpRatio).toBeCloseTo(1.0136112607755758, 10);
+    expect(result.capitalRatio).toBeCloseTo(1.0287511542003835, 10);
+  });
+
+  it('rescores the revised 25/35 schedule and the earned $2,000 adult credit', () => {
+    const settings = { ...defaultSettings, rate: .35, wageTaxMode: 'progressive' as const,
+      progressiveZeroBracketPerAdult: 0, progressiveMiddleRate: .25,
+      progressiveTopBracketPerAdult: 75000,
+      adultCredit: 2000, adultCreditMode: 'earned' as const,
+      adultCreditPhaseInRate: .10, adultCreditPhaseOutRate: 0,
+      childCredit: 7200 };
+    const result = calculateMacro(settings);
+    expect(result.adultCreditCost).toBeGreaterThan(0);
+    expect(result.childCreditCost).toBeGreaterThan(0);
+    console.log('Revised static base (credit phases in on gross imputed compensation):',
+      JSON.stringify({ netRevenue: result.netRevenue,
+        deficitReduction: result.deficitReduction,
+        adultCreditCost: result.adultCreditCost,
+        childCreditCost: result.childCreditCost }));
   });
 });

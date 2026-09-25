@@ -90,14 +90,22 @@ def read_person_units(archive_path: Path) -> tuple[list[dict], dict]:
                 "rawCashWage": 0,
                 "creditAdults": 0,
                 "children": 0,
+                "childrenUnder17": 0,
+                "childrenUnder6": 0,
+                "earnerCashWages": [],
                 "joint": False,
                 "headRank": (2, 999),
                 "headWeight": 0.0,
                 "headKey": None,
             })
-            unit["rawCashWage"] += max(0, as_int(row[index["WSAL_VAL"]]))
+            person_wage = max(0, as_int(row[index["WSAL_VAL"]]))
+            unit["rawCashWage"] += person_wage
+            if person_wage > 0:
+                unit["earnerCashWages"].append(person_wage)
             unit["creditAdults"] += int(age >= 18)
             unit["children"] += int(age < 18)
+            unit["childrenUnder17"] += int(age < 17)
+            unit["childrenUnder6"] += int(age < 6)
             unit["joint"] = unit["joint"] or as_int(row[index["FILESTAT"]]) in (1, 2, 3)
             if head_rank < unit["headRank"]:
                 unit["headRank"] = head_rank
@@ -112,6 +120,7 @@ def read_person_units(archive_path: Path) -> tuple[list[dict], dict]:
         if unit["headWeight"] <= 0 or unit["headKey"] is None:
             raise RuntimeError(f"Tax unit {unit['taxId']} has no usable reference-person weight")
         unit["scheduleAdults"] = 2 if unit.pop("joint") else 1
+        unit["earnerCashWages"].sort(reverse=True)
         unit.pop("headRank")
         result.append(unit)
     result.sort(key=lambda row: row["taxId"])
