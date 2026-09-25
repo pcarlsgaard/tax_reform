@@ -43,7 +43,7 @@ describe('transfer integration regressions', () => {
     expect(swap.federalSavingsBillions).toBeCloseTo(202.088, 3);
     expect(swap.supplementPerChild).toBeCloseTo(2805.9458, 3);
     const policy = { ...defaultSettings, adultCredit: 2000, adultCreditPhaseInRate: .1,
-      adultCreditPhaseOutRate: 0, adultCreditEarningsBase: 'cash' as const,
+      adultCreditPhaseOutRate: 0, adultCreditEarningsBase: 'compensation' as const,
       wageTaxMode: 'progressive' as const, rate: .35,
       progressiveMiddleRate: .25, progressiveZeroBracketPerAdult: 0,
       progressiveTopBracketPerAdult: 75000, childCredit: swap.totalChildCredit,

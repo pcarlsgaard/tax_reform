@@ -26,6 +26,10 @@ OTHER_BENEFITS_PER_CASH_WAGE = (
     BASELINE["compensationComponents"]["employerHealthInsurance"]
     + BASELINE["compensationComponents"]["employerPensionAndOtherInsurance"]
 ) / BASELINE["compensationComponents"]["cashWagesAndSalaries"]
+PENSION_PER_CASH_WAGE = (
+    BASELINE["compensationComponents"]["employerPensionAndOtherInsurance"]
+    / BASELINE["compensationComponents"]["cashWagesAndSalaries"]
+)
 
 
 def current_tax(earners: list[float], married: bool, children: int,
@@ -102,12 +106,12 @@ def weighted_quantile(items: list[tuple[float, float]], quantile: float) -> floa
 
 def score(units: list[dict], *, zero_bracket: int = 0, child_credit: float = 7200,
           insurance_credit: bool = True,
-          benefit_cash_out_share: float = 0.0,
+          benefit_cash_out_share: float = 1.0,
           fica_cash_credit_share: float = 1.0,
           employer_pass_through: float = 1.0, substitution_primary: float = .25,
           substitution_secondary: float = .32, income_elasticity: float = -.05,
           benefit_share: float = OTHER_BENEFITS_PER_CASH_WAGE,
-          marginal_benefit_share: float = OTHER_BENEFITS_PER_CASH_WAGE,
+          marginal_benefit_share: float = PENSION_PER_CASH_WAGE,
           capital_wage_ratio: float = 1.0083745732907252) -> dict:
     cash_scale = BASELINE["compensationComponents"]["cashWagesAndSalaries"] * 1e9 / sum(
         u["headWeight"] * u["rawCashWage"] for u in units)
@@ -242,15 +246,14 @@ def main() -> None:
         "universalChildCreditSwap": score(units, child_credit=SWAP_CHILD_CREDIT),
         "illustrativeFamilySafeguard16k2": score(units, child_credit=16200),
         "employerFicaNotCreditedAsCash": score(units, fica_cash_credit_share=0),
-        "halfBenefitsCashOut": score(units, benefit_cash_out_share=.5, fica_cash_credit_share=1),
-        "allBenefitsCashOut": score(units, benefit_cash_out_share=1, fica_cash_credit_share=1),
+        "halfBenefitsCashOut": score(units, benefit_cash_out_share=.5),
+        "benefitsKeptInKind": score(units, benefit_cash_out_share=0),
         "noInsurancePurchaseCredit": score(units, insurance_credit=False),
         "halfEmployerFicaPassThrough": score(units, employer_pass_through=.5),
-        "cashAndFicaOnly": score(units, benefit_share=0),
+        "cashAndFicaOnly": score(units, benefit_share=0, marginal_benefit_share=0),
         "benefitsFixedAtMargin": score(units, marginal_benefit_share=0),
-        "pensionBenefitsMarginal": score(units, marginal_benefit_share=(
-            BASELINE["compensationComponents"]["employerPensionAndOtherInsurance"]
-            / BASELINE["compensationComponents"]["cashWagesAndSalaries"])),
+        "pensionBenefitsMarginal": score(units, marginal_benefit_share=PENSION_PER_CASH_WAGE,
+                                          benefit_cash_out_share=0),
         "allBenefitsMarginal": score(units, marginal_benefit_share=OTHER_BENEFITS_PER_CASH_WAGE),
         "noCapitalWageBoost": score(units, capital_wage_ratio=1),
         "lowSubstitutionResponse": score(units, substitution_primary=.15, substitution_secondary=.22),
@@ -258,7 +261,7 @@ def main() -> None:
     }
     output = {"schemaVersion": 1, "source": "2025 CPS ASEC, income year 2024, projected to 2025 BEA wages",
               "archiveSha256": EXPECTED_SOURCE_SHA256, "sample": sample,
-              "method": "Wage-only current law; +$1,000 per worker; employer cost denominator; proportional employer health/pension benefits taxable under reform; full insurance purchase-credit take-up assumed; earnings weights; CBO 2026 elasticities .25/.32 and income -.05; no social-program receipt, transfer withdrawal or participation of current nonworkers",
+              "method": "Wage-only current law; +$1,000 per worker; employer cost denominator; fixed marginal employer health and wage-proportional pension; both benefits and employer FICA paid as taxable reform cash; full insurance purchase-credit take-up assumed; earnings weights; CBO 2026 elasticities .25/.32 and income -.05; no social-program receipt, transfer withdrawal or participation of current nonworkers",
               "central": central,
               "sensitivities": {name: {"oldEarningsWeightedFederalMTR": v["oldEarningsWeightedFederalMTR"],
                                        "newEarningsWeightedFederalMTR": v["newEarningsWeightedFederalMTR"],

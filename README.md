@@ -2,7 +2,7 @@
 
 A transparent, static simulator for a broad U.S. destination-based consumption tax. It combines an auditable national revenue model, a 2025 federal household comparator, configurable flat or progressive X-tax schedules, transfer and employer-health transition analyzers, and stylized business examples.
 
-**Interactive starting scenario:** 35% DBCFT/top wage rate, 25% wage rate to $75,000 per filing adult, $2,000 earned adult credit phased in at 10% of cash wages, $7,200 refundable child credit, and $3,000 adult/$1,500 child insurance credit for ESI or individual coverage. All employer compensation, including insurance and pension benefits, is taxable under the reform. The Social spending tab offers a $10,006 spending-neutral child-credit swap and a $16,200 illustrative family safeguard with its explicit deficit tradeoff. See [LABOR_RESPONSE.md](LABOR_RESPONSE.md) for results and limits. The default *flat engine settings* below are a separate regression reference.
+**Interactive starting scenario:** 35% DBCFT/top wage rate, 25% wage rate to $75,000 per filing adult, $2,000 earned adult credit phased in at 10% of compensation paid as cash, $7,200 refundable child credit, and $3,000 adult/$1,500 child insurance credit for ESI or individual coverage. The starting scenario treats employer insurance and pension benefits and repealed employer FICA contributions as cash compensation, all taxable under the reform. The Social spending tab offers a $10,006 spending-neutral child-credit swap and a $16,200 illustrative family safeguard with its explicit deficit tradeoff. See [LABOR_RESPONSE.md](LABOR_RESPONSE.md) for results and limits. The default *flat engine settings* below are a separate regression reference.
 
 ## Default 2025 result
 

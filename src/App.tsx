@@ -34,7 +34,7 @@ const websiteDefaultSettings: ReformSettings = {
   progressiveMiddleRate: 0.25,
   adultCredit: 2000,
   adultCreditMode: 'earned',
-  adultCreditEarningsBase: 'cash',
+  adultCreditEarningsBase: 'compensation',
   adultCreditPhaseInRate: 0.10,
   adultCreditPhaseOutRate: 0,
   childCredit: 7200,

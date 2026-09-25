@@ -6,7 +6,7 @@
     "samplePersons": 142125,
     "sampleTaxUnits": 76652
   },
-  "method": "Wage-only current law; +$1,000 per worker; employer cost denominator; proportional employer health/pension benefits taxable under reform; full insurance purchase-credit take-up assumed; earnings weights; CBO 2026 elasticities .25/.32 and income -.05; no social-program receipt, transfer withdrawal or participation of current nonworkers",
+  "method": "Wage-only current law; +$1,000 per worker; employer cost denominator; fixed marginal employer health and wage-proportional pension; both benefits and employer FICA paid as taxable reform cash; full insurance purchase-credit take-up assumed; earnings weights; CBO 2026 elasticities .25/.32 and income -.05; no social-program receipt, transfer withdrawal or participation of current nonworkers",
   "central": {
     "settings": {
       "zeroBracketPerAdult": 0,
@@ -18,154 +18,154 @@
       "childCreditPerChild": 7200,
       "insuranceCreditAdultUnder65": 3000,
       "insuranceCreditChild": 1500,
-      "benefitCashOutShareIntoEarnedCredit": 0.0,
+      "benefitCashOutShareIntoEarnedCredit": 1.0,
       "employerFicaPassThroughInEarnedCredit": 1.0,
       "employerPayrollPassThrough": 1.0,
       "employerBenefitPerCashWage": 0.14347745630411055,
-      "marginalBenefitPerDollarCashWage": 0.14347745630411055,
+      "marginalBenefitPerDollarCashWage": 0.061052396174418086,
       "capitalInducedWageRatio": 1.0083745732907252
     },
     "cashWageControlBillions": 12958.656000000083,
     "weightedWorkersMillions": 165.53330462000037,
-    "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-    "newEarningsWeightedFederalMTR": 0.32295278665624993,
+    "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+    "newEarningsWeightedFederalMTR": 0.3232199003315382,
     "oldEarningsWeightedFederalATR": 0.21968152469235008,
-    "newEarningsWeightedFederalATR": 0.19841231664792375,
-    "workerShareLowerMTR": 0.1120173144163739,
-    "earningsShareLowerMTR": 0.13014961109226744,
-    "workerShareHigherMTR": 0.8879668068454621,
-    "earningsShareHigherMTR": 0.8698447663378217,
-    "medianEarningsWeightedMTRChange": 0.04084026804578739,
-    "substitutionHoursChange": -0.010727118384492208,
-    "incomeHoursChange": -0.0015263047298865722,
-    "totalHoursChange": -0.0122534231143826,
+    "newEarningsWeightedFederalATR": 0.19821330288536151,
+    "workerShareLowerMTR": 0.158784485335673,
+    "earningsShareLowerMTR": 0.22916415087706823,
+    "workerShareHigherMTR": 0.8412155146643091,
+    "earningsShareHigherMTR": 0.7708358491229236,
+    "medianEarningsWeightedMTRChange": 0.01714778259678229,
+    "substitutionHoursChange": -0.0029466742061795234,
+    "incomeHoursChange": -0.0015369541576414729,
+    "totalHoursChange": -0.004483628363831982,
     "byIndividualEarnings": {
       "0\u201320k": {
         "earningsShare": 0.018096103419915896,
         "workersMillions": 24.570994610000003,
-        "oldMTR": 0.18595822646130136,
-        "newMTR": 0.21424143100494025,
-        "substitutionHoursChange": -0.0025982297587274633,
-        "incomeHoursChange": -0.011677853320674742
+        "oldMTR": 0.19943243481357603,
+        "newMTR": 0.21994286368692642,
+        "substitutionHoursChange": 0.0009151386093568249,
+        "incomeHoursChange": -0.01202195686559462
       },
       "20\u201375k": {
         "earningsShare": 0.28357193909566897,
         "workersMillions": 80.8285433999991,
-        "oldMTR": 0.25555826610945126,
-        "newMTR": 0.2783005066142236,
-        "substitutionHoursChange": -0.005642588754869464,
-        "incomeHoursChange": -0.0038170572510306893
+        "oldMTR": 0.27407557179273256,
+        "newMTR": 0.2788790350762779,
+        "substitutionHoursChange": 0.0011079085852064184,
+        "incomeHoursChange": -0.003832559996739506
       },
       "75\u2013150k": {
         "earningsShare": 0.3317503681865179,
         "workersMillions": 42.48110459999996,
-        "oldMTR": 0.29941862097137295,
-        "newMTR": 0.3371633967106988,
-        "substitutionHoursChange": -0.011695547059920043,
-        "incomeHoursChange": -0.0014679873524408211
+        "oldMTR": 0.3211139713750248,
+        "newMTR": 0.337163051638058,
+        "substitutionHoursChange": -0.00355022787218126,
+        "incomeHoursChange": -0.0014680667819138434
       },
       "150\u2013300k": {
         "earningsShare": 0.21119103475763815,
         "workersMillions": 14.121782979999995,
-        "oldMTR": 0.2808099758132363,
-        "newMTR": 0.3500000000000014,
-        "substitutionHoursChange": -0.021301085073549466,
+        "oldMTR": 0.30184086749079914,
+        "newMTR": 0.35000000000000087,
+        "substitutionHoursChange": -0.013943270467686005,
         "incomeHoursChange": 0.00020614436480200976
       },
       "300k+": {
         "earningsShare": 0.1553905545402511,
         "workersMillions": 3.530879030000004,
-        "oldMTR": 0.330712485674147,
-        "newMTR": 0.3499999999999931,
-        "substitutionHoursChange": -0.0045139196265332965,
+        "oldMTR": 0.356056668453422,
+        "newMTR": 0.35000000000000614,
+        "substitutionHoursChange": 0.005438404472349915,
         "incomeHoursChange": 0.001357217247974379
       }
     }
   },
   "sensitivities": {
     "oldZeroBracket17k": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.320907665628988,
-      "totalHoursChange": -0.014503604180600593,
-      "substitutionHoursChange": -0.01014450303250972,
-      "incomeHoursChange": -0.004359101148078699
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.32117179854085115,
+      "totalHoursChange": -0.006726939605421811,
+      "substitutionHoursChange": -0.002357189029582249,
+      "incomeHoursChange": -0.004369750575833597
     },
     "childCredit6k": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.32295278665624993,
-      "totalHoursChange": -0.01198446945371301,
-      "substitutionHoursChange": -0.010727118384492204,
-      "incomeHoursChange": -0.0012573510692169547
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.3232199003315382,
+      "totalHoursChange": -0.004214674703177712,
+      "substitutionHoursChange": -0.0029466742061795234,
+      "incomeHoursChange": -0.001268000496971856
     },
     "childCredit12k": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.32295278665624993,
-      "totalHoursChange": -0.013329237757060408,
-      "substitutionHoursChange": -0.010727118384492208,
-      "incomeHoursChange": -0.002602119372565064
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.3232199003315382,
+      "totalHoursChange": -0.005559443006505904,
+      "substitutionHoursChange": -0.0029466742061795234,
+      "incomeHoursChange": -0.0026127688003199827
     },
     "universalChildCreditSwap": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.32295278665625005,
-      "totalHoursChange": -0.012882314279829221,
-      "substitutionHoursChange": -0.01072711838449221,
-      "incomeHoursChange": -0.0021551958953389084
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.32321990033153825,
+      "totalHoursChange": -0.005112519529275494,
+      "substitutionHoursChange": -0.0029466742061795247,
+      "incomeHoursChange": -0.002165845323093817
     },
     "illustrativeFamilySafeguard16k2": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.32295278665624993,
-      "totalHoursChange": -0.014270575569407473,
-      "substitutionHoursChange": -0.01072711838449221,
-      "incomeHoursChange": -0.0035434571849087366
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.3232199003315382,
+      "totalHoursChange": -0.006500780818855523,
+      "substitutionHoursChange": -0.0029466742061795234,
+      "incomeHoursChange": -0.0035541066126636425
     },
     "employerFicaNotCreditedAsCash": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.32272914750237414,
-      "totalHoursChange": -0.01216713947802317,
-      "substitutionHoursChange": -0.010648126018381936,
-      "incomeHoursChange": -0.0015190134596311396
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.32304957665200473,
+      "totalHoursChange": -0.004415852203301762,
+      "substitutionHoursChange": -0.0028842277090512765,
+      "incomeHoursChange": -0.0015316244942395058
     },
     "halfBenefitsCashOut": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.32306300141861105,
-      "totalHoursChange": -0.012300041355377878,
-      "substitutionHoursChange": -0.01076805892538487,
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.3230026364035163,
+      "totalHoursChange": -0.004402117262625516,
+      "substitutionHoursChange": -0.002870134832624638,
       "incomeHoursChange": -0.0015319824299880492
     },
-    "allBenefitsCashOut": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.3232341419572407,
-      "totalHoursChange": -0.012365539241419254,
-      "substitutionHoursChange": -0.010828585083772366,
-      "incomeHoursChange": -0.0015369541576414729
+    "benefitsKeptInKind": {
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.32282785104471734,
+      "totalHoursChange": -0.004333501985198107,
+      "substitutionHoursChange": -0.002807197255299614,
+      "incomeHoursChange": -0.0015263047298865722
     },
     "noInsurancePurchaseCredit": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.32295278665624993,
-      "totalHoursChange": -0.009916116396364028,
-      "substitutionHoursChange": -0.010727118384492204,
-      "incomeHoursChange": 0.0008110019881422638
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.3232199003315382,
+      "totalHoursChange": -0.0021463216457879852,
+      "substitutionHoursChange": -0.002946674206179524,
+      "incomeHoursChange": 0.0008003525603873547
     },
     "halfEmployerFicaPassThrough": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.3141466292132702,
-      "totalHoursChange": -0.009558578534450302,
-      "substitutionHoursChange": -0.007453051941005367,
-      "incomeHoursChange": -0.002105526593434649
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.31387923341498647,
+      "totalHoursChange": -0.0014825800437804348,
+      "substitutionHoursChange": 0.0006344611946153385,
+      "incomeHoursChange": -0.002117041238365353
     },
     "cashAndFicaOnly": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.3172246562237671,
-      "totalHoursChange": -0.013236572974907101,
-      "substitutionHoursChange": -0.008611093905742186,
+      "oldEarningsWeightedFederalMTR": 0.3246608165600709,
+      "newEarningsWeightedFederalMTR": 0.3169845556547791,
+      "totalHoursChange": 0.0018974091505306045,
+      "substitutionHoursChange": 0.006522888219683284,
       "incomeHoursChange": -0.0046254790691505135
     },
     "benefitsFixedAtMargin": {
       "oldEarningsWeightedFederalMTR": 0.3246608165600709,
-      "newEarningsWeightedFederalMTR": 0.3227234162680675,
-      "totalHoursChange": 0.002754379981754207,
-      "substitutionHoursChange": 0.004280684711646408,
-      "incomeHoursChange": -0.0015263047298865722
+      "newEarningsWeightedFederalMTR": 0.32320868173627626,
+      "totalHoursChange": 0.002571117209905882,
+      "substitutionHoursChange": 0.004108071367550639,
+      "incomeHoursChange": -0.0015369541576414729
     },
     "pensionBenefitsMarginal": {
       "oldEarningsWeightedFederalMTR": 0.30693269784744753,
@@ -176,31 +176,31 @@
     },
     "allBenefitsMarginal": {
       "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.32295278665624993,
-      "totalHoursChange": -0.0122534231143826,
-      "substitutionHoursChange": -0.010727118384492208,
-      "incomeHoursChange": -0.0015263047298865722
+      "newEarningsWeightedFederalMTR": 0.3232341419572407,
+      "totalHoursChange": -0.012365539241419254,
+      "substitutionHoursChange": -0.010828585083772366,
+      "incomeHoursChange": -0.0015369541576414729
     },
     "noCapitalWageBoost": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.32295278665624993,
-      "totalHoursChange": -0.013904145940994428,
-      "substitutionHoursChange": -0.012805768319540584,
-      "incomeHoursChange": -0.0010983776214585183
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.3232199003315382,
+      "totalHoursChange": -0.006198879508907629,
+      "substitutionHoursChange": -0.00508994090342276,
+      "incomeHoursChange": -0.001108938605478727
     },
     "lowSubstitutionResponse": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.32295278665624993,
-      "totalHoursChange": -0.008090444786048034,
-      "substitutionHoursChange": -0.006564140056142842,
-      "incomeHoursChange": -0.0015263047298865722
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.3232199003315382,
+      "totalHoursChange": -0.003287102297842237,
+      "substitutionHoursChange": -0.0017501481401860995,
+      "incomeHoursChange": -0.0015369541576414729
     },
     "highSubstitutionResponse": {
-      "oldEarningsWeightedFederalMTR": 0.2858606560241214,
-      "newEarningsWeightedFederalMTR": 0.32295278665624993,
-      "totalHoursChange": -0.016416401442731154,
-      "substitutionHoursChange": -0.014890096712841621,
-      "incomeHoursChange": -0.0015263047298865722
+      "oldEarningsWeightedFederalMTR": 0.30693269784744753,
+      "newEarningsWeightedFederalMTR": 0.3232199003315382,
+      "totalHoursChange": -0.005680154429829942,
+      "substitutionHoursChange": -0.0041432002721730025,
+      "incomeHoursChange": -0.0015369541576414729
     }
   }
 }
