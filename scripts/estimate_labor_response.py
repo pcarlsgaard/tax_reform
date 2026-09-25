@@ -66,6 +66,8 @@ def current_tax(earners: list[float], married: bool, children: int,
 
 def reform_tax(earners: list[float], married: bool, credit_adults: int, children: int,
                *, zero_bracket: int = 0, child_credit: int = 7200,
+               intermediate_start_per_adult: int | None = None,
+               intermediate_rate: float = .30, top_threshold_per_adult: int = 75000,
                insurance_credit: bool = True,
                health_adults_under65: int | None = None,
                benefit_cash_out_share: float = 0.0,
@@ -79,8 +81,12 @@ def reform_tax(earners: list[float], married: bool, credit_adults: int, children
     compensation += employer_pass_through * employer_fica
     schedule_adults = 2 if married else 1
     zero = schedule_adults * zero_bracket
-    top = max(zero, schedule_adults * 75000)
-    business_wage_tax = .25 * max(0, min(compensation, top) - zero) + .35 * max(0, compensation - top)
+    top = max(zero, schedule_adults * top_threshold_per_adult)
+    middle_end = top if intermediate_start_per_adult is None else min(
+        top, max(zero, schedule_adults * intermediate_start_per_adult))
+    business_wage_tax = (.25 * max(0, min(compensation, middle_end) - zero)
+                         + intermediate_rate * max(0, min(compensation, top) - middle_end)
+                         + .35 * max(0, compensation - top))
     # Cash-out changes earned-credit eligibility, not the wage-tax base:
     # compensation is taxed at the same rate whether paid by employers in kind or cash.
     cash_earnings_for_credit = wage + benefit_cash_out_share * benefits
@@ -105,6 +111,8 @@ def weighted_quantile(items: list[tuple[float, float]], quantile: float) -> floa
 
 
 def score(units: list[dict], *, zero_bracket: int = 0, child_credit: float = 7200,
+          intermediate_start_per_adult: int | None = None,
+          intermediate_rate: float = .30, top_threshold_per_adult: int = 75000,
           insurance_credit: bool = True,
           benefit_cash_out_share: float = 1.0,
           fica_cash_credit_share: float = 1.0,
@@ -136,6 +144,9 @@ def score(units: list[dict], *, zero_bracket: int = 0, child_credit: float = 720
         old_tax, employer_fica = current_tax(earners, married, children, children_under17)
         new_tax = reform_tax(earners, married, adults, children, zero_bracket=zero_bracket,
                              child_credit=child_credit, insurance_credit=insurance_credit,
+                             intermediate_start_per_adult=intermediate_start_per_adult,
+                             intermediate_rate=intermediate_rate,
+                             top_threshold_per_adult=top_threshold_per_adult,
                              health_adults_under65=health_adults,
                              benefit_cash_out_share=benefit_cash_out_share,
                              fica_cash_credit_share=fica_cash_credit_share,
@@ -151,6 +162,9 @@ def score(units: list[dict], *, zero_bracket: int = 0, child_credit: float = 720
             new_plus = reform_tax(perturbed, married, adults, children,
                                   zero_bracket=zero_bracket, child_credit=child_credit,
                                   insurance_credit=insurance_credit,
+                                  intermediate_start_per_adult=intermediate_start_per_adult,
+                                  intermediate_rate=intermediate_rate,
+                                  top_threshold_per_adult=top_threshold_per_adult,
                                   health_adults_under65=health_adults,
                                   benefit_cash_out_share=benefit_cash_out_share,
                                   fica_cash_credit_share=fica_cash_credit_share,
@@ -194,7 +208,9 @@ def score(units: list[dict], *, zero_bracket: int = 0, child_credit: float = 720
     wage_total = totals["wages"]
     return {
         "settings": {"zeroBracketPerAdult": zero_bracket, "middleRate": .25,
-                     "topThresholdPerAdult": 75000, "topRate": .35,
+                     "intermediateStartPerAdult": intermediate_start_per_adult,
+                     "intermediateRate": intermediate_rate,
+                     "topThresholdPerAdult": top_threshold_per_adult, "topRate": .35,
                      "adultCreditPerAdult": 2000, "adultCreditPhaseIn": .10,
                      "childCreditPerChild": child_credit,
                      "insuranceCreditAdultUnder65": 3000 if insurance_credit else 0,
