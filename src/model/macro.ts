@@ -34,6 +34,7 @@ export function calculateMacro(settings: ReformSettings, adjustment: MacroAdjust
     : microdata.progressiveEquivalentCompensationBase * retainedBaseShare;
   const rateAdjustedBase = businessTaxableBase + rateAdjustedWageBase;
   const progressiveMiddleBase = microdata.progressiveMiddleCompensationBase * retainedBaseShare;
+  const progressiveIntermediateBase = microdata.progressiveIntermediateCompensationBase * retainedBaseShare;
   const progressiveTopBase = microdata.progressiveTopCompensationBase * retainedBaseShare;
 
   const adultCreditStatutoryCost = microdata.adultCreditStatutoryCost;
@@ -59,13 +60,21 @@ export function calculateMacro(settings: ReformSettings, adjustment: MacroAdjust
     if (settings.wageTaxMode === 'flat') {
       return taxableBase > 0 ? requiredGross / taxableBase : Number.POSITIVE_INFINITY;
     }
-    const allHeadlineBase = businessTaxableBase + progressiveMiddleBase + progressiveTopBase;
+    const allHeadlineBase = businessTaxableBase + progressiveMiddleBase + progressiveIntermediateBase + progressiveTopBase;
     const rateBeforeMiddleBinds = allHeadlineBase > 0 ? requiredGross / allHeadlineBase : Number.POSITIVE_INFINITY;
     const middleRate = Math.max(0, settings.progressiveMiddleRate);
     if (rateBeforeMiddleBinds <= middleRate) return rateBeforeMiddleBinds;
+    const intermediateRate = settings.progressiveIntermediateStartPerAdult === null
+      ? middleRate : Math.max(middleRate, settings.progressiveIntermediateRate);
+    const aboveMiddleBase = businessTaxableBase + progressiveIntermediateBase + progressiveTopBase;
+    const rateBeforeIntermediateBinds = aboveMiddleBase > 0
+      ? (requiredGross - progressiveMiddleBase * middleRate) / aboveMiddleBase
+      : Number.POSITIVE_INFINITY;
+    if (rateBeforeIntermediateBinds <= intermediateRate) return rateBeforeIntermediateBinds;
     const headlineBase = businessTaxableBase + progressiveTopBase;
     return headlineBase > 0
-      ? (requiredGross - progressiveMiddleBase * middleRate) / headlineBase
+      ? (requiredGross - progressiveMiddleBase * middleRate
+          - progressiveIntermediateBase * intermediateRate) / headlineBase
       : Number.POSITIVE_INFINITY;
   };
   const revenueNeutralRate = solveRate(targetRevenue);
@@ -120,6 +129,8 @@ export const defaultSettings: ReformSettings = {
   progressiveZeroBracketPerAdult: 30000,
   progressiveTopBracketPerAdult: 100000,
   progressiveMiddleRate: 0.15,
+  progressiveIntermediateStartPerAdult: null,
+  progressiveIntermediateRate: 0.30,
   adultCredit: 4800,
   adultCreditMode: 'earned',
   adultCreditPhaseInRate: 0.30,

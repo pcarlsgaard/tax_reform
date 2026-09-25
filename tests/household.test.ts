@@ -57,6 +57,24 @@ describe('2025 current-law household engine', () => {
 });
 
 describe('reform adult and child credits', () => {
+  it('gives 15%, 25%, 30%, then 35% marginal rates at the intended compensation thresholds', () => {
+    const settings = {
+      ...defaultSettings, wageTaxMode: 'progressive' as const, rate: .35,
+      progressiveZeroBracketPerAdult: 0, progressiveMiddleRate: .25,
+      progressiveIntermediateStartPerAdult: 75000,
+      progressiveIntermediateRate: .30, progressiveTopBracketPerAdult: 200000,
+      adultCredit: 2000, adultCreditPhaseInRate: .10,
+      adultCreditPhaseOutRate: 0, childCredit: 7200,
+    };
+    expect(calculateHousehold(household(10000), settings).reformMarginalRate).toBeCloseTo(.15, 7);
+    expect(calculateHousehold(household(30000), settings).reformMarginalRate).toBeCloseTo(.25, 7);
+    expect(calculateHousehold(household(100000), settings).reformMarginalRate).toBeCloseTo(.30, 7);
+    expect(calculateHousehold(household(250000), settings).reformMarginalRate).toBeCloseTo(.35, 7);
+    const noIntermediate = { ...settings, progressiveIntermediateStartPerAdult: null,
+      progressiveTopBracketPerAdult: 75000 };
+    expect(calculateHousehold(household(100000), noIntermediate).reformMarginalRate).toBeCloseTo(.35, 7);
+  });
+
   it('builds disposable resources by subtracting pre-credit tax and adding credits', () => {
     const result = calculateHousehold(household(25000, 'single', 2), defaultSettings);
     expect(result.currentPreCreditTaxLiability).toBeCloseTo(

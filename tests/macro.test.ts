@@ -2,6 +2,24 @@ import { describe, expect, it } from 'vitest';
 import { calculateMacro, defaultSettings, theoreticalConsumptionBase, totalRefundableTaxCreditOutlays } from '../src/model';
 
 describe('2025 national accounting', () => {
+  it('counts the intermediate bracket in wage revenue and the revenue-neutral top rate', () => {
+    const baselineSettings = {
+      ...defaultSettings, wageTaxMode: 'progressive' as const, rate: .35,
+      progressiveZeroBracketPerAdult: 0, progressiveMiddleRate: .25,
+      progressiveTopBracketPerAdult: 75000, progressiveIntermediateStartPerAdult: null,
+      adultCredit: 2000, adultCreditPhaseInRate: .10, adultCreditPhaseOutRate: 0,
+    };
+    const expanded = { ...baselineSettings, progressiveTopBracketPerAdult: 200000,
+      progressiveIntermediateStartPerAdult: 75000, progressiveIntermediateRate: .30 };
+    const original = calculateMacro(baselineSettings);
+    const intermediate = calculateMacro(expanded);
+    expect(original.grossRevenue - intermediate.grossRevenue).toBeGreaterThan(180);
+    expect(original.grossRevenue - intermediate.grossRevenue).toBeLessThan(205);
+    expect(intermediate.adultCreditCost).toBeCloseTo(original.adultCreditCost, 8);
+    const solved = calculateMacro({ ...expanded, rate: intermediate.revenueNeutralRate });
+    expect(solved.netRevenue - solved.targetRevenue).toBeCloseTo(0, 7);
+  });
+
   it('sums the saved NIPA components', () => {
     expect(theoreticalConsumptionBase()).toBeCloseTo(24120.939, 8);
   });

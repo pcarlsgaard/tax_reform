@@ -104,10 +104,17 @@ export function calculateReformWageTax(wageBase: number, filingStatus: FilingSta
   const adults = filingStatus === 'married' ? 2 : 1;
   const zeroCeiling = adults * settings.progressiveZeroBracketPerAdult;
   const topThreshold = Math.max(zeroCeiling, adults * settings.progressiveTopBracketPerAdult);
-  const middleBase = Math.max(0, Math.min(wageBase, topThreshold) - zeroCeiling);
+  const intermediateStart = settings.progressiveIntermediateStartPerAdult === null
+    ? topThreshold
+    : Math.max(zeroCeiling, Math.min(topThreshold,
+      adults * settings.progressiveIntermediateStartPerAdult));
+  const middleBase = Math.max(0, Math.min(wageBase, intermediateStart) - zeroCeiling);
+  const intermediateBase = Math.max(0, Math.min(wageBase, topThreshold) - intermediateStart);
   const topBase = Math.max(0, wageBase - topThreshold);
   const middleRate = Math.min(settings.rate, Math.max(0, settings.progressiveMiddleRate));
-  return middleBase * middleRate + topBase * settings.rate;
+  const intermediateRate = Math.min(settings.rate,
+    Math.max(middleRate, settings.progressiveIntermediateRate));
+  return middleBase * middleRate + intermediateBase * intermediateRate + topBase * settings.rate;
 }
 
 function normalizedPassThroughRate(rate: number): number {

@@ -48,6 +48,9 @@ export interface ReformSettings {
   progressiveTopBracketPerAdult: number;
   /** Statutory middle wage rate; constrained to the headline rate in calculations. */
   progressiveMiddleRate: number;
+  /** Null disables the optional bracket between the middle and top rates. */
+  progressiveIntermediateStartPerAdult: number | null;
+  progressiveIntermediateRate: number;
   adultCredit: number;
   adultCreditMode: AdultCreditMode;
   /** The earned credit's earnings test; cash includes passed-through employer FICA but excludes retained benefits. */

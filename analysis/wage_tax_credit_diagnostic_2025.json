@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "sourceArchiveSha256": "318845a2b5e0034eb2973898de1738f4df0025727de38499e7669cb9c0deef0b",
-  "method": "Federal income tax including EITC and CTC and both FICA sides vs X-tax on all compensation, +$1,000 per individual worker, employer-cost denominator; tax only, no social benefits, ACA credits or program withdrawals; fixed marginal employer health and wage-proportional pension; 2025 ASEC calibrated to BEA wages. Current tax calculator groups heads of household with single filers and omits AMT, NIIT, nonwage income, other credits and deductions. Phase attribution concerns local marginal slopes, not levels or lifetime incentive effects. Retain-EITC counterfactual illustrates the phase-in and phaseout mechanics; it is not a costed proposal.",
+  "method": "2025 CPS ASEC +$1,000 per individual worker; old federal income tax/EITC/CTC and both FICA sides vs proposed X-tax; employer-cost denominator. Website wage-only comparison excludes employer health and pension at level and margin. Full-compensation comparison includes fixed marginal health and wage-proportional pension as cash in the reform. Both exclude social benefit withdrawal. Bracket thresholds use tax-unit compensation per filing adult; wage-bin rows below instead use individual cash earnings and must not be read as statutory brackets. Revenue delta always comes from national full-compensation base at 7.5% noncompliance. Current-law simplification treats head-of-household as single, omits AMT, NIIT, nonwage income, other credits/deductions. Retained EITC is a derivative experiment, not a costed proposal.",
   "overall": {
     "workerShareHigherOriginal": 0.84122,
     "workerShareEitcPhaseIn": 0.04065,
@@ -12,7 +12,11 @@
     "earningsWeightedCurrentEitcCreditSlopePercent": -0.38,
     "workerShareHigherIfOriginalEitcRetained": 0.91492,
     "workerShareHigherOnEitcPhaseInIfRetained": 1.0,
-    "workerShareHigherOnEitcPhaseOutIfRetained": 0.8867
+    "workerShareHigherOnEitcPhaseOutIfRetained": 0.8867,
+    "workerShareUnderSocialSecurityCap": 0.93083,
+    "workerShareHigherUnderSocialSecurityCap": 0.84979,
+    "creditMaximumReachedPerAdultCompensation": 20000.0,
+    "startingTopRateBeginsPerFilingAdultCompensation": 75000
   },
   "byIndividualAnnualCashWage": {
     "0\u201320k": {
@@ -65,6 +69,229 @@
       "earningsWeightedCurrentEitcCreditSlopePercent": 0.0,
       "earningsWeightedCurrentRefundableChildSlopePercent": 0.0
     }
+  },
+  "byActualReformMarginalRate": {
+    "creditPhasingIn15Percent": {
+      "shareOfWorkers": 0.08882,
+      "currentMarginalPercentEarningsWeighted": 13.89,
+      "reformMarginalPercentEarningsWeighted": 15.0,
+      "shareWithinStageWithIncrease": 0.6477
+    },
+    "middle25Percent": {
+      "shareOfWorkers": 0.42623,
+      "currentMarginalPercentEarningsWeighted": 25.1,
+      "reformMarginalPercentEarningsWeighted": 25.0,
+      "shareWithinStageWithIncrease": 0.8844
+    },
+    "top35Percent": {
+      "shareOfWorkers": 0.47156,
+      "currentMarginalPercentEarningsWeighted": 32.81,
+      "reformMarginalPercentEarningsWeighted": 35.0,
+      "shareWithinStageWithIncrease": 0.8535
+    },
+    "crossingThresholdsOrOther": {
+      "shareOfWorkers": 0.01339
+    }
+  },
+  "intermediateBracketScenarios": [
+    {
+      "middle25EndsPerFilingAdult": 75000,
+      "intermediateRatePercent": 30.0,
+      "top35StartsPerFilingAdult": 150000,
+      "workerShareHigher": 0.53718,
+      "workerShareLower": 0.46282,
+      "workerShareHigherUnderSocialSecurityCap": 0.52316,
+      "staticWageRevenueDifferenceFromStartingXTaxBillions": -153.32
+    },
+    {
+      "middle25EndsPerFilingAdult": 75000,
+      "intermediateRatePercent": 30.0,
+      "top35StartsPerFilingAdult": 176100,
+      "workerShareHigher": 0.51938,
+      "workerShareLower": 0.48062,
+      "workerShareHigherUnderSocialSecurityCap": 0.50405,
+      "staticWageRevenueDifferenceFromStartingXTaxBillions": -176.48
+    },
+    {
+      "middle25EndsPerFilingAdult": 75000,
+      "intermediateRatePercent": 30.0,
+      "top35StartsPerFilingAdult": 200000,
+      "workerShareHigher": 0.50821,
+      "workerShareLower": 0.49179,
+      "workerShareHigherUnderSocialSecurityCap": 0.49204,
+      "staticWageRevenueDifferenceFromStartingXTaxBillions": -191.72
+    },
+    {
+      "middle25EndsPerFilingAdult": 75000,
+      "intermediateRatePercent": 30.0,
+      "top35StartsPerFilingAdult": 225000,
+      "workerShareHigher": 0.5046,
+      "workerShareLower": 0.4954,
+      "workerShareHigherUnderSocialSecurityCap": 0.48816,
+      "staticWageRevenueDifferenceFromStartingXTaxBillions": -203.07
+    },
+    {
+      "middle25EndsPerFilingAdult": 75000,
+      "intermediateRatePercent": 30.0,
+      "top35StartsPerFilingAdult": 300000,
+      "workerShareHigher": 0.49521,
+      "workerShareLower": 0.50479,
+      "workerShareHigherUnderSocialSecurityCap": 0.48784,
+      "staticWageRevenueDifferenceFromStartingXTaxBillions": -223.54
+    },
+    {
+      "middle25EndsPerFilingAdult": 100000,
+      "intermediateRatePercent": 30.0,
+      "top35StartsPerFilingAdult": 200000,
+      "workerShareHigher": 0.65351,
+      "workerShareLower": 0.34649,
+      "workerShareHigherUnderSocialSecurityCap": 0.64814,
+      "staticWageRevenueDifferenceFromStartingXTaxBillions": -118.17
+    }
+  ],
+  "singleChildlessExamples": [
+    {
+      "cashWage": 10000,
+      "currentMarginalPercent": 16.01,
+      "reformMarginalPercent": 15.0
+    },
+    {
+      "cashWage": 30000,
+      "currentMarginalPercent": 24.0,
+      "reformMarginalPercent": 25.0
+    },
+    {
+      "cashWage": 50000,
+      "currentMarginalPercent": 24.0,
+      "reformMarginalPercent": 25.0
+    },
+    {
+      "cashWage": 60000,
+      "currentMarginalPercent": 24.0,
+      "reformMarginalPercent": 25.0
+    },
+    {
+      "cashWage": 75000,
+      "currentMarginalPercent": 32.79,
+      "reformMarginalPercent": 35.0
+    },
+    {
+      "cashWage": 120000,
+      "currentMarginalPercent": 34.55,
+      "reformMarginalPercent": 35.0
+    },
+    {
+      "cashWage": 175000,
+      "currentMarginalPercent": 34.55,
+      "reformMarginalPercent": 35.0
+    },
+    {
+      "cashWage": 190000,
+      "currentMarginalPercent": 25.01,
+      "reformMarginalPercent": 35.0
+    },
+    {
+      "cashWage": 250000,
+      "currentMarginalPercent": 33.29,
+      "reformMarginalPercent": 35.0
+    },
+    {
+      "cashWage": 500000,
+      "currentMarginalPercent": 36.07,
+      "reformMarginalPercent": 35.0
+    }
+  ],
+  "websiteWageOnly": {
+    "workerShareHigherOriginal": 0.40886,
+    "workerShareLowerOriginal": 0.59114,
+    "workerShareUnderSocialSecurityCap": 0.93083,
+    "workerShareHigherUnderSocialSecurityCap": 0.39536,
+    "currentEarningsWeightedPercent": 32.47,
+    "reformEarningsWeightedPercent": 31.7,
+    "workerShareAt15Percent": 0.10834,
+    "workerShareAt25Percent": 0.47812,
+    "workerShareAt35Percent": 0.40598,
+    "intermediateBracketScenarios": [
+      {
+        "middle25EndsPerFilingAdult": 75000,
+        "intermediateRatePercent": 30.0,
+        "top35StartsPerFilingAdult": 150000,
+        "workerShareHigher": 0.16267,
+        "workerShareLower": 0.83733,
+        "workerShareHigherUnderSocialSecurityCap": 0.13087,
+        "staticWageRevenueDifferenceFromStartingXTaxBillions": -153.32
+      },
+      {
+        "middle25EndsPerFilingAdult": 75000,
+        "intermediateRatePercent": 30.0,
+        "top35StartsPerFilingAdult": 200000,
+        "workerShareHigher": 0.16267,
+        "workerShareLower": 0.83733,
+        "workerShareHigherUnderSocialSecurityCap": 0.13087,
+        "staticWageRevenueDifferenceFromStartingXTaxBillions": -191.72
+      },
+      {
+        "middle25EndsPerFilingAdult": 75000,
+        "intermediateRatePercent": 30.0,
+        "top35StartsPerFilingAdult": 225000,
+        "workerShareHigher": 0.16136,
+        "workerShareLower": 0.83864,
+        "workerShareHigherUnderSocialSecurityCap": 0.13087,
+        "staticWageRevenueDifferenceFromStartingXTaxBillions": -203.07
+      }
+    ],
+    "singleChildlessExamples": [
+      {
+        "cashWage": 10000,
+        "currentMarginalPercent": 16.91,
+        "reformMarginalPercent": 15.0
+      },
+      {
+        "cashWage": 30000,
+        "currentMarginalPercent": 25.36,
+        "reformMarginalPercent": 25.0
+      },
+      {
+        "cashWage": 50000,
+        "currentMarginalPercent": 25.36,
+        "reformMarginalPercent": 25.0
+      },
+      {
+        "cashWage": 60000,
+        "currentMarginalPercent": 25.36,
+        "reformMarginalPercent": 25.0
+      },
+      {
+        "cashWage": 75000,
+        "currentMarginalPercent": 34.65,
+        "reformMarginalPercent": 35.0
+      },
+      {
+        "cashWage": 120000,
+        "currentMarginalPercent": 36.51,
+        "reformMarginalPercent": 35.0
+      },
+      {
+        "cashWage": 175000,
+        "currentMarginalPercent": 36.51,
+        "reformMarginalPercent": 35.0
+      },
+      {
+        "cashWage": 190000,
+        "currentMarginalPercent": 26.52,
+        "reformMarginalPercent": 35.0
+      },
+      {
+        "cashWage": 250000,
+        "currentMarginalPercent": 35.29,
+        "reformMarginalPercent": 35.0
+      },
+      {
+        "cashWage": 500000,
+        "currentMarginalPercent": 38.25,
+        "reformMarginalPercent": 35.0
+      }
+    ]
   },
   "originalScheduleCrosscheck": 0.84122
 }

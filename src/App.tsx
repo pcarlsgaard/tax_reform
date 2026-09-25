@@ -32,6 +32,8 @@ const websiteDefaultSettings: ReformSettings = {
   progressiveZeroBracketPerAdult: 0,
   progressiveTopBracketPerAdult: 75000,
   progressiveMiddleRate: 0.25,
+  progressiveIntermediateStartPerAdult: null,
+  progressiveIntermediateRate: 0.30,
   adultCredit: 2000,
   adultCreditMode: 'earned',
   adultCreditEarningsBase: 'compensation',

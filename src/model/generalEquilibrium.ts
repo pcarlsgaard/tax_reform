@@ -169,9 +169,15 @@ export function estimateReformLaborMarginalRate(settings: ReformSettings): numbe
     const taxable = compensation * taxableRatio;
     const zero = scheduleAdults * settings.progressiveZeroBracketPerAdult;
     const top = Math.max(zero, scheduleAdults * settings.progressiveTopBracketPerAdult);
+    const intermediateStart = settings.progressiveIntermediateStartPerAdult === null
+      ? top : Math.max(zero, Math.min(top,
+        scheduleAdults * settings.progressiveIntermediateStartPerAdult));
     const wageRate = settings.wageTaxMode === 'flat' ? settings.rate
-      : taxable < zero ? 0 : taxable < top
-        ? Math.min(settings.rate, settings.progressiveMiddleRate) : settings.rate;
+      : taxable < zero ? 0 : taxable < intermediateStart
+        ? Math.min(settings.rate, settings.progressiveMiddleRate)
+        : taxable < top
+          ? Math.min(settings.rate, Math.max(settings.progressiveMiddleRate,
+            settings.progressiveIntermediateRate)) : settings.rate;
     let creditSlope = 0;
     if (settings.adultCreditMode === 'earned' && creditAdults > 0 && settings.adultCredit > 0) {
       const max = creditAdults * settings.adultCredit;

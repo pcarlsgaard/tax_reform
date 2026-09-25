@@ -55,7 +55,13 @@ def transfer_receipt_by_tax_unit(archive_path: Path) -> dict[int, tuple[float, f
 
 
 def worker_sample(units: list[dict],
-                  transfer_receipts: dict[int, tuple[float, float]]) -> dict[str, np.ndarray]:
+                  transfer_receipts: dict[int, tuple[float, float]],
+                  *, include_employer_benefits: bool = True) -> dict[str, np.ndarray]:
+    """Use the full cash-out benchmark or the website's wage-plus-FICA basis.
+
+    The wage-only option excludes health and pension at the level and margin.
+    It is useful for matching the household chart, not the national tax base.
+    """
     cash_scale = BASELINE["compensationComponents"]["cashWagesAndSalaries"] * 1e9 / sum(
         u["headWeight"] * u["rawCashWage"] for u in units)
     rows = []
@@ -68,7 +74,8 @@ def worker_sample(units: list[dict],
         married = unit["scheduleAdults"] == 2
         children = unit["children"]
         base_old, base_employer_fica = current_tax(earners, married, children, unit["childrenUnder17"])
-        base_comp = wage * (1 + OTHER_BENEFITS_PER_CASH_WAGE) + base_employer_fica
+        base_comp = wage * (1 + (OTHER_BENEFITS_PER_CASH_WAGE
+                                 if include_employer_benefits else 0)) + base_employer_fica
         max_credit = unit["creditAdults"] * 2000
         snap, housing = transfer_receipts.get(unit["taxId"], (0, 0))
         for index, individual_wage in enumerate(earners):
@@ -78,7 +85,8 @@ def worker_sample(units: list[dict],
             incremented[index] += 1000
             old_plus, fica_plus = current_tax(
                 incremented, married, children, unit["childrenUnder17"])
-            extra_comp = 1000 * (1 + PENSION_PER_CASH_WAGE) + fica_plus - base_employer_fica
+            extra_comp = 1000 * (1 + (PENSION_PER_CASH_WAGE
+                                      if include_employer_benefits else 0)) + fica_plus - base_employer_fica
             # An unvalidated low-income sensitivity: 24% of extra gross wages
             # withdrawn from SNAP and 30% from housing, capped at the observed
             # annual subsidy; housing valued at 75% of government expenditure.
