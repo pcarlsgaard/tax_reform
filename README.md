@@ -117,6 +117,8 @@ Vite uses `/tax_reform/` as its production base. `.github/workflows/deploy-pages
 
 ## Methodology
 
+An initial, separately labeled long-run general-equilibrium layer and the Tax Foundation DBCFT benchmark comparison are described in [GENERAL_EQUILIBRIUM.md](GENERAL_EQUILIBRIUM.md). The app's national score remains static; the prototype does not change its displayed revenue or household results.
+
 The user can select either:
 
 - a flat X tax / DBCFT plus wage-side tax at the same rate; or
@@ -158,5 +160,7 @@ The view reports ESI winner shares, signed and absolute marginal-rate movement, 
 `Tax_Reform_Modeling.ipynb` and `VAT_Base_Updater.ipynb` are preserved unchanged as research provenance. Their former patch scripts are archival and are not sources of truth.
 
 ## Iteration 1 limitations
+
+The limitations below describe the app's static score. The separate long-run prototype estimates aggregate labor and capital responses but has its own assumptions and validation gaps documented in `GENERAL_EQUILIBRIUM.md`.
 
 The model intentionally excludes dynamic GDP and capital effects, behavioral scoring, intergenerational transition incidence, existing-asset windfalls, household consumption microsimulation, Tax-Calculator, OG-USA, and state/local taxes. Transfer results do not model assets, immigration/work rules, detailed state variation, or local housing availability. The health experiment does not model plan actuarial value or cost sharing, network differences, adverse selection, employer identifiers, individual-market premium equilibrium, Medicaid, or Medicare; existing APTC enters only as an observed baseline amount for the proposed credit floor, not as a re-estimated ACA subsidy schedule. Social Security retirement, SSDI, and SSI remain outside the working-age transfer module. The model pairs fiscal-year targets with a calendar-year base; the CPS distribution reports prior-year income; no administrative-data top-tail match is available; adult-credit take-up is a policy assumption; and the score remains static. The core household comparator still excludes employer pension and insurance benefits outside the dedicated health view and the 2025 special deductions for tips, overtime, car-loan interest, and seniors. Negative business liabilities are treated symmetrically.
