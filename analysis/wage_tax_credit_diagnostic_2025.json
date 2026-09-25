@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "sourceArchiveSha256": "318845a2b5e0034eb2973898de1738f4df0025727de38499e7669cb9c0deef0b",
+  "method": "Federal income tax including EITC and CTC and both FICA sides vs X-tax on all compensation, +$1,000 per individual worker, employer-cost denominator; tax only, no social benefits, ACA credits or program withdrawals; fixed marginal employer health and wage-proportional pension; 2025 ASEC calibrated to BEA wages. Current tax calculator groups heads of household with single filers and omits AMT, NIIT, nonwage income, other credits and deductions. Phase attribution concerns local marginal slopes, not levels or lifetime incentive effects. Retain-EITC counterfactual illustrates the phase-in and phaseout mechanics; it is not a costed proposal.",
+  "overall": {
+    "workerShareHigherOriginal": 0.84122,
+    "workerShareEitcPhaseIn": 0.04065,
+    "workerShareEitcPhaseOut": 0.08861,
+    "workerShareRefundableChildPhaseIn": 0.0166,
+    "workerShareEitcPhaseInAndHigher": 0.04065,
+    "workerShareHigherWithoutCurrentEitcPhaseIn": 0.80056,
+    "earningsWeightedCurrentEitcCreditSlopePercent": -0.38,
+    "workerShareHigherIfOriginalEitcRetained": 0.91492,
+    "workerShareHigherOnEitcPhaseInIfRetained": 1.0,
+    "workerShareHigherOnEitcPhaseOutIfRetained": 0.8867
+  },
+  "byIndividualAnnualCashWage": {
+    "0\u201320k": {
+      "workersMillions": 24.57,
+      "currentMarginalPercent": 19.94,
+      "reformMarginalPercent": 21.99,
+      "workerShareHigher": 0.6787,
+      "workerShareEitcPhaseIn": 0.2739,
+      "workerShareEitcPhaseOut": 0.2739,
+      "earningsWeightedCurrentEitcCreditSlopePercent": -0.5,
+      "earningsWeightedCurrentRefundableChildSlopePercent": 0.62
+    },
+    "20\u201375k": {
+      "workersMillions": 80.83,
+      "currentMarginalPercent": 27.41,
+      "reformMarginalPercent": 27.89,
+      "workerShareHigher": 0.8797,
+      "workerShareEitcPhaseIn": 0.0,
+      "workerShareEitcPhaseOut": 0.0982,
+      "earningsWeightedCurrentEitcCreditSlopePercent": -1.32,
+      "earningsWeightedCurrentRefundableChildSlopePercent": -0.57
+    },
+    "75\u2013150k": {
+      "workersMillions": 42.48,
+      "currentMarginalPercent": 32.11,
+      "reformMarginalPercent": 33.72,
+      "workerShareHigher": 0.9114,
+      "workerShareEitcPhaseIn": 0.0,
+      "workerShareEitcPhaseOut": 0.0,
+      "earningsWeightedCurrentEitcCreditSlopePercent": 0.0,
+      "earningsWeightedCurrentRefundableChildSlopePercent": -0.06
+    },
+    "150\u2013300k": {
+      "workersMillions": 14.12,
+      "currentMarginalPercent": 30.18,
+      "reformMarginalPercent": 35.0,
+      "workerShareHigher": 0.819,
+      "workerShareEitcPhaseIn": 0.0,
+      "workerShareEitcPhaseOut": 0.0,
+      "earningsWeightedCurrentEitcCreditSlopePercent": 0.0,
+      "earningsWeightedCurrentRefundableChildSlopePercent": 0.0
+    },
+    "300k+": {
+      "workersMillions": 3.53,
+      "currentMarginalPercent": 35.61,
+      "reformMarginalPercent": 35.0,
+      "workerShareHigher": 0.3347,
+      "workerShareEitcPhaseIn": 0.0,
+      "workerShareEitcPhaseOut": 0.0,
+      "earningsWeightedCurrentEitcCreditSlopePercent": 0.0,
+      "earningsWeightedCurrentRefundableChildSlopePercent": 0.0
+    }
+  },
+  "originalScheduleCrosscheck": 0.84122
+}
