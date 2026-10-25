@@ -1,5 +1,6 @@
 import parameters from '../data/current_law_2025.json';
 import { calculateChildCredit } from './childCredits';
+import { wageBracketTax } from './wageBrackets';
 import type {
   FilingStatus,
   HouseholdInput,
@@ -102,6 +103,7 @@ export function calculateAdultCredit(wageBase: number, adults: number, settings:
 export function calculateReformWageTax(wageBase: number, filingStatus: FilingStatus, settings: ReformSettings): number {
   if (settings.wageTaxMode === 'flat') return wageBase * settings.rate;
   const adults = filingStatus === 'married' ? 2 : 1;
+  if (settings.progressiveWageBrackets?.length) return wageBracketTax(wageBase, adults, settings.progressiveWageBrackets);
   const zeroCeiling = adults * settings.progressiveZeroBracketPerAdult;
   const topThreshold = Math.max(zeroCeiling, adults * settings.progressiveTopBracketPerAdult);
   const intermediateStart = settings.progressiveIntermediateStartPerAdult === null
