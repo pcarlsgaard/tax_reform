@@ -29,6 +29,12 @@ const websiteDefaultSettings: ReformSettings = {
   ...defaultSettings,
   rate: 0.35,
   wageTaxMode: 'progressive',
+  progressiveWageBrackets: [
+    { upperPerAdult: 70000, rate: 0.175 },
+    { upperPerAdult: 220000, rate: 0.25 },
+    { upperPerAdult: 275000, rate: 0.30 },
+    { upperPerAdult: null, rate: 0.35 },
+  ],
   progressiveZeroBracketPerAdult: 0,
   progressiveTopBracketPerAdult: 75000,
   progressiveMiddleRate: 0.25,

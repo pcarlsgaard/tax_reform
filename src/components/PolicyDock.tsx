@@ -1,5 +1,6 @@
 import type { HealthPolicySettings, MacroResult, ReformSettings, ReplacedTax } from '../model';
 import { moneyB, percent } from './format';
+import { wageScheduleLabel } from '../model';
 
 const taxLabels: Record<ReplacedTax, string> = {
   individualIncome: 'individual income',
@@ -23,9 +24,7 @@ export function PolicyDock({
   expanded: boolean;
   setExpanded: (expanded: boolean) => void;
 }) {
-  const structure = settings.wageTaxMode === 'flat'
-    ? `${percent(settings.rate)} flat X tax`
-    : `${percent(settings.rate)} top / ${settings.progressiveIntermediateStartPerAdult !== null ? `${percent(Math.min(settings.rate, settings.progressiveIntermediateRate))} intermediate / ` : ''}${percent(Math.min(settings.rate, settings.progressiveMiddleRate))} middle X tax`;
+  const structure = wageScheduleLabel(settings);
   const replaced = (Object.keys(taxLabels) as ReplacedTax[])
     .filter((key) => settings.replacedTaxes[key])
     .map((key) => taxLabels[key])
@@ -41,7 +40,11 @@ export function PolicyDock({
         <span className="policy-dock-toggle">{expanded ? 'Hide details' : 'Show details'} <i>{expanded ? '−' : '+'}</i></span>
       </button>
       {expanded && <div className="policy-dock-details">
-        <div><span>Wage schedule</span><strong>{structure}</strong><small>{settings.wageTaxMode === 'progressive' ? `$${settings.progressiveZeroBracketPerAdult.toLocaleString()} zero ceiling · ${settings.progressiveIntermediateStartPerAdult !== null ? `$${settings.progressiveIntermediateStartPerAdult.toLocaleString()} intermediate · ` : ''}$${settings.progressiveTopBracketPerAdult.toLocaleString()} top threshold per adult` : 'Wages and business cash flow use the same rate'}</small></div>
+        <div><span>Wage schedule</span><strong>{structure}</strong><small>{settings.wageTaxMode === 'progressive'
+          ? settings.progressiveWageBrackets?.length
+            ? `Wage edges: ${settings.progressiveWageBrackets.slice(0, -1).map(b => `${(b.upperPerAdult ?? 0).toLocaleString()}`).join(' · ')} per adult · business ${percent(settings.rate)}`
+            : `${settings.progressiveZeroBracketPerAdult.toLocaleString()} zero ceiling · ${settings.progressiveTopBracketPerAdult.toLocaleString()} top threshold per adult (legacy)`
+          : 'Wages and business cash flow use the same rate'}</small></div>
         <div><span>Cash credits</span><strong>${settings.adultCredit.toLocaleString()} adult · ${settings.childCredit.toLocaleString()} child · +${(settings.under6ChildCredit ?? 0).toLocaleString()} U6</strong><small>{settings.adultCreditMode === 'earned' ? `${percent(settings.adultCreditPhaseInRate)} adult phase-in · ${percent(settings.adultCreditPhaseOutRate)} phaseout` : 'Universal adult credit'} · child {percent(childBaselineRefundable)} baseline refundable</small></div>
         <div><span>Insurance credits</span><strong>${healthPolicy.adultHealthCredit.toLocaleString()} adult · ${healthPolicy.childHealthCredit.toLocaleString()} child</strong><small>{percent(healthPolicy.uninsuredTakeUpRate)} uninsured take-up · {billions(result.insuranceCreditCost)} total cost</small></div>
         <div><span>Compensation exclusions</span><strong>{percent(settings.employerHealthInsuranceExemptionShare)} ESI · {percent(settings.employerPensionOtherInsuranceExemptionShare)} pension/other</strong><small>{percent(settings.cashWageExemptionShare)} cash wages · {percent(settings.employerSocialInsuranceExemptionShare)} employer social insurance · {percent(settings.exemptionShare)} broad</small></div>
