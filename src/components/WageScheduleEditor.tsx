@@ -32,9 +32,11 @@ export function WageScheduleEditor({ settings, update }: {
           const prevUpper = index === 0 ? 0 : brackets[index - 1].upperPerAdult ?? 0;
           const nextUpper = last || index === brackets.length - 2
             ? 500000 : brackets[index + 1].upperPerAdult ?? 500000;
+          const minRate = index === 0 ? 0 : brackets[index - 1].rate;
+          const maxRate = last ? 0.45 : brackets[index + 1].rate;
           return <div className="control-group" key={index}>
             <span>Band {index + 1}{last ? ' · highest' : ''}</span>
-            <RangeField label="Wage rate" value={band.rate} min={0} max={0.45} step={0.005}
+            <RangeField label="Wage rate" value={band.rate} min={minRate} max={maxRate} step={0.005}
               display={percent(band.rate, 1)} onChange={(rate) => setBand(index, { rate })} />
             {!last && <RangeField label="Upper threshold / adult" value={band.upperPerAdult ?? 0}
               min={prevUpper + 5000} max={Math.max(prevUpper + 5000, nextUpper - 5000)} step={5000}
