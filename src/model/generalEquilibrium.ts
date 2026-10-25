@@ -2,6 +2,7 @@ import baseline from '../data/baseline_2025.json';
 import microdata from '../data/microdata_2025.json';
 import { calculateMacro } from './macro';
 import type { MacroAdjustment, ReformSettings } from './types';
+import { wageBracketMarginalRate } from './wageBrackets';
 
 /** An intentionally small, open-economy, long-run comparative-statics model.
  * Ratios are relative to the same economy under current law, not GDP growth rates.
@@ -173,11 +174,13 @@ export function estimateReformLaborMarginalRate(settings: ReformSettings): numbe
       ? top : Math.max(zero, Math.min(top,
         scheduleAdults * settings.progressiveIntermediateStartPerAdult));
     const wageRate = settings.wageTaxMode === 'flat' ? settings.rate
-      : taxable < zero ? 0 : taxable < intermediateStart
-        ? Math.min(settings.rate, settings.progressiveMiddleRate)
-        : taxable < top
-          ? Math.min(settings.rate, Math.max(settings.progressiveMiddleRate,
-            settings.progressiveIntermediateRate)) : settings.rate;
+      : settings.progressiveWageBrackets?.length
+        ? wageBracketMarginalRate(taxable, scheduleAdults, settings.progressiveWageBrackets)
+        : taxable < zero ? 0 : taxable < intermediateStart
+          ? Math.min(settings.rate, settings.progressiveMiddleRate)
+          : taxable < top
+            ? Math.min(settings.rate, Math.max(settings.progressiveMiddleRate,
+              settings.progressiveIntermediateRate)) : settings.rate;
     let creditSlope = 0;
     if (settings.adultCreditMode === 'earned' && creditAdults > 0 && settings.adultCredit > 0) {
       const max = creditAdults * settings.adultCredit;
