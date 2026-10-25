@@ -201,8 +201,12 @@ export interface HouseholdResult {
   percentChange: number | null;
   currentAverageRate: number;
   reformAverageRate: number;
+  /** Marginal employer-cost tax wedge: fraction of an additional labor-cost dollar taxed. */
   currentMarginalRate: number;
   reformMarginalRate: number;
+  /** Employee-facing marginal tax share per extra dollar of gross cash wages. */
+  currentPersonalMarginalRate: number;
+  reformPersonalMarginalRate: number;
 }
 
 export type TransferProgramId = 'snap' | 'wic' | 'schoolMeals' | 'summerEbt' | 'tanf' | 'liheap' | 'housing';
