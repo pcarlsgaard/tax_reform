@@ -2,6 +2,8 @@ export type FilingStatus = 'single' | 'married';
 export type ReplacedTax = 'individualIncome' | 'payroll' | 'corporateIncome' | 'customs';
 export type AdultCreditMode = 'universal' | 'earned';
 export type WageTaxMode = 'flat' | 'progressive';
+/** Upper edge of each progressive wage band in dollars per filing adult; last edge is null. */
+export interface WageBracket { upperPerAdult: number | null; rate: number; }
 
 export type AdultCreditAuditBucketId =
   | 'noEligibleAdult'
@@ -44,6 +46,8 @@ export interface AdultCreditAudit {
 export interface ReformSettings {
   rate: number;
   wageTaxMode: WageTaxMode;
+  /** Configurable 3-5 statutory wage rates; null retains the original progressive schedule. */
+  progressiveWageBrackets?: WageBracket[] | null;
   progressiveZeroBracketPerAdult: number;
   progressiveTopBracketPerAdult: number;
   /** Statutory middle wage rate; constrained to the headline rate in calculations. */
