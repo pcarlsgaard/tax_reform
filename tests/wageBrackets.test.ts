@@ -27,6 +27,13 @@ describe('configurable 3-5 statutory wage bands', () => {
   it('creates the effective 7.5% low-earnings tier through credit phase-in', () => {
     const result = calculateHousehold({ filingStatus: 'single', children: 0, cashWage: 10000 }, settings);
     expect(result.reformMarginalRate).toBeCloseTo(.075, 7);
+    expect(result.reformPersonalMarginalRate).toBeCloseTo(.075, 7);
+    expect(result.currentPersonalMarginalRate).toBeLessThan(result.currentMarginalRate);
+    const middle = calculateHousehold({ filingStatus: 'single', children: 0, cashWage: 100000 }, settings);
+    expect(middle.reformPersonalMarginalRate).toBeCloseTo(.25, 7);
+    expect(middle.reformMarginalRate).toBeCloseTo(.25, 7);
+    expect(middle.currentPersonalMarginalRate).toBeCloseTo(.2965, 7);
+    expect(middle.currentMarginalRate).toBeGreaterThan(middle.currentPersonalMarginalRate);
     const five = { ...settings, progressiveWageBrackets: marginalProtectionPresets[5] };
     const veryLow = calculateHousehold({ filingStatus: 'single', children: 0, cashWage: 10000 }, five);
     expect(veryLow.reformMarginalRate).toBeCloseTo(-.025, 7);
